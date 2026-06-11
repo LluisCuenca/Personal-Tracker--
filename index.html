@@ -1571,6 +1571,7 @@ button:active,
             <div id="fb-sync-status" style="font-size:10px;color:var(--lime-light);font-weight:700;margin-top:2px;">● Sincronizado</div>
           </div>
         </div>
+        <button class="btn btn-lime-full" id="fb-refresh-btn" style="font-size:13px;padding:11px;margin-bottom:8px;" onclick="refreshFromGoogle(this)">↻ Actualizar desde Google</button>
         <button class="btn btn-ghost full" style="font-size:13px;" onclick="firebaseSignOut()">Cerrar sesión</button>
       </div>
     </div>
@@ -2212,6 +2213,8 @@ button:active,
       <div id="sync-modal-status" style="font-size:15px;font-weight:600;"></div>
     </div>
 
+    <button id="sync-refresh-btn" class="btn btn-lime-full" style="font-size:13px;padding:12px;margin-bottom:14px;" onclick="refreshFromGoogle(this)">↻ Actualizar datos desde Google</button>
+
     <!-- Manual backup link -->
     <div style="background:var(--surf);border-radius:14px;padding:16px;margin-bottom:14px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
@@ -2754,6 +2757,44 @@ function renderCurrentScreen(){
   else if(CS==='s-planner') renderPlanner();
   else if(CS==='s-fitlib') renderLib();
   else if(CS==='s-settings') renderSettings();
+}
+
+function refreshFromGoogle(button){
+  if(!_firebaseUser || typeof firebase === 'undefined'){
+    toast('Inicia sesión con Google primero','error');
+    return;
+  }
+  var originalText = button ? button.textContent : '';
+  if(button){
+    button.disabled = true;
+    button.textContent = '↻ Actualizando...';
+  }
+  setSyncStatus('syncing', 'Actualizando');
+  firebase.firestore().collection('users').doc(_firebaseUser.uid).get({ source:'server' }).then(function(doc){
+    if(!doc.exists || !doc.data() || !doc.data().state){
+      toast('La cuenta de Google todavía no tiene datos','info');
+      setSyncStatus('ok', 'Google');
+      return;
+    }
+    var data = doc.data();
+    S = JSON.parse(data.state);
+    applyDefaults();
+    applyFirestoreProfile(data);
+    localStorage.setItem('pt7', JSON.stringify(S));
+    localStorage.setItem('pt7_cloud_uid', _firebaseUser.uid);
+    renderCurrentScreen();
+    updateAvatars();
+    setSyncStatus('ok', 'Google');
+    toast('Datos actualizados desde Google','success');
+    renderSyncModalStatus();
+  }).catch(function(e){
+    handleFirestoreError('Error actualizando desde Firestore', e);
+  }).then(function(){
+    if(button){
+      button.disabled = false;
+      button.textContent = originalText;
+    }
+  });
 }
 
 function saveToFirestore(){
@@ -6323,11 +6364,17 @@ function clearLocalDataAndReload(){
 
 function showSyncInfo(){
   var urlBox = el('sync-url-display');
-  var statusBox = el('sync-modal-status');
   var currentUrl = buildSyncLink();
 
   if(urlBox) urlBox.textContent = currentUrl;
+  var refreshBtn = el('sync-refresh-btn');
+  if(refreshBtn) refreshBtn.style.display = _firebaseUser ? '' : 'none';
+  renderSyncModalStatus();
+  openModal('m-sync');
+}
 
+function renderSyncModalStatus(){
+  var statusBox = el('sync-modal-status');
   if(statusBox){
     if(_firebaseUser){
       statusBox.innerHTML = '<span style="color:var(--lime-light);">●</span> <strong>Google activo</strong><br><span style="font-size:11px;color:var(--txt2);">Toda la información se guarda en Firestore para '+(_firebaseUser.email || _firebaseUser.displayName || 'tu cuenta')+'.</span>';
@@ -6335,8 +6382,6 @@ function showSyncInfo(){
       statusBox.innerHTML = '<span style="color:var(--txt3);">○</span> <strong>Modo local</strong><br><span style="font-size:11px;color:var(--txt2);">Inicia sesión con Google para guardar toda la información en tu cuenta.</span>';
     }
   }
-
-  openModal('m-sync');
 }
 
 function syncIndicatorClick(){ showSyncInfo(); }
