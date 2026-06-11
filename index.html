@@ -43,21 +43,21 @@
   --r-pill:99px;
 }
 [data-theme="light"]{
-  --bg:#F4F4F2;
-  --card:#FFFFFF;
-  --card2:#FAFAF8;
-  --surf:#EFEFEC;
-  --surf2:#E0E0DC;
-  --surf3:#C0C0BC;
+  --bg:#D8D9D5;
+  --card:#E8E9E5;
+  --card2:#E1E2DE;
+  --surf:#CFD1CC;
+  --surf2:#C2C4BE;
+  --surf3:#A9ACA5;
   --lime:#5DA300;
   --lime-light:#7BC42A;
   --gold:#D4A800;
   --red:#E84A40;
   --blue:#0090D6;
-  --txt:#0D0D0D;
-  --txt2:#5D5D5A;
-  --txt3:#8A8A85;
-  --border:rgba(0,0,0,.08);
+  --txt:#171816;
+  --txt2:#555851;
+  --txt3:#797D75;
+  --border:rgba(20,22,18,.11);
 }
 
 /* ─── LIGHT THEME OVERRIDES ─── */
@@ -84,7 +84,7 @@
 [data-theme="light"] textarea:focus,
 [data-theme="light"] .time-picker:focus-within{
   border-color:var(--lime-light) !important;
-  background:#FFFFFF !important;
+  background:var(--card) !important;
 }
 [data-theme="light"] .sheet{
   box-shadow:0 -8px 40px rgba(0,0,0,.18),0 0 0 1px rgba(0,0,0,.04);
@@ -142,6 +142,8 @@
 [data-theme="light"] .ob-dot.on{background:var(--lime-light);}
 [data-theme="light"] .list-section-lbl{color:var(--txt2);}
 [data-theme="light"] .hab-row:hover{border-color:rgba(0,0,0,.12);}
+.google-mark-bg{background:#fff;}
+[data-theme="light"] .google-mark-bg{background:var(--card);}
 html{height:100%;background:var(--bg);}
 body{
   min-height:100%;
@@ -958,11 +960,11 @@ button:active,
 .pt-toast.info{border-color:var(--surf3);background:var(--card);color:var(--txt);}
 .pt-toast.info::before{background:var(--blue);}
 [data-theme="light"] .pt-toast{
-  background:#FFFFFF;
+  background:var(--card);
   box-shadow:0 16px 38px rgba(0,0,0,.16),0 0 0 1px rgba(0,0,0,.04);
 }
-[data-theme="light"] .pt-toast.success{background:#F1F8E8;color:var(--txt);border-color:rgba(93,163,0,.32);}
-[data-theme="light"] .pt-toast.error{background:#FFF0EF;color:var(--txt);border-color:rgba(232,74,64,.36);}
+[data-theme="light"] .pt-toast.success{background:#DCE5D2;color:var(--txt);border-color:rgba(93,163,0,.32);}
+[data-theme="light"] .pt-toast.error{background:#E8D7D4;color:var(--txt);border-color:rgba(232,74,64,.36);}
 
 /* Goal achieved badge */
 .goal-met-badge{
@@ -1070,7 +1072,7 @@ button:active,
   transform:translateY(-50%);
 }
 .th-swatch-light{
-  background:linear-gradient(135deg,#F4F4F2 50%,#FFFFFF 50%);
+  background:linear-gradient(135deg,#D8D9D5 50%,#E8E9E5 50%);
 }
 .th-swatch-light::after{
   content:'';position:absolute;top:50%;left:25%;width:50%;height:4px;
@@ -1653,25 +1655,6 @@ button:active,
           <span class="th-label">Claro</span>
         </button>
       </div>
-    </div>
-
-    <!-- Custom logo / favicon -->
-    <div class="mcard">
-      <div style="font-size:15px;font-weight:800;margin-bottom:4px;">Logo de la app</div>
-      <div style="font-size:11px;color:var(--txt2);margin-bottom:16px;">Personaliza el icono de la pantalla de inicio</div>
-      <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;">
-        <div id="lg-preview" style="width:72px;height:72px;border-radius:16px;background:var(--lime-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">
-          <svg width="42" height="42" viewBox="0 0 64 64" fill="none">
-            <path d="M11 32 L22 32 L27 21 L33 43 L39 32 L53 32" stroke="#0D0D0D" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-          </svg>
-        </div>
-        <div style="flex:1;font-size:11px;color:var(--txt2);line-height:1.5;">
-          Sube una imagen cuadrada (512×512px). Se aplica al icono cuando reimportes la app desde Safari.
-        </div>
-      </div>
-      <input type="file" id="lg-upload" accept="image/*" style="display:none;" onchange="uploadCustomLogo(this)">
-      <button class="btn btn-lime-full" style="font-size:13px;margin-bottom:8px;" onclick="document.getElementById('lg-upload').click()">Subir imagen</button>
-      <button id="lg-reset" class="btn btn-ghost full" style="font-size:12px;color:var(--txt2);display:none;" onclick="resetCustomLogo()">Restablecer logo por defecto</button>
     </div>
 
     <div class="mcard" style="text-align:center;">
@@ -2447,6 +2430,7 @@ function applyDefaults(){
   if(!S.water)     S.water     = {};
   if(!S.planner)   S.planner   = { activities:[], weeks:{} };
   if(!S.hiddenRecents) S.hiddenRecents = { foods:[], activities:[] };
+  if(S.customLogo) delete S.customLogo;
 }
 
 /* ═══ TEMA (claro/oscuro) ═══ */
@@ -2454,7 +2438,7 @@ function applyTheme(t){
   t = t || 'dark';
   document.documentElement.setAttribute('data-theme', t);
   var meta = document.querySelector('meta[name="theme-color"]');
-  if(meta) meta.setAttribute('content', t === 'light' ? '#F4F4F2' : '#0D0D0D');
+  if(meta) meta.setAttribute('content', t === 'light' ? '#D8D9D5' : '#0D0D0D');
 }
 function loadTheme(){
   var t = localStorage.getItem('pt7_theme') || 'dark';
@@ -2949,7 +2933,7 @@ function renderHome(){
   // Sign-in banner (top of home, only if not signed in)
   if(!_firebaseUser){
     h += '<div onclick="signInWithGoogle()" style="margin:14px 16px 0;background:var(--surf);border:1px solid var(--border);border-radius:14px;padding:11px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .2s;">'
-       + '<div style="width:30px;height:30px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'
+       + '<div class="google-mark-bg" style="width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'
        + '<svg width="16" height="16" viewBox="0 0 24 24">'
        +   '<path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>'
        +   '<path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>'
@@ -6290,8 +6274,6 @@ function renderSettings(){
   var td_ = el('th-dark'), tl_ = el('th-light');
   if(td_) td_.className = 'theme-tile' + (t==='dark'?' on':'');
   if(tl_) tl_.className = 'theme-tile' + (t==='light'?' on':'');
-  // Custom logo preview
-  applyCustomLogo();
   // Firebase sync UI
   updateFirebaseUIState();
   el('sw-fit').checked=S.modules.fitness;
@@ -6721,69 +6703,6 @@ function exportCSV(){
   toast('✓ CSV exportado', 'success');
 }
 
-/* ═══ CUSTOM LOGO ═══ */
-function uploadCustomLogo(input){
-  var f = input.files[0];
-  if(!f) return;
-  if(f.size > 500000){ toast('Imagen demasiado grande (máx 500KB)','error'); input.value=''; return; }
-  var reader = new FileReader();
-  reader.onload = function(e){
-    // Resize/compress to 256x256 max for storage efficiency
-    var img = new Image();
-    img.onload = function(){
-      var canvas = document.createElement('canvas');
-      canvas.width = 256; canvas.height = 256;
-      var ctx = canvas.getContext('2d');
-      // Fill with lime bg in case image has transparency
-      ctx.fillStyle = '#BAFF39';
-      ctx.fillRect(0, 0, 256, 256);
-      // Center-crop to square
-      var size = Math.min(img.width, img.height);
-      var sx = (img.width - size) / 2;
-      var sy = (img.height - size) / 2;
-      ctx.drawImage(img, sx, sy, size, size, 0, 0, 256, 256);
-      var dataUrl = canvas.toDataURL('image/png');
-      S.customLogo = dataUrl;
-      save();
-      applyCustomLogo();
-      toast('Logo actualizado','success');
-    };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(f);
-  input.value = '';
-}
-
-function applyCustomLogo(){
-  var logo = S.customLogo;
-  // Preview in settings
-  var preview = el('lg-preview');
-  var resetBtn = el('lg-reset');
-  if(preview){
-    if(logo){
-      preview.innerHTML = '<img src="'+logo+'" style="width:100%;height:100%;object-fit:cover;border-radius:16px;">';
-      preview.style.background = 'transparent';
-    } else {
-      preview.innerHTML = '<svg width="42" height="42" viewBox="0 0 64 64" fill="none"><path d="M11 32 L22 32 L27 21 L33 43 L39 32 L53 32" stroke="#0D0D0D" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>';
-      preview.style.background = 'var(--lime-light)';
-    }
-  }
-  if(resetBtn) resetBtn.style.display = logo ? '' : 'none';
-  // Apply to apple-touch-icon
-  if(logo){
-    var link = document.querySelector('link[rel="apple-touch-icon"]');
-    if(link) link.setAttribute('href', logo);
-  }
-}
-
-function resetCustomLogo(){
-  if(!confirm('¿Restablecer el logo por defecto?')) return;
-  S.customLogo = null;
-  save();
-  applyCustomLogo();
-  toast('Logo restablecido. Vuelve a importar la app desde Safari para ver el cambio en el icono.','info');
-}
-
 /* ═══ INFO POPOVERS (TMB/TDEE explanations) ═══ */
 function showInfo(topic){
   var info = {
@@ -7167,13 +7086,6 @@ loadState();
 loadAiKey();
 // Init Firebase if config exists
 if(loadFirebaseConfig()) setTimeout(function(){ initFirebase(false); }, 200);
-// Apply custom logo if user has set one
-setTimeout(function(){
-  if(S && S.customLogo){
-    var link = document.querySelector('link[rel="apple-touch-icon"]');
-    if(link) link.setAttribute('href', S.customLogo);
-  }
-}, 100);
 S.fitDate=today();S.habDate=today();
 goScreen('s-home');
 updateAvatars();
