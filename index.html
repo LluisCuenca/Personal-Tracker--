@@ -2548,10 +2548,12 @@ function initFirebase(verbose){
           _firebaseUser = user;
           if(user){
             startFirestoreSync(user.uid);
+            finishOnboardingAfterAuth();
             if(verbose) toast('Sesión iniciada como '+(user.email||user.displayName),'success');
           } else {
             if(_firestoreUnsub){ _firestoreUnsub(); _firestoreUnsub = null; }
           }
+          updateAvatars();
           if(CS==='s-settings') renderSettings();
           if(CS==='s-home') renderHome();
           updateSyncIndicator();
@@ -2586,6 +2588,44 @@ function firebaseSignOut(){
   try { firebase.auth().signOut(); } catch(e){}
 }
 
+function getGoogleProfilePhoto(){
+  return (_firebaseUser && _firebaseUser.photoURL) || null;
+}
+
+function getProfilePhoto(){
+  return (S.profile && S.profile.photo) || getGoogleProfilePhoto();
+}
+
+function getFirestoreProfile(){
+  var p = S.profile || {};
+  return {
+    sex: p.sex || null,
+    age: p.age || null,
+    weight: p.weight || null,
+    height: p.height || null,
+    activity: p.activity || null,
+    goal: p.goal || null,
+    calOverride: p.calOverride || '',
+    protOverride: p.protOverride || '',
+    photo: p.photo || getGoogleProfilePhoto(),
+    photoSource: p.photo ? 'custom' : (getGoogleProfilePhoto() ? 'google' : null)
+  };
+}
+
+function applyFirestoreProfile(data){
+  if(!data || !data.profile) return;
+  var remoteProfile = data.profile;
+  if(!S.profile) S.profile = {};
+  var fields = ['sex','age','weight','height','activity','goal','calOverride','protOverride','photo'];
+  for(var i=0;i<fields.length;i++){
+    var key = fields[i];
+    if(key === 'photo' && remoteProfile.photoSource === 'google') continue;
+    if(remoteProfile[key] !== undefined && remoteProfile[key] !== null){
+      S.profile[key] = remoteProfile[key];
+    }
+  }
+}
+
 function startFirestoreSync(uid){
   if(typeof firebase === 'undefined') return;
   var db = firebase.firestore();
@@ -2603,13 +2643,20 @@ function startFirestoreSync(uid){
           if(remoteCount > localCount){
             S = remote;
             applyDefaults();
+            applyFirestoreProfile(data);
             try { localStorage.setItem('pt7', LZString.compressToUTF16(JSON.stringify(S))); } catch(e){}
+            updateAvatars();
             if(CS==='s-home') renderHome();
             else if(CS==='s-fitness') renderFitness();
             else if(CS==='s-habits') renderHabits();
             else if(CS==='s-planner') renderPlanner();
             toast('Datos cargados desde la nube','success');
-          } else if(localCount > 0){
+          } else if(remoteCount === localCount && !S.profile && data.profile){
+            applyFirestoreProfile(data);
+            localStorage.setItem('pt7', JSON.stringify(S));
+            updateAvatars();
+            saveToFirestore();
+          } else {
             saveToFirestore();
           }
         } catch(e){}
@@ -2628,7 +2675,9 @@ function startFirestoreSync(uid){
         var remote = JSON.parse(data.state);
         S = remote;
         applyDefaults();
+        applyFirestoreProfile(data);
         try { localStorage.setItem('pt7', LZString.compressToUTF16(JSON.stringify(S))); } catch(e){}
+        updateAvatars();
         if(CS==='s-home') renderHome();
         else if(CS==='s-fitness') renderFitness();
         else if(CS==='s-habits') renderHabits();
@@ -2641,12 +2690,28 @@ function startFirestoreSync(uid){
 function saveToFirestore(){
   if(!_firebaseUser || typeof firebase === 'undefined') return;
   try {
+    setSyncStatus('syncing', 'Guardando');
     firebase.firestore().collection('users').doc(_firebaseUser.uid).set({
       state: JSON.stringify(S),
+      profile: getFirestoreProfile(),
+      account: {
+        uid: _firebaseUser.uid,
+        email: _firebaseUser.email || null,
+        displayName: _firebaseUser.displayName || null,
+        googlePhotoURL: getGoogleProfilePhoto()
+      },
       updatedAt: new Date().toISOString(),
       lastDevice: _deviceId
-    }, { merge: true });
-  } catch(e){}
+    }, { merge: true }).then(function(){
+      setSyncStatus('ok', 'Google');
+    }).catch(function(e){
+      console.error('Error guardando en Firestore:', e);
+      setSyncStatus('error', 'Error al guardar');
+    });
+  } catch(e){
+    console.error('Error preparando guardado en Firestore:', e);
+    setSyncStatus('error', 'Error al guardar');
+  }
 }
 
 function updateFirebaseUIState(){
@@ -5240,10 +5305,11 @@ function openProfile(){
   // Photo preview + remove button visibility
   var preview = el('profile-photo-preview');
   var rmBtn = el('photo-remove-btn');
+  var profilePhoto = getProfilePhoto();
   if(preview){
-    if(p.photo){
-      preview.innerHTML = '<img src="' + p.photo + '" alt="">';
-      if(rmBtn) rmBtn.style.display = '';
+    if(profilePhoto){
+      preview.innerHTML = '<img src="' + profilePhoto + '" alt="">';
+      if(rmBtn) rmBtn.style.display = p.photo ? '' : 'none';
     } else {
       preview.innerHTML = '<span>L</span>';
       if(rmBtn) rmBtn.style.display = 'none';
@@ -5333,7 +5399,7 @@ function removeProfilePhoto(){
 }
 
 function updateAvatars(){
-  var photo = (S.profile && S.profile.photo) || null;
+  var photo = getProfilePhoto();
   var avs = document.querySelectorAll('.av');
   for(var i = 0; i < avs.length; i++){
     var av = avs[i];
@@ -6829,6 +6895,13 @@ function completeOnboarding(){
   toast('¡Listo! Bienvenido a Personal Tracker','success');
   if(CS==='s-home') renderHome();
   if(CS==='s-fitness') renderFitness();
+}
+
+function finishOnboardingAfterAuth(){
+  var onboarding = el('m-onboard');
+  if(!onboarding || !onboarding.classList.contains('open')) return;
+  completeOnboarding();
+  goScreen('s-home');
 }
 
 function maybeShowOnboarding(){
