@@ -2212,13 +2212,13 @@ button:active,
       <div id="sync-modal-status" style="font-size:15px;font-weight:600;"></div>
     </div>
 
-    <!-- METHOD A: URL link -->
+    <!-- Manual backup link -->
     <div style="background:var(--surf);border-radius:14px;padding:16px;margin-bottom:14px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <div style="font-size:14px;font-weight:800;">A. Link compartible</div>
-        <div style="font-size:9px;color:var(--lime-light);background:rgba(186,255,57,.12);padding:3px 8px;border-radius:99px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;">Sin servicios</div>
+        <div style="font-size:14px;font-weight:800;">Copia manual</div>
+        <div style="font-size:9px;color:var(--txt2);background:var(--bg);padding:3px 8px;border-radius:99px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;">Opcional</div>
       </div>
-      <div style="font-size:11px;color:var(--txt2);line-height:1.5;margin-bottom:12px;">El link de la URL <strong style="color:var(--txt);">contiene</strong> tus datos comprimidos. Cópialo y ábrelo en otro dispositivo para ver lo mismo.</div>
+      <div style="font-size:11px;color:var(--txt2);line-height:1.5;margin-bottom:12px;">Este enlace exporta una copia puntual de tus datos. No sustituye la sincronización automática con Google.</div>
       <div id="sync-url-display" style="font-size:10px;color:var(--lime-light);word-break:break-all;line-height:1.5;margin-bottom:12px;font-family:monospace;background:var(--bg);padding:10px;border-radius:8px;border:1px solid var(--border);max-height:80px;overflow-y:auto;">—</div>
       <button class="btn btn-lime-sm full" onclick="copySyncLink()">Copiar link actual</button>
     </div>
@@ -2287,8 +2287,10 @@ function pct(v,max){return max>0?Math.min(100,Math.max(0,Math.round(v/max*100)))
    Principal: Google/Firebase cuando el usuario inicia sesión.
    Respaldo: URL hash con datos comprimidos (LZ-String).
 ═══════════════════════════════════════════════════════ */
-var syncMode = 'url';
+var syncMode = 'local';
 var syncInitialLoadDone = false;
+var currentSyncStatus = 'idle';
+var currentSyncMessage = 'Local';
 
 function getUrlParam(name){
   var hash = window.location.hash || '';
@@ -2298,6 +2300,8 @@ function getUrlParam(name){
 }
 
 function setSyncStatus(s, msg){
+  currentSyncStatus = s;
+  currentSyncMessage = msg || (_firebaseUser ? 'Google' : 'Local');
   var icons = {idle:'○', syncing:'↻', ok:'●', error:'!'};
   var colors = {idle:'var(--txt3)', syncing:'var(--gold)', ok:'var(--lime-light)', error:'var(--red)'};
   var ind = el('sync-indicator');
@@ -2308,10 +2312,15 @@ function setSyncStatus(s, msg){
   var st = el('settings-sync-status');
   if(st){
     if(_firebaseUser){
-      st.innerHTML = '<span style="color:var(--lime-light);">●</span> Google activo — tus datos se sincronizan con tu cuenta';
+      st.innerHTML = '<span style="color:' + colors[s] + ';">' + icons[s] + '</span> Google activo — toda la información de la app está vinculada a tu cuenta';
     } else {
-      st.innerHTML = '<span style="color:var(--txt3);">○</span> Local — inicia sesión con Google para sincronizar';
+      st.innerHTML = '<span style="color:var(--txt3);">○</span> Local — los datos sólo están disponibles en este dispositivo';
     }
+  }
+  var fbSt = el('fb-sync-status');
+  if(fbSt && _firebaseUser){
+    fbSt.textContent = icons[s] + ' ' + (s === 'syncing' ? 'Guardando en Google' : s === 'error' ? 'Error de sincronización' : 'Sincronizado con Google');
+    fbSt.style.color = colors[s];
   }
 }
 
@@ -2337,15 +2346,25 @@ function decodeStateFromHash(){
 }
 
 var _fbDebounce = null;
+var _cloudSyncReady = false;
+var _cloudSavePending = false;
 function save(){
+  // Local storage is only an offline cache. Once Google is connected,
+  // Firestore is the source of truth for the complete app state.
   localStorage.setItem('pt7', JSON.stringify(S));
 
   if(_firebaseUser){
-    if(_fbDebounce) clearTimeout(_fbDebounce);
-    _fbDebounce = setTimeout(saveToFirestore, 1200);
+    syncMode = 'google';
+    if(_cloudSyncReady){
+      if(_fbDebounce) clearTimeout(_fbDebounce);
+      _fbDebounce = setTimeout(saveToFirestore, 1200);
+    } else {
+      _cloudSavePending = true;
+      setSyncStatus('syncing', 'Google');
+    }
   }
 
-  setSyncStatus('ok', _firebaseUser ? 'Google' : 'Local');
+  if(!_firebaseUser) setSyncStatus('ok', 'Local');
 }
 
 function loadState(){
@@ -2544,16 +2563,22 @@ function initFirebase(verbose){
         firebase.auth().onAuthStateChanged(function(user){
           _firebaseUser = user;
           if(user){
-            startFirestoreSync(user.uid);
+            syncMode = 'google';
+            _cloudSyncReady = false;
+            setSyncStatus('syncing', 'Google');
             finishOnboardingAfterAuth();
+            startFirestoreSync(user.uid);
             if(verbose) toast('Sesión iniciada como '+(user.email||user.displayName),'success');
           } else {
             if(_firestoreUnsub){ _firestoreUnsub(); _firestoreUnsub = null; }
+            syncMode = 'local';
+            _cloudSyncReady = false;
+            _cloudSavePending = false;
+            setSyncStatus('ok', 'Local');
           }
           updateAvatars();
           if(CS==='s-settings') renderSettings();
           if(CS==='s-home') renderHome();
-          updateSyncIndicator();
         });
       }
     } catch(e){
@@ -2635,65 +2660,88 @@ function startFirestoreSync(uid){
   if(typeof firebase === 'undefined') return;
   var db = firebase.firestore();
   var ref = db.collection('users').doc(uid);
-  // Initial fetch — merge logic
+  var cachedCloudUid = localStorage.getItem('pt7_cloud_uid');
+  if(_firestoreUnsub){ _firestoreUnsub(); _firestoreUnsub = null; }
+
+  // Google is authoritative after login: load its complete state when it
+  // exists; otherwise create it from the current local/offline cache.
   ref.get().then(function(doc){
-    if(doc.exists){
+    if(doc.exists && doc.data() && doc.data().state){
       var data = doc.data();
-      if(data && data.state){
-        try {
-          var remote = JSON.parse(data.state);
-          var localCount = (Object.keys(S.fitDays||{}).length) + ((S.habits||[]).length) + Object.keys(S.habDays||{}).length;
-          var remoteCount = (Object.keys(remote.fitDays||{}).length) + ((remote.habits||[]).length) + Object.keys(remote.habDays||{}).length;
-          // If remote has more data, pull. Otherwise push local.
-          if(remoteCount > localCount){
-            S = remote;
-            applyDefaults();
-            applyFirestoreProfile(data);
-            try { localStorage.setItem('pt7', LZString.compressToUTF16(JSON.stringify(S))); } catch(e){}
-            updateAvatars();
-            if(CS==='s-home') renderHome();
-            else if(CS==='s-fitness') renderFitness();
-            else if(CS==='s-habits') renderHabits();
-            else if(CS==='s-planner') renderPlanner();
-            toast('Datos cargados desde la nube','success');
-          } else if(remoteCount === localCount && !S.profile && data.profile){
-            applyFirestoreProfile(data);
-            localStorage.setItem('pt7', JSON.stringify(S));
-            updateAvatars();
-            saveToFirestore();
-          } else {
-            saveToFirestore();
-          }
-        } catch(e){}
-      }
-    } else {
-      // First sign-in for this user: push local
-      saveToFirestore();
-    }
-  });
-  // Real-time listener for cross-device updates
-  _firestoreUnsub = ref.onSnapshot(function(doc){
-    if(!doc.exists || doc.metadata.hasPendingWrites) return;
-    var data = doc.data();
-    if(data && data.lastDevice && data.lastDevice !== _deviceId && data.state){
       try {
-        var remote = JSON.parse(data.state);
-        S = remote;
+        S = JSON.parse(data.state);
         applyDefaults();
         applyFirestoreProfile(data);
-        try { localStorage.setItem('pt7', LZString.compressToUTF16(JSON.stringify(S))); } catch(e){}
+        localStorage.setItem('pt7', JSON.stringify(S));
+        localStorage.setItem('pt7_cloud_uid', uid);
+        renderCurrentScreen();
         updateAvatars();
-        if(CS==='s-home') renderHome();
-        else if(CS==='s-fitness') renderFitness();
-        else if(CS==='s-habits') renderHabits();
-        else if(CS==='s-planner') renderPlanner();
-      } catch(e){}
+        toast('Datos cargados desde Google','success');
+      } catch(e){
+        console.error('Error leyendo datos de Google:', e);
+        setSyncStatus('error', 'Datos inválidos');
+      }
+    } else {
+      // Migrate unsynced local data on the first Google login, but never
+      // leak the cached data of one Google account into another account.
+      if(cachedCloudUid && cachedCloudUid !== uid){
+        S = {};
+        applyDefaults();
+        localStorage.setItem('pt7', JSON.stringify(S));
+        renderCurrentScreen();
+        updateAvatars();
+      }
+      _cloudSavePending = true;
     }
+    _cloudSyncReady = true;
+    if(_cloudSavePending){
+      _cloudSavePending = false;
+      saveToFirestore();
+    } else {
+      setSyncStatus('ok', 'Google');
+    }
+
+    // Real-time updates from the same Google account on other devices.
+    _firestoreUnsub = ref.onSnapshot(function(snapshot){
+      if(!snapshot.exists || snapshot.metadata.hasPendingWrites) return;
+      var remoteData = snapshot.data();
+      if(remoteData && remoteData.lastDevice && remoteData.lastDevice !== _deviceId && remoteData.state){
+        try {
+          S = JSON.parse(remoteData.state);
+          applyDefaults();
+          applyFirestoreProfile(remoteData);
+          localStorage.setItem('pt7', JSON.stringify(S));
+          localStorage.setItem('pt7_cloud_uid', uid);
+          renderCurrentScreen();
+          updateAvatars();
+          setSyncStatus('ok', 'Google');
+        } catch(e){
+          console.error('Error aplicando datos de Google:', e);
+        }
+      }
+    });
+  }).catch(function(e){
+    console.error('Error conectando con Firestore:', e);
+    _cloudSyncReady = false;
+    setSyncStatus('error', 'Google');
   });
 }
 
+function renderCurrentScreen(){
+  if(CS==='s-home') renderHome();
+  else if(CS==='s-fitness') renderFitness();
+  else if(CS==='s-habits') renderHabits();
+  else if(CS==='s-hablib') renderHabLib();
+  else if(CS==='s-planner') renderPlanner();
+  else if(CS==='s-fitlib') renderLib();
+  else if(CS==='s-settings') renderSettings();
+}
+
 function saveToFirestore(){
-  if(!_firebaseUser || typeof firebase === 'undefined') return;
+  if(!_firebaseUser || typeof firebase === 'undefined' || !_cloudSyncReady) {
+    _cloudSavePending = !!_firebaseUser;
+    return;
+  }
   try {
     setSyncStatus('syncing', 'Guardando');
     firebase.firestore().collection('users').doc(_firebaseUser.uid).set({
@@ -2708,6 +2756,7 @@ function saveToFirestore(){
       updatedAt: new Date().toISOString(),
       lastDevice: _deviceId
     }, { merge: true }).then(function(){
+      localStorage.setItem('pt7_cloud_uid', _firebaseUser.uid);
       setSyncStatus('ok', 'Google');
     }).catch(function(e){
       console.error('Error guardando en Firestore:', e);
@@ -6190,8 +6239,8 @@ function renderSettings(){
   el('sw-fit').checked=S.modules.fitness;
   el('sw-hab').checked=S.modules.habits;
   if(el('sw-plan')) el('sw-plan').checked = (S.modules.planner !== false);
-  // Refresh sync status via setSyncStatus
-  setSyncStatus(syncMode==='gist' && GIST_ID ? 'ok' : 'ok', syncMode==='gist' ? 'GitHub' : 'URL');
+  // Refresh sync status without overriding an active/error cloud state.
+  setSyncStatus(_firebaseUser && !_cloudSyncReady ? 'syncing' : currentSyncStatus, _firebaseUser ? 'Google' : 'Local');
   // AI status
   var setupBlock = el('ai-setup-block');
   var activeBlock = el('ai-active-block');
@@ -6231,7 +6280,22 @@ function toggleMod(m){
 function exportData(){var b=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='pt-'+today()+'.json';a.click();}
 function resetData(){
   if(!confirm('¿Resetear todos los datos? Esta acción no se puede deshacer.'))return;
+  if(_firebaseUser && typeof firebase !== 'undefined'){
+    setSyncStatus('syncing', 'Borrando');
+    firebase.firestore().collection('users').doc(_firebaseUser.uid).delete().then(function(){
+      clearLocalDataAndReload();
+    }).catch(function(e){
+      console.error('Error borrando datos de Google:', e);
+      setSyncStatus('error', 'Error al borrar');
+      toast('No se pudieron borrar los datos de Google','error');
+    });
+    return;
+  }
+  clearLocalDataAndReload();
+}
+function clearLocalDataAndReload(){
   localStorage.removeItem('pt7');
+  localStorage.removeItem('pt7_cloud_uid');
   localStorage.removeItem('pt7_token');
   localStorage.removeItem('pt7_gist');
   localStorage.removeItem('pt7_mode');
@@ -6243,30 +6307,15 @@ function resetData(){
 function showSyncInfo(){
   var urlBox = el('sync-url-display');
   var statusBox = el('sync-modal-status');
-  var ghBtns = el('github-buttons');
-  var ghText = el('github-status-text');
   var currentUrl = buildSyncLink();
 
   if(urlBox) urlBox.textContent = currentUrl;
 
   if(statusBox){
-    if(syncMode==='gist' && GIST_ID){
-      statusBox.innerHTML = '<span style="color:var(--lime-light);">●</span> <strong>GitHub Gist activo</strong><br><span style="font-size:11px;color:var(--txt2);">ID: ' + GIST_ID.slice(-12) + '</span>';
+    if(_firebaseUser){
+      statusBox.innerHTML = '<span style="color:var(--lime-light);">●</span> <strong>Google activo</strong><br><span style="font-size:11px;color:var(--txt2);">Toda la información se guarda en Firestore para '+(_firebaseUser.email || _firebaseUser.displayName || 'tu cuenta')+'.</span>';
     } else {
-      statusBox.innerHTML = '<span style="color:var(--lime-light);">●</span> <strong>Modo URL activo</strong><br><span style="font-size:11px;color:var(--txt2);">Tus datos están en la URL de arriba</span>';
-    }
-  }
-
-  if(ghBtns){
-    if(syncMode==='gist' && GIST_ID){
-      ghBtns.innerHTML =
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'
-        +'<button class="btn btn-ghost" style="font-size:12px;" onclick="window.open(\'https://gist.github.com/\'+GIST_ID,\'_blank\')">Ver en GitHub</button>'
-        +'<button class="btn btn-danger" style="padding:9px;font-size:12px;" onclick="disconnectGist()">Desconectar</button>'
-        +'</div>';
-      if(ghText) ghText.innerHTML = '<span style="color:var(--lime-light);">✓ Activo.</span> Cada cambio se guarda automáticamente en tu gist privado de GitHub.';
-    } else {
-      ghBtns.innerHTML = '<button class="btn btn-lime-sm full" onclick="openModal(\'m-github\')">Conectar GitHub</button>';
+      statusBox.innerHTML = '<span style="color:var(--txt3);">○</span> <strong>Modo local</strong><br><span style="font-size:11px;color:var(--txt2);">Inicia sesión con Google para guardar toda la información en tu cuenta.</span>';
     }
   }
 
