@@ -2288,7 +2288,6 @@ function pct(v,max){return max>0?Math.min(100,Math.max(0,Math.round(v/max*100)))
    Respaldo: URL hash con datos comprimidos (LZ-String).
 ═══════════════════════════════════════════════════════ */
 var syncMode = 'url';
-var hashUpdateDebounce = null;
 var syncInitialLoadDone = false;
 
 function getUrlParam(name){
@@ -2316,13 +2315,15 @@ function setSyncStatus(s, msg){
   }
 }
 
-function encodeStateToHash(){
-  if(typeof LZString === 'undefined') return;
+function buildSyncLink(){
+  if(typeof LZString === 'undefined') return window.location.href.split('#')[0];
   try {
     var json = JSON.stringify(S);
     var compressed = LZString.compressToEncodedURIComponent(json);
-    history.replaceState(null, '', '#d=' + compressed);
-  } catch(e){ /* fail silently */ }
+    return window.location.href.split('#')[0] + '#d=' + compressed;
+  } catch(e){
+    return window.location.href.split('#')[0];
+  }
 }
 
 function decodeStateFromHash(){
@@ -2344,11 +2345,7 @@ function save(){
     _fbDebounce = setTimeout(saveToFirestore, 1200);
   }
 
-  if(hashUpdateDebounce) clearTimeout(hashUpdateDebounce);
-  hashUpdateDebounce = setTimeout(function(){
-    encodeStateToHash();
-    setSyncStatus('ok', _firebaseUser ? 'Google' : 'Local');
-  }, 400);
+  setSyncStatus('ok', _firebaseUser ? 'Google' : 'Local');
 }
 
 function loadState(){
@@ -2375,11 +2372,11 @@ function loadState(){
       localStorage.setItem('pt7', JSON.stringify(S));
       setSyncStatus('ok','Cargado de URL');
       updateAvatars();
+      history.replaceState(null, '', window.location.href.split('#')[0]);
     }
     syncInitialLoadDone = true;
   } else {
     setTimeout(function(){
-      encodeStateToHash();
       setSyncStatus('ok', _firebaseUser ? 'Google' : 'Local');
       syncInitialLoadDone = true;
     }, 100);
@@ -2565,8 +2562,15 @@ function initFirebase(verbose){
   });
 }
 
+function cleanUrlBeforeAuth(){
+  if(window.location.hash){
+    history.replaceState(null, '', window.location.href.split('#')[0]);
+  }
+}
+
 function signInWithGoogle(){
   if(!_firebaseInited){ initFirebase(true); return setTimeout(signInWithGoogle, 800); }
+  cleanUrlBeforeAuth();
   var provider = new firebase.auth.GoogleAuthProvider();
   firebase.auth().signInWithPopup(provider).catch(function(e){
     toast('Error: '+e.message,'error');
@@ -2575,6 +2579,7 @@ function signInWithGoogle(){
 
 function signInWithApple(){
   if(!_firebaseInited){ initFirebase(true); return setTimeout(signInWithApple, 800); }
+  cleanUrlBeforeAuth();
   var provider = new firebase.auth.OAuthProvider('apple.com');
   provider.addScope('email');
   provider.addScope('name');
@@ -6240,7 +6245,7 @@ function showSyncInfo(){
   var statusBox = el('sync-modal-status');
   var ghBtns = el('github-buttons');
   var ghText = el('github-status-text');
-  var currentUrl = window.location.href;
+  var currentUrl = buildSyncLink();
 
   if(urlBox) urlBox.textContent = currentUrl;
 
@@ -6271,9 +6276,7 @@ function showSyncInfo(){
 function syncIndicatorClick(){ showSyncInfo(); }
 
 function copySyncLink(){
-  // Make sure URL is fresh
-  if(syncMode !== 'gist') encodeStateToHash();
-  var link = window.location.href;
+  var link = buildSyncLink();
   if(navigator.clipboard && navigator.clipboard.writeText){
     navigator.clipboard.writeText(link).then(function(){
       var btns = document.querySelectorAll('#m-sync .btn-lime-sm');
