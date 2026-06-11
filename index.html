@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Personal Tracker®</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%23BAFF39'/><path d='M11 32 L22 32 L27 21 L33 43 L39 32 L53 32' stroke='%230D0D0D' stroke-width='4.2' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -22,6 +22,15 @@
 <style>
 /* ─── RESET ─── */
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+button:focus-visible,
+[role="button"]:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible{
+  outline:2px solid var(--lime-light);
+  outline-offset:3px;
+}
+button:disabled{cursor:wait;opacity:.62;}
 :root, [data-theme="dark"]{
   --bg:#0D0D0D;
   --card:#1A1A1A;
@@ -43,29 +52,40 @@
   --r-pill:99px;
 }
 [data-theme="light"]{
-  --bg:#D8D9D5;
-  --card:#E8E9E5;
-  --card2:#E1E2DE;
-  --surf:#CFD1CC;
-  --surf2:#C2C4BE;
-  --surf3:#A9ACA5;
-  --lime:#5DA300;
-  --lime-light:#7BC42A;
-  --gold:#D4A800;
-  --red:#E84A40;
-  --blue:#0090D6;
-  --txt:#171816;
-  --txt2:#555851;
-  --txt3:#797D75;
-  --border:rgba(20,22,18,.11);
+  --bg:#CACBC4;
+  --card:#D3D4CD;
+  --card2:#DADBD4;
+  --surf:#C7C9C1;
+  --surf2:#BFC1B9;
+  --surf3:#9FA39A;
+  --lime:#3F6F00;
+  --lime-light:#588C18;
+  --gold:#B58D00;
+  --red:#C94D45;
+  --blue:#147FAD;
+  --txt:#30332E;
+  --txt2:#5E635A;
+  --txt3:#7B8077;
+  --border:rgba(24,27,22,.10);
 }
 
 /* ─── LIGHT THEME OVERRIDES ─── */
-[data-theme="light"] .coins-banner{
-  background:linear-gradient(135deg,rgba(123,196,42,.16),rgba(123,196,42,.04));
-  border:1px solid rgba(123,196,42,.28);
+[data-theme="light"] body{
+  background:
+    radial-gradient(circle at 50% -10%,rgba(239,236,222,.42),transparent 36%),
+    var(--bg) !important;
 }
-[data-theme="light"] .coins-unit{color:rgba(93,163,0,.55);}
+[data-theme="light"] #app{
+  background:
+    linear-gradient(180deg,rgba(244,241,228,.24),transparent 280px),
+    var(--bg);
+}
+[data-theme="light"] .coins-banner{
+  background:linear-gradient(145deg,#C3D3A9 0%,#D6DDC8 100%);
+  border:1px solid rgba(63,95,24,.16);
+  box-shadow:0 12px 28px rgba(55,64,44,.10);
+}
+[data-theme="light"] .coins-unit{color:rgba(60,96,17,.58);}
 [data-theme="light"] .coins-big.neg .coins-unit{color:var(--txt3);}
 [data-theme="light"] input[type="text"],
 [data-theme="light"] input[type="number"],
@@ -76,26 +96,29 @@
 [data-theme="light"] select,
 [data-theme="light"] textarea,
 [data-theme="light"] .time-picker{
-  border-color:rgba(0,0,0,.10) !important;
-  background:var(--surf) !important;
+  border-color:rgba(25,28,23,.12) !important;
+  background:var(--card2) !important;
 }
 [data-theme="light"] input:focus,
 [data-theme="light"] select:focus,
 [data-theme="light"] textarea:focus,
 [data-theme="light"] .time-picker:focus-within{
   border-color:var(--lime-light) !important;
-  background:var(--card) !important;
+  background:#DEDED7 !important;
+  box-shadow:0 0 0 4px rgba(79,143,0,.10);
 }
 [data-theme="light"] .sheet{
-  box-shadow:0 -8px 40px rgba(0,0,0,.18),0 0 0 1px rgba(0,0,0,.04);
+  background:var(--card2);
+  box-shadow:0 -12px 50px rgba(33,37,30,.20),0 0 0 1px rgba(25,28,23,.06);
   border:none;
 }
-[data-theme="light"] .overlay{background:rgba(0,0,0,.32);}
-[data-theme="light"] .day-nav-btn{background:var(--surf);border-color:rgba(0,0,0,.08);}
+[data-theme="light"] .overlay{background:rgba(35,38,32,.30);}
+[data-theme="light"] .day-nav-btn{background:var(--card2);border-color:rgba(25,28,23,.10);}
 [data-theme="light"] .day-nav-btn:hover{background:var(--surf2);}
 [data-theme="light"] .btn-ghost,
 [data-theme="light"] .btn-ghost-sm{
-  background:var(--surf);border:1px solid rgba(0,0,0,.08);color:var(--txt);
+  background:var(--card2);border:1px solid rgba(25,28,23,.09);color:var(--txt);
+  box-shadow:0 2px 5px rgba(35,39,32,.05);
 }
 [data-theme="light"] .btn-ghost:hover,
 [data-theme="light"] .btn-ghost-sm:hover{background:var(--surf2);}
@@ -103,9 +126,17 @@
 [data-theme="light"] .lib-card,
 [data-theme="light"] .hab-row,
 [data-theme="light"] .fit-hdr-card{
-  border:1px solid rgba(0,0,0,.07);
-  box-shadow:0 1px 3px rgba(0,0,0,.04);
+  border:1px solid rgba(25,28,23,.08);
+  box-shadow:0 7px 18px rgba(48,53,43,.07);
 }
+[data-theme="light"] .mcard,
+[data-theme="light"] .fit-hdr-card{background:linear-gradient(145deg,#D5D6CF,#CED0C8);}
+[data-theme="light"] .macro-box,
+[data-theme="light"] .stat-box,
+[data-theme="light"] .list-row,
+[data-theme="light"] .lib-card,
+[data-theme="light"] .hab-row,
+[data-theme="light"] .mhcard{background:var(--card2);}
 [data-theme="light"] .week-grid .wday-col,
 [data-theme="light"] .stat-box,
 [data-theme="light"] .macro-box,
@@ -117,7 +148,7 @@
 [data-theme="light"] .theme-tile,
 [data-theme="light"] .mod-pick,
 [data-theme="light"] .mm-day:not(.mm-dim){
-  border-color:rgba(0,0,0,.08);
+  border-color:rgba(25,28,23,.09);
 }
 [data-theme="light"] .hab-chip-x,
 [data-theme="light"] .hab-chip-edit{
@@ -142,6 +173,42 @@
 [data-theme="light"] .ob-dot.on{background:var(--lime-light);}
 [data-theme="light"] .list-section-lbl{color:var(--txt2);}
 [data-theme="light"] .hab-row:hover{border-color:rgba(0,0,0,.12);}
+[data-theme="light"] .view-toggle{
+  background:var(--card);
+  box-shadow:inset 0 0 0 1px rgba(25,28,23,.06);
+}
+[data-theme="light"] .vt-btn.on,
+[data-theme="light"] .fp.on,
+[data-theme="light"] .freq-btn.on{box-shadow:0 4px 12px rgba(79,143,0,.18);}
+[data-theme="light"] .av{
+  background:var(--card);
+  border-color:rgba(25,28,23,.07);
+  box-shadow:0 5px 14px rgba(48,53,43,.10);
+}
+[data-theme="light"] .thin-bar,
+[data-theme="light"] .pb-wrap{background:rgba(57,63,52,.13);}
+[data-theme="light"] .srow{border-bottom-color:rgba(25,28,23,.09);}
+[data-theme="light"] .btn-danger{background:rgba(201,77,69,.10);}
+[data-theme="light"] .btn-lime,
+[data-theme="light"] .btn-lime-sm,
+[data-theme="light"] .btn-lime-full,
+[data-theme="light"] .lb-add,
+[data-theme="light"] .day-nav-btn:active,
+[data-theme="light"] .vt-btn.on,
+[data-theme="light"] .fp.on,
+[data-theme="light"] .freq-btn.on,
+[data-theme="light"] .mm-day.mm-today,
+[data-theme="light"] .cal-d.tod,
+[data-theme="light"] .hck.cp,
+[data-theme="light"] .hck.cn,
+[data-theme="light"] .hab-bdg.ep,
+[data-theme="light"] .hab-chip.done,
+[data-theme="light"] .mod-pick.on .mod-pick-check,
+[data-theme="light"] .pb-label,
+[data-theme="light"] .goal-burst,
+[data-theme="light"] #fb-user-avatar{
+  color:#fff !important;
+}
 .google-mark-bg{background:#fff;}
 [data-theme="light"] .google-mark-bg{background:var(--card);}
 html{height:100%;background:var(--bg);}
@@ -170,7 +237,7 @@ body{
   /* Soften desktop frame shadow in light mode */
 }
 [data-theme="light"] #app{
-  box-shadow:0 0 0 1px rgba(0,0,0,.06),0 20px 60px rgba(0,0,0,.10) !important;
+  box-shadow:0 0 0 1px rgba(25,28,23,.06),0 24px 70px rgba(45,50,40,.14) !important;
 }
 @media(min-width:1000px){
   body{padding:40px 0 0;}
@@ -178,7 +245,7 @@ body{
 }
 
 /* ─── SCREENS ─── */
-.screen{display:none;min-height:100vh;padding-bottom:80px;}
+.screen{display:none;min-height:100vh;padding-bottom:calc(80px + env(safe-area-inset-bottom));}
 .screen.active{display:block;animation:screenIn .32s cubic-bezier(.22,1,.36,1);}
 
 /* ═══ MOTION SYSTEM ═══ */
@@ -330,7 +397,7 @@ button:active,
 /* ─── HEADER ─── */
 .hdr{
   display:flex;align-items:flex-start;justify-content:space-between;
-  padding:28px 24px 0;
+  padding:calc(28px + env(safe-area-inset-top)) 24px 0;
 }
 .logo{
   font-size:32px;
@@ -1072,7 +1139,7 @@ button:active,
   transform:translateY(-50%);
 }
 .th-swatch-light{
-  background:linear-gradient(135deg,#D8D9D5 50%,#E8E9E5 50%);
+  background:linear-gradient(135deg,#CACBC4 50%,#D3D4CD 50%);
 }
 .th-swatch-light::after{
   content:'';position:absolute;top:50%;left:25%;width:50%;height:4px;
@@ -1606,9 +1673,9 @@ button:active,
           ✗ No entiende contexto complejo
         </div>
       </div>
-      <div id="ai-mode-gemini" style="display:none;background:rgba(186,255,57,.06);border:1px solid rgba(186,255,57,.18);border-radius:10px;padding:12px;margin-bottom:14px;">
+      <div id="ai-mode-claude" style="display:none;background:rgba(186,255,57,.06);border:1px solid rgba(186,255,57,.18);border-radius:10px;padding:12px;margin-bottom:14px;">
         <div style="font-size:11px;color:var(--txt2);line-height:1.7;">
-          <strong style="color:var(--lime-light);">Modo actual: Gemini API</strong>.
+          <strong style="color:var(--lime-light);">Modo actual: Claude API</strong>.
           <br><br>
           ✓ Entiende lenguaje natural complejo<br>
           ✓ Detecta contexto, ingredientes múltiples, momentos del día<br>
@@ -1616,28 +1683,28 @@ button:active,
         </div>
       </div>
 
-      <!-- Configurar Gemini (cuando NO está activo) -->
+      <!-- Configurar Claude (cuando NO está activo) -->
       <div id="ai-setup-block">
-        <div style="font-size:12px;font-weight:700;margin-bottom:6px;">Activar Gemini API</div>
+        <div style="font-size:12px;font-weight:700;margin-bottom:6px;">Activar Claude API</div>
         <div style="font-size:11px;color:var(--txt2);line-height:1.5;margin-bottom:10px;">
-          Para precisión real con descripciones complejas ("una cookie y un café", "9000 pasos", "ensalada con pollo y aguacate"), conecta Gemini.
+          Para precisión real con descripciones complejas ("una cookie y un café", "9000 pasos", "ensalada con pollo y aguacate"), conecta Claude.
           <br><br>
-          Si configuras una clave de Gemini en el código antes de publicar la app, los usuarios no tendrán que hacer nada.
+          La clave manual se guarda únicamente en este dispositivo.
         </div>
-        <input type="password" id="ai-key-input" placeholder="AIza..." style="width:100%;background:var(--surf);border:1.5px solid var(--surf2);border-radius:10px;padding:10px 14px;color:var(--txt);font-family:'Inter',monospace;font-size:11px;outline:none;margin-bottom:8px;box-sizing:border-box;">
-        <button class="btn btn-lime-full" style="margin-bottom:6px;" onclick="saveAiKey()">Activar Gemini</button>
-        <div style="font-size:10px;color:var(--txt3);line-height:1.5;">La key manual se guarda solo en este dispositivo. Para una app pública sin pasos para el usuario, usa un proxy seguro o configura la clave antes de publicar.</div>
+        <input type="password" id="ai-key-input" placeholder="sk-ant-..." style="width:100%;background:var(--surf);border:1.5px solid var(--surf2);border-radius:10px;padding:10px 14px;color:var(--txt);font-family:'Inter',monospace;font-size:11px;outline:none;margin-bottom:8px;box-sizing:border-box;">
+        <button class="btn btn-lime-full" style="margin-bottom:6px;" onclick="saveAiKey()">Activar Claude</button>
+        <div style="font-size:10px;color:var(--txt3);line-height:1.5;">La clave manual se guarda solo en este dispositivo. Para una app pública sin pasos para el usuario, conecta Claude mediante un proxy seguro; nunca publiques la clave en el código.</div>
       </div>
 
-      <!-- Desactivar Gemini (cuando SÍ está activo) -->
+      <!-- Desactivar Claude (cuando SÍ está activo) -->
       <div id="ai-active-block" style="display:none;">
         <div style="display:flex;align-items:center;gap:10px;background:var(--surf);border-radius:10px;padding:12px;margin-bottom:8px;">
           <div style="flex:1;">
-            <div style="font-size:11px;font-weight:700;color:var(--lime-light);">✓ Gemini API conectado</div>
+            <div style="font-size:11px;font-weight:700;color:var(--lime-light);">✓ Claude API conectado</div>
             <div id="ai-key-masked" style="font-size:10px;color:var(--txt2);margin-top:2px;font-family:monospace;"></div>
           </div>
         </div>
-        <button class="btn btn-danger" style="font-size:12px;" onclick="disconnectAi()">Desconectar Gemini</button>
+        <button class="btn btn-danger" style="font-size:12px;" onclick="disconnectAi()">Desconectar Claude</button>
       </div>
     </div>
 
@@ -2438,7 +2505,7 @@ function applyTheme(t){
   t = t || 'dark';
   document.documentElement.setAttribute('data-theme', t);
   var meta = document.querySelector('meta[name="theme-color"]');
-  if(meta) meta.setAttribute('content', t === 'light' ? '#D8D9D5' : '#0D0D0D');
+  if(meta) meta.setAttribute('content', t === 'light' ? '#CACBC4' : '#0D0D0D');
 }
 function loadTheme(){
   var t = localStorage.getItem('pt7_theme') || 'dark';
@@ -2478,38 +2545,6 @@ if(!_deviceId){
 function loadFirebaseConfig(){
   // Always return hardcoded config — the app ships pre-configured
   return FIREBASE_CONFIG;
-}
-
-function saveFirebaseConfigUI(){
-  var raw = el('fb-config-input').value.trim();
-  if(!raw){ toast('Pega tu config primero','error'); return; }
-  var cfg;
-  try { cfg = JSON.parse(raw); }
-  catch(e){
-    // Try to extract from JS-style object (firebaseConfig = { ... })
-    var m = raw.match(/\{[\s\S]*\}/);
-    if(m){
-      try {
-        var quoted = m[0].replace(/([{,]\s*)([a-zA-Z_]\w*)\s*:/g, '$1"$2":');
-        quoted = quoted.replace(/'/g, '"');
-        cfg = JSON.parse(quoted);
-      } catch(e2){ cfg = null; }
-    }
-  }
-  if(!cfg || !cfg.apiKey || !cfg.projectId){
-    toast('Config inválida. Necesita al menos apiKey y projectId','error');
-    return;
-  }
-  localStorage.setItem('pt7_firebase', JSON.stringify(cfg));
-  toast('Configuración guardada. Cargando Firebase...','success');
-  initFirebase(true);
-}
-
-function changeFirebaseConfig(){
-  if(!confirm('¿Cambiar la configuración de Firebase? Tendrás que volver a iniciar sesión.')) return;
-  localStorage.removeItem('pt7_firebase');
-  if(_firebaseUser){ try { firebase.auth().signOut(); } catch(e){} }
-  renderSettings();
 }
 
 function loadFirebaseSDK(cb){
@@ -2673,6 +2708,7 @@ function startFirestoreSync(uid){
   // Google is authoritative after login: load its complete state when it
   // exists; otherwise create it from the current local/offline cache.
   ref.get().then(function(doc){
+    var initialLoadFailed = false;
     if(doc.exists && doc.data() && doc.data().state){
       var data = doc.data();
       try {
@@ -2687,6 +2723,8 @@ function startFirestoreSync(uid){
       } catch(e){
         console.error('Error leyendo datos de Google:', e);
         setSyncStatus('error', 'Datos inválidos');
+        toast('Los datos guardados en Google no son válidos','error');
+        initialLoadFailed = true;
       }
     } else {
       // Migrate unsynced local data on the first Google login, but never
@@ -2700,6 +2738,7 @@ function startFirestoreSync(uid){
       }
       _cloudSavePending = true;
     }
+    if(initialLoadFailed) return;
     _cloudSyncReady = true;
     if(_cloudSavePending){
       _cloudSavePending = false;
@@ -4507,36 +4546,6 @@ function togglePlanCompleted(actId, dStr){
   haptic('light');
   save();
   renderPlanner();
-}
-
-function openPlanActivity(){
-  editingPlanActivityId = null;
-  el('pa-sheet-title').textContent = 'Nueva actividad';
-  el('pa-save-btn').textContent = 'Crear';
-  el('pa-name').value = '';
-  el('pa-start').value = '18:00';
-  el('pa-end').value = '21:00';
-  el('pa-cat').value = 'sport';
-  // Default selected days = empty
-  renderDaysPicker([]);
-  el('pa-delete-btn').style.display = 'none';
-  openModal('m-planact');
-}
-
-function editPlanActivity(id){
-  var act = null;
-  for(var i=0;i<S.planner.activities.length;i++) if(S.planner.activities[i].id === id){ act = S.planner.activities[i]; break; }
-  if(!act) return;
-  editingPlanActivityId = id;
-  el('pa-sheet-title').textContent = 'Editar actividad';
-  el('pa-save-btn').textContent = 'Guardar';
-  el('pa-name').value = act.name;
-  el('pa-start').value = act.start;
-  el('pa-end').value = act.end;
-  el('pa-cat').value = act.category;
-  renderDaysPicker(act.days.slice());
-  el('pa-delete-btn').style.display = '';
-  openModal('m-planact');
 }
 
 var _editingPlanDays = [];
