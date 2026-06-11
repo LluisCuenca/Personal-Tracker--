@@ -2656,6 +2656,26 @@ function applyFirestoreProfile(data){
   }
 }
 
+function handleFirestoreError(action, e){
+  var code = (e && e.code) || '';
+  var detail = (e && e.message) || 'Error desconocido';
+  var userMessage = 'Error de sincronización con Google';
+  var statusMessage = 'Google';
+  if(code.indexOf('permission-denied') >= 0){
+    userMessage = 'Firestore bloquea el acceso. Publica las reglas del proyecto.';
+    statusMessage = 'Permisos Firestore';
+  } else if(code.indexOf('failed-precondition') >= 0){
+    userMessage = 'Firestore no está configurado correctamente.';
+    statusMessage = 'Configura Firestore';
+  } else if(code.indexOf('unavailable') >= 0){
+    userMessage = 'Firestore no está disponible. Revisa la conexión.';
+    statusMessage = 'Sin conexión';
+  }
+  console.error(action + ':', code, detail);
+  setSyncStatus('error', statusMessage);
+  toast(userMessage, 'error');
+}
+
 function startFirestoreSync(uid){
   if(typeof firebase === 'undefined') return;
   var db = firebase.firestore();
@@ -2721,9 +2741,8 @@ function startFirestoreSync(uid){
       }
     });
   }).catch(function(e){
-    console.error('Error conectando con Firestore:', e);
     _cloudSyncReady = false;
-    setSyncStatus('error', 'Google');
+    handleFirestoreError('Error conectando con Firestore', e);
   });
 }
 
@@ -2759,12 +2778,10 @@ function saveToFirestore(){
       localStorage.setItem('pt7_cloud_uid', _firebaseUser.uid);
       setSyncStatus('ok', 'Google');
     }).catch(function(e){
-      console.error('Error guardando en Firestore:', e);
-      setSyncStatus('error', 'Error al guardar');
+      handleFirestoreError('Error guardando en Firestore', e);
     });
   } catch(e){
-    console.error('Error preparando guardado en Firestore:', e);
-    setSyncStatus('error', 'Error al guardar');
+    handleFirestoreError('Error preparando guardado en Firestore', e);
   }
 }
 
