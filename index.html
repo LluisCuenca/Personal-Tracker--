@@ -1723,6 +1723,8 @@ button:active,
       </div>
       <button class="btn btn-ghost full" style="font-size:13px;margin-bottom:8px;" onclick="exportData()">Exportar JSON</button>
       <button class="btn btn-ghost full" style="font-size:13px;margin-bottom:8px;" onclick="exportCSV()">Exportar a CSV</button>
+      <button class="btn btn-ghost full" style="font-size:13px;margin-bottom:8px;" onclick="el('import-input').click()">Importar JSON</button>
+      <input type="file" id="import-input" accept="application/json,.json" onchange="importData(this.files[0]); this.value='';" style="display:none;">
       <button class="btn btn-danger" onclick="resetData()">Resetear todos los datos</button>
     </div>
 
@@ -2061,6 +2063,7 @@ button:active,
     <div id="w-chart-wrap" style="display:none;height:180px;margin-bottom:14px;background:var(--surf);border-radius:14px;padding:12px;">
       <canvas id="w-chart"></canvas>
     </div>
+    <div id="w-history" style="margin-bottom:14px;"></div>
     <div id="w-empty" style="background:var(--surf);border-radius:14px;padding:18px;margin-bottom:14px;text-align:center;">
       <div style="font-size:13px;font-weight:700;margin-bottom:4px;">Sin registros aún</div>
       <div style="font-size:11px;color:var(--txt2);line-height:1.5;">Registra tu peso semanalmente para ver la tendencia real y validar tu déficit/superávit calórico.</div>
@@ -2274,7 +2277,7 @@ button:active,
         <div style="font-size:14px;font-weight:800;">Copia manual</div>
         <div style="font-size:9px;color:var(--txt2);background:var(--bg);padding:3px 8px;border-radius:99px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;">Opcional</div>
       </div>
-      <div style="font-size:11px;color:var(--txt2);line-height:1.5;margin-bottom:12px;">Este enlace exporta una copia puntual de tus datos. No sustituye la sincronización automática con Google.</div>
+      <div style="font-size:11px;color:var(--txt2);line-height:1.5;margin-bottom:12px;">Este enlace exporta una copia puntual de tus datos. Contiene información personal: guárdalo de forma privada y no lo compartas públicamente.</div>
       <div id="sync-url-display" style="font-size:10px;color:var(--lime-light);word-break:break-all;line-height:1.5;margin-bottom:12px;font-family:monospace;background:var(--bg);padding:10px;border-radius:8px;border:1px solid var(--border);max-height:80px;overflow-y:auto;">—</div>
       <button class="btn btn-lime-sm full" onclick="copySyncLink()">Copiar link actual</button>
     </div>
@@ -2338,6 +2341,14 @@ function dLabelHomeCard(s){
 }
 function el(id){return document.getElementById(id);}
 function pct(v,max){return max>0?Math.min(100,Math.max(0,Math.round(v/max*100))):0;}
+function cssVar(name){return getComputedStyle(document.documentElement).getPropertyValue(name).trim();}
+function cleanUserText(value, maxLength){
+  return String(value == null ? '' : value)
+    .replace(/[<>\\]/g, '')
+    .replace(/[\u0000-\u001F\u007F]/g, ' ')
+    .trim()
+    .slice(0, maxLength || 160);
+}
 
 /* ═══ SINCRONIZACIÓN ═══════════════════════
    Principal: Google/Firebase cuando el usuario inicia sesión.
@@ -2485,6 +2496,28 @@ function removeDefaultHabits(){
   }
 }
 
+function sanitizeStateText(){
+  function cleanItems(items){
+    if(!items) return;
+    for(var i=0;i<items.length;i++){
+      var item = items[i];
+      if(!item) continue;
+      if(item.name != null) item.name = cleanUserText(item.name, 120);
+      if(item.notes != null) item.notes = cleanUserText(item.notes, 240);
+      if(item.desc != null) item.desc = cleanUserText(item.desc, 180);
+      if(item.ico != null) item.ico = cleanUserText(item.ico, 4);
+      cleanItems(item.ingredients);
+    }
+  }
+  for(var day in S.fitDays){
+    cleanItems(S.fitDays[day] && S.fitDays[day].foods);
+    cleanItems(S.fitDays[day] && S.fitDays[day].activities);
+  }
+  cleanItems(S.library);
+  cleanItems(S.habits);
+  cleanItems(S.planner && S.planner.activities);
+}
+
 function applyDefaults(){
   if(!S.modules)   S.modules   = {fitness:true,habits:true,planner:true};
   if(S.modules.planner == null) S.modules.planner = true;
@@ -2503,9 +2536,23 @@ function applyDefaults(){
   if(!S.weights)   S.weights   = [];
   if(!S.water)     S.water     = {};
   if(!S.planner)   S.planner   = { activities:[], weeks:{} };
+  if(!Array.isArray(S.planner.activities)) S.planner.activities = [];
+  if(!S.planner.weeks || typeof S.planner.weeks !== 'object') S.planner.weeks = {};
   if(!S.calendar)  S.calendar  = { enabled:false, lastSync:null };
   if(!S.hiddenRecents) S.hiddenRecents = { foods:[], activities:[] };
+  S.hiddenRecents.foods = Array.isArray(S.hiddenRecents.foods) ? S.hiddenRecents.foods.slice(-100) : [];
+  S.hiddenRecents.activities = Array.isArray(S.hiddenRecents.activities) ? S.hiddenRecents.activities.slice(-100) : [];
+  for(var fitDay in S.fitDays){
+    if(!S.fitDays[fitDay] || typeof S.fitDays[fitDay] !== 'object') S.fitDays[fitDay] = {};
+    if(!Array.isArray(S.fitDays[fitDay].foods)) S.fitDays[fitDay].foods = [];
+    if(!Array.isArray(S.fitDays[fitDay].activities)) S.fitDays[fitDay].activities = [];
+  }
+  for(var habDay in S.habDays){
+    if(!S.habDays[habDay] || typeof S.habDays[habDay] !== 'object') S.habDays[habDay] = {};
+    if(!Array.isArray(S.habDays[habDay].done)) S.habDays[habDay].done = [];
+  }
   if(S.customLogo) delete S.customLogo;
+  sanitizeStateText();
 }
 
 /* ═══ TEMA (claro/oscuro) ═══ */
@@ -2651,10 +2698,20 @@ function signInWithApple(){
 }
 
 function firebaseSignOut(){
-  if(!confirm('¿Cerrar sesión? Tus datos seguirán guardados localmente.')) return;
+  if(!confirm('¿Cerrar sesión? Tus datos seguirán guardados en Google y se eliminarán de este dispositivo.')) return;
   _calendarAccessToken = null;
   sessionStorage.removeItem('pt7_calendar_token');
-  try { firebase.auth().signOut(); } catch(e){}
+  try {
+    firebase.auth().signOut().then(function(){
+      localStorage.removeItem('pt7');
+      localStorage.removeItem('pt7_cloud_uid');
+      location.reload();
+    }).catch(function(e){
+      toast('No se pudo cerrar sesión: '+e.message,'error');
+    });
+  } catch(e){
+    toast('No se pudo cerrar sesión','error');
+  }
 }
 
 function getGoogleProfilePhoto(){
@@ -2715,6 +2772,56 @@ function handleFirestoreError(action, e){
   toast(userMessage, 'error');
 }
 
+// Conservative union used on the first login: Google stays authoritative for
+// any record that exists on both sides, but records that exist ONLY locally
+// are preserved so signing in never wipes unsynced local data.
+function mergeLocalIntoRemote(remoteS, localS){
+  if(!remoteS || typeof remoteS !== 'object') return { state: localS, changed: true };
+  if(!localS || typeof localS !== 'object') return { state: remoteS, changed: false };
+  var changed = false;
+  // Date-keyed maps: add local-only days
+  ['fitDays','habDays','water'].forEach(function(coll){
+    if(!localS[coll] || typeof localS[coll] !== 'object') return;
+    if(!remoteS[coll] || typeof remoteS[coll] !== 'object') remoteS[coll] = {};
+    for(var k in localS[coll]){
+      if(!remoteS[coll].hasOwnProperty(k)){ remoteS[coll][k] = localS[coll][k]; changed = true; }
+    }
+  });
+  // Weights: array of {date,kg} — add local dates missing remotely
+  if(Array.isArray(localS.weights)){
+    if(!Array.isArray(remoteS.weights)) remoteS.weights = [];
+    var wDates = {};
+    for(var i=0;i<remoteS.weights.length;i++){ if(remoteS.weights[i]) wDates[remoteS.weights[i].date]=1; }
+    for(var j=0;j<localS.weights.length;j++){
+      var w = localS.weights[j];
+      if(w && !wDates[w.date]){ remoteS.weights.push(w); changed = true; }
+    }
+  }
+  // Id-keyed arrays: union by id
+  ['library','habits'].forEach(function(coll){
+    if(!Array.isArray(localS[coll])) return;
+    if(!Array.isArray(remoteS[coll])) remoteS[coll] = [];
+    var ids = {};
+    for(var i=0;i<remoteS[coll].length;i++){ if(remoteS[coll][i]) ids[remoteS[coll][i].id]=1; }
+    for(var j=0;j<localS[coll].length;j++){
+      var it = localS[coll][j];
+      if(it && it.id && !ids[it.id]){ remoteS[coll].push(it); changed = true; }
+    }
+  });
+  // Planner activities: union by id
+  if(localS.planner && Array.isArray(localS.planner.activities)){
+    if(!remoteS.planner || typeof remoteS.planner !== 'object') remoteS.planner = { activities:[], weeks:{} };
+    if(!Array.isArray(remoteS.planner.activities)) remoteS.planner.activities = [];
+    var pIds = {};
+    for(var i=0;i<remoteS.planner.activities.length;i++){ var ra=remoteS.planner.activities[i]; if(ra) pIds[ra.id]=1; }
+    for(var j=0;j<localS.planner.activities.length;j++){
+      var la = localS.planner.activities[j];
+      if(la && la.id && !pIds[la.id]){ remoteS.planner.activities.push(la); changed = true; }
+    }
+  }
+  return { state: remoteS, changed: changed };
+}
+
 function startFirestoreSync(uid){
   if(typeof firebase === 'undefined') return;
   var db = firebase.firestore();
@@ -2729,14 +2836,25 @@ function startFirestoreSync(uid){
     if(doc.exists && doc.data() && doc.data().state){
       var data = doc.data();
       try {
-        S = JSON.parse(data.state);
+        var localBefore = S;
+        var remoteS = JSON.parse(data.state);
+        // Only fold in local data when it belongs to this same account context;
+        // never leak one Google account's local cache into another account.
+        var sameAccount = !cachedCloudUid || cachedCloudUid === uid;
+        var mergeResult = sameAccount ? mergeLocalIntoRemote(remoteS, localBefore) : { state: remoteS, changed: false };
+        S = mergeResult.state;
         applyDefaults();
         applyFirestoreProfile(data);
         localStorage.setItem('pt7', JSON.stringify(S));
         localStorage.setItem('pt7_cloud_uid', uid);
         renderCurrentScreen();
         updateAvatars();
-        toast('Datos cargados desde Google','success');
+        if(mergeResult.changed){
+          _cloudSavePending = true; // push recovered local-only data back to cloud
+          toast('Datos combinados con Google','success');
+        } else {
+          toast('Datos cargados desde Google','success');
+        }
       } catch(e){
         console.error('Error leyendo datos de Google:', e);
         setSyncStatus('error', 'Datos inválidos');
@@ -2906,7 +3024,7 @@ function toast(msg, type){
   for(var i = 0; i < existing.length; i++){ existing[i].remove(); }
   var t = document.createElement('div');
   t.className = 'pt-toast ' + type;
-  t.innerHTML = msg;
+  t.textContent = msg;
   document.body.appendChild(t);
   // Force reflow for animation
   t.offsetHeight;
@@ -3014,7 +3132,6 @@ function renderHome(){
   if(S.modules.fitness){
     var p = S.profile;
     var B = calcBMR(p);
-    var T_unused = calcTDEE(p);
     // Balance helper: (TMB + actividad) - food
     function _bal(dstr){
       var dt = dayTot(dstr);
@@ -3121,14 +3238,17 @@ function renderHome(){
     }
     var todayPct = todayActs.length > 0 ? Math.round(todayDone / todayActs.length * 100) : 0;
     // Week progress — iterate by actual dates (fixes day off-by-one bug)
-    var weekTotal = 0;
+    var weekTotal = 0, weekDone = 0;
     var monH = getMonday(new Date());
     for(var d=0;d<7;d++){
       var ddH = new Date(monH); ddH.setDate(ddH.getDate()+d);
-      var dActsH = getPlannerActivitiesForDate(ds(ddH));
+      var ddHStr = ds(ddH);
+      var dActsH = getPlannerActivitiesForDate(ddHStr);
       weekTotal += dActsH.length;
+      for(var wh=0;wh<dActsH.length;wh++){
+        if(weekData.completed.indexOf(dActsH[wh].id + '_' + ddHStr) >= 0) weekDone++;
+      }
     }
-    var weekDone = weekData.completed.length;
     var weekPct = weekTotal > 0 ? Math.round(weekDone / weekTotal * 100) : 0;
 
     h+='<div class="mcard" data-home-module="planner">';
@@ -3703,7 +3823,7 @@ function editFood(id){
 }
 
 function addFood(){
-  var name=el('f-name').value.trim();if(!name){toast('Introduce un nombre', 'error');return;}
+  var name=cleanUserText(el('f-name').value,120);if(!name){toast('Introduce un nombre', 'error');return;}
   var day=S.fitDate;if(!S.fitDays[day])S.fitDays[day]={foods:[],activities:[]};
   var kcal=parseInt(el('f-kcal').value)||0;
   var prot=parseFloat(el('f-prot').value)||0;
@@ -3749,12 +3869,12 @@ function editActivity(id){
 }
 
 function addActivity(){
-  var name=el('a-name').value.trim();
+  var name=cleanUserText(el('a-name').value,120);
   if(!name){toast('Introduce un nombre', 'error');return;}
   var day=S.fitDate;if(!S.fitDays[day])S.fitDays[day]={foods:[],activities:[]};
   var dur=parseInt(el('a-dur').value)||30;
   var kcal=parseInt(el('a-kcal').value)||0;
-  var notes=el('a-notes').value.trim();
+  var notes=cleanUserText(el('a-notes').value,240);
 
   if(editingActivityId){
     for(var i=0;i<S.fitDays[day].activities.length;i++){
@@ -3828,7 +3948,7 @@ function libAdd(id){
     S.fitDays[day].activities.push({id:uid(),name:it.name,dur:dur,kcal:it.kcal||0,notes:it.notes||''});
   } else {
     // Add as food
-    S.fitDays[day].foods.push({id:uid(),name:it.name,kcal:it.kcal,prot:it.prot,carbs:it.carbs||0,fat:it.fat||0,qty:100,cat:it.type});
+    S.fitDays[day].foods.push({id:uid(),name:it.name,kcal:it.kcal,prot:it.prot,carbs:it.carbs||0,fat:it.fat||0,qty:100,cat:it.type,mealTime:it.mealTime||''});
   }
   save();toast(it.name+' añadido', 'success');
 }
@@ -4088,7 +4208,7 @@ function editIngredient(idx){
 }
 
 function saveIngredientEdit(){
-  var name = el('ri-name').value.trim();
+  var name = cleanUserText(el('ri-name').value,120);
   if(!name){ toast('Introduce un nombre','error'); return; }
   var ing = {
     name: name,
@@ -4129,7 +4249,7 @@ function estimateAndAddIngredient(){
       return;
     }
     _currentRecipe.ingredients.push({
-      name: result.name || desc,
+      name: cleanUserText(result.name || desc, 120),
       qty: result.qty || 100,
       kcal: Math.round(result.kcal || 0),
       prot: Math.round((result.prot||0)*10)/10,
@@ -4161,7 +4281,7 @@ function estimateAndAddIngredient(){
 }
 
 function saveRecipe(){
-  var name = el('r-name').value.trim();
+  var name = cleanUserText(el('r-name').value,120);
   if(!name){ toast('Pon un nombre a la receta','error'); return; }
   if(_currentRecipe.ingredients.length === 0){ toast('Añade al menos un ingrediente','error'); return; }
 
@@ -4208,7 +4328,7 @@ function saveRecipe(){
     carbs: Math.round(tC*10)/10,
     fat: Math.round(tF*10)/10,
     cat: 'receta',
-    mealtime: 'comida',
+    mealTime: 'comida',
     ingredients: _currentRecipe.ingredients.slice()
   });
   S.fitDays[S.fitDate] = hd;
@@ -4236,10 +4356,10 @@ function saveRecipe(){
 
 
 function saveLib(){
-  var name=el('nl-name').value.trim();
+  var name=cleanUserText(el('nl-name').value,120);
   if(!name){toast('Introduce un nombre', 'error');return;}
   var kcal=parseInt(el('nl-kcal').value)||0;
-  var notes=el('nl-notes').value.trim();
+  var notes=cleanUserText(el('nl-notes').value,240);
   var type=currentLibType||'alimento';
   var newItem;
   if(type === 'actividad'){
@@ -4340,12 +4460,12 @@ var editingPlanActivityId = null;
 
 var PLAN_CATS = {
   work:    { label:'Trabajo',  color:'#BAFF39' },
-  sport:   { label:'Deporte',  color:'#BAFF39' },
-  social:  { label:'Social',   color:'#BAFF39' },
-  rest:    { label:'Descanso', color:'#BAFF39' },
-  leisure: { label:'Ocio',     color:'#BAFF39' },
-  meal:    { label:'Comida',   color:'#BAFF39' },
-  other:   { label:'Otro',     color:'#BAFF39' }
+  sport:   { label:'Deporte',  color:'#FF6B4A' },
+  social:  { label:'Social',   color:'#4AB8FF' },
+  rest:    { label:'Descanso', color:'#9B8CFF' },
+  leisure: { label:'Ocio',     color:'#FFD24A' },
+  meal:    { label:'Comida',   color:'#FF8FC7' },
+  other:   { label:'Otro',     color:'#8A8F98' }
 };
 
 var DOW_LABELS_FULL = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
@@ -4786,6 +4906,8 @@ function renderPlanner(){
           var key = act.id + '_' + ds_.dStr;
           var doneA = listWeekData.completed.indexOf(key) >= 0;
           var catLbl = act.calendarImported ? 'Google Calendar' : (PLAN_CATS[act.category] || PLAN_CATS.other).label;
+          var catColor = act.calendarImported ? '#4AB8FF' : (PLAN_CATS[act.category] || PLAN_CATS.other).color;
+          var catDot = '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:'+catColor+';margin-right:5px;vertical-align:middle;"></span>';
           h += '<div onclick="togglePlanCompleted(\''+act.id+'\',\''+ds_.dStr+'\')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:'+(doneA?'rgba(186,255,57,.08)':'var(--surf)')+';border:1px solid '+(doneA?'rgba(186,255,57,.25)':'var(--surf2)')+';border-radius:11px;margin-bottom:6px;cursor:pointer;transition:all .18s;">';
           // Checkbox
           h += '<div style="width:20px;height:20px;border-radius:50%;border:1.5px solid '+(doneA?'var(--lime-light)':'var(--surf3)')+';background:'+(doneA?'var(--lime-light)':'transparent')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .22s cubic-bezier(.34,1.56,.64,1);'+(doneA?'transform:scale(1.05);':'')+'">'
@@ -4793,7 +4915,7 @@ function renderPlanner(){
               + '</div>';
           h += '<div style="flex:1;">';
           h += '<div style="font-size:13px;font-weight:700;'+(doneA?'opacity:.6;text-decoration:line-through;':'')+'">'+act.name+'</div>';
-          h += '<div style="font-size:11px;color:var(--txt2);margin-top:1px;">'+act.start+' – '+act.end+' · '+catLbl+'</div>';
+          h += '<div style="font-size:11px;color:var(--txt2);margin-top:1px;">'+catDot+act.start+' – '+act.end+' · '+catLbl+'</div>';
           h += '</div>';
           // Edit button
           h += '<button onclick="event.stopPropagation();editPlanActivity(\''+act.id+'\',\''+ds_.dStr+'\')" style="width:28px;height:28px;border:none;background:var(--surf2);color:var(--txt2);border-radius:50%;cursor:pointer;font-size:12px;font-family:Inter;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✎</button>';
@@ -5050,7 +5172,7 @@ function togglePlanDay(d){
 }
 
 function savePlanActivity(){
-  var name = el('pa-name').value.trim();
+  var name = cleanUserText(el('pa-name').value,120);
   if(!name){ toast('Introduce un nombre', 'error'); return; }
   var start = _readTimePicker('pa-start');
   var end = _readTimePicker('pa-end');
@@ -5138,6 +5260,10 @@ function deletePlanActivity(){
     if(S.planner.activities[i].id !== editingPlanActivityId) newA.push(S.planner.activities[i]);
   }
   S.planner.activities = newA;
+  for(var weekId in S.planner.weeks){
+    var completed = S.planner.weeks[weekId] && S.planner.weeks[weekId].completed;
+    if(completed) S.planner.weeks[weekId].completed = completed.filter(function(key){ return key.indexOf(editingPlanActivityId + '_') !== 0; });
+  }
   editingPlanActivityId = null;
   save();
   closeModal('m-planact');
@@ -5679,7 +5805,7 @@ function toggleHabActive(id){
 }
 
 function saveHabit(){
-  var name=el('nh-name').value.trim();
+  var name=cleanUserText(el('nh-name').value,120);
   if(!name){ toast('Introduce un nombre', 'error'); return; }
   var coins=parseInt(el('nh-coins').value) || 10;
   var type=el('nh-type').value;
@@ -5690,8 +5816,8 @@ function saveHabit(){
     for(var i=0;i<S.habits.length;i++){
       if(S.habits[i].id===editingHabitId){
         S.habits[i].name = name;
-        S.habits[i].ico = el('nh-ico').value.trim() || '★';
-        S.habits[i].desc = el('nh-desc').value.trim();
+        S.habits[i].ico = cleanUserText(el('nh-ico').value,4) || '★';
+        S.habits[i].desc = cleanUserText(el('nh-desc').value,180);
         S.habits[i].coins = coins;
         S.habits[i].type = type;
         break;
@@ -5705,9 +5831,9 @@ function saveHabit(){
     var saveToLibrary = !el('nh-save-lib') || el('nh-save-lib').checked;
     S.habits.push({
       id:habitId,
-      ico:el('nh-ico').value.trim()||'★',
+      ico:cleanUserText(el('nh-ico').value,4)||'★',
       name:name,
-      desc:el('nh-desc').value.trim(),
+      desc:cleanUserText(el('nh-desc').value,180),
       coins:coins,
       type:type,
       active:true,
@@ -6389,11 +6515,10 @@ function parseActivityDescription(text, weight){
       var durBike = Math.round(km / speed * 60);
       return { name: km + ' km en bici', dur: durBike, kcal: kcalBike };
     }
-    if(/andar|caminar|walk|paseo|caminata/.test(text) || true){ // default = walking
-      var kcalWalk = Math.round(km * weight * 0.53);
-      var durWalk = Math.round(km * 12); // ~5 km/h
-      return { name: km + ' km caminando', dur: durWalk, kcal: kcalWalk };
-    }
+    // Distance without another recognised context defaults to walking.
+    var kcalWalk = Math.round(km * weight * 0.53);
+    var durWalk = Math.round(km * 12); // ~5 km/h
+    return { name: km + ' km caminando', dur: durWalk, kcal: kcalWalk };
   }
 
   // ── Normal MET-based detection ──
@@ -6704,7 +6829,43 @@ function toggleMod(m){
   renderModuleSettingsEditor();
   if(CS==='s-home') renderHome();
 }
-function exportData(){var b=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='pt-'+today()+'.json';a.click();}
+function exportData(){
+  var b=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+  var url=URL.createObjectURL(b);
+  var a=document.createElement('a');
+  a.href=url;
+  a.download='pt-'+today()+'.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){URL.revokeObjectURL(url);},100);
+}
+function importData(file){
+  if(!file){ return; }
+  var reader = new FileReader();
+  reader.onload = function(ev){
+    var parsed;
+    try { parsed = JSON.parse(ev.target.result); }
+    catch(e){ toast('El archivo no es un JSON válido', 'error'); return; }
+    if(!parsed || typeof parsed !== 'object' || Array.isArray(parsed)){
+      toast('El archivo no contiene datos de Personal Tracker', 'error'); return;
+    }
+    if(!confirm('Esto reemplazará todos los datos de este dispositivo con los del archivo. ¿Continuar?')) return;
+    try {
+      S = parsed;
+      applyDefaults();
+      save();
+      renderCurrentScreen();
+      updateAvatars();
+      toast('Datos importados correctamente', 'success');
+    } catch(e){
+      console.error('Error importando datos:', e);
+      toast('No se pudieron importar los datos', 'error');
+    }
+  };
+  reader.onerror = function(){ toast('No se pudo leer el archivo', 'error'); };
+  reader.readAsText(file);
+}
 function resetData(){
   if(!confirm('¿Resetear todos los datos? Esta acción no se puede deshacer.'))return;
   if(_firebaseUser && typeof firebase !== 'undefined'){
@@ -6746,7 +6907,7 @@ function renderSyncModalStatus(){
   var statusBox = el('sync-modal-status');
   if(statusBox){
     if(_firebaseUser){
-      statusBox.innerHTML = '<span style="color:var(--lime-light);">●</span> <strong>Google activo</strong><br><span style="font-size:11px;color:var(--txt2);">Toda la información se guarda en Firestore para '+(_firebaseUser.email || _firebaseUser.displayName || 'tu cuenta')+'.</span>';
+      statusBox.innerHTML = '<span style="color:var(--lime-light);">●</span> <strong>Google activo</strong><br><span style="font-size:11px;color:var(--txt2);">Toda la información se guarda en Firestore para '+cleanUserText(_firebaseUser.email || _firebaseUser.displayName || 'tu cuenta', 160)+'.</span>';
     } else {
       statusBox.innerHTML = '<span style="color:var(--txt3);">○</span> <strong>Modo local</strong><br><span style="font-size:11px;color:var(--txt2);">Inicia sesión con Google para guardar toda la información en tu cuenta.</span>';
     }
@@ -6800,6 +6961,41 @@ function openWeight(){
   for(var i=0;i<S.weights.length;i++)if(S.weights[i].date===today())existing=S.weights[i];
   el('w-kg').value = existing ? existing.kg : (getCurrentWeight() || '');
   renderWeightChart();
+  renderWeightHistory();
+}
+function renderWeightHistory(){
+  var box = el('w-history');
+  if(!box) return;
+  if(!S.weights || !S.weights.length){ box.innerHTML = ''; return; }
+  var sorted = S.weights.slice().sort(function(a,b){return b.date.localeCompare(a.date);});
+  var recent = sorted.slice(0, 8);
+  var h = '<div style="font-size:11px;font-weight:700;color:var(--txt2);margin-bottom:8px;">Historial</div>';
+  for(var i=0;i<recent.length;i++){
+    var w = recent[i];
+    var p = w.date.split('-');
+    var label = p[2]+'/'+p[1]+'/'+p[0].slice(2);
+    h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--surf);border-radius:10px;margin-bottom:6px;">'
+       + '<span style="font-size:12px;color:var(--txt2);">'+label+'</span>'
+       + '<span style="display:flex;align-items:center;gap:10px;"><span style="font-size:13px;font-weight:700;">'+(Math.round(w.kg*10)/10)+' kg</span>'
+       + '<button onclick="delWeight(\''+w.date+'\')" style="width:24px;height:24px;border:none;background:var(--surf2);color:var(--txt2);border-radius:50%;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">×</button></span>'
+       + '</div>';
+  }
+  box.innerHTML = h;
+}
+function delWeight(date){
+  if(!confirm('¿Eliminar esta entrada de peso?')) return;
+  S.weights = (S.weights||[]).filter(function(w){ return w.date !== date; });
+  // Si era el peso de hoy, refleja el cambio en el campo y el perfil.
+  if(date === today()){
+    var latest = S.weights.slice().sort(function(a,b){return b.date.localeCompare(a.date);})[0];
+    if(latest && S.profile) S.profile.weight = latest.kg;
+    if(el('w-kg')) el('w-kg').value = '';
+  }
+  save();
+  renderWeightChart();
+  renderWeightHistory();
+  haptic('light');
+  toast('Entrada eliminada', 'success');
 }
 var _weightChart=null;
 function renderWeightChart(){
@@ -6840,31 +7036,36 @@ function renderWeightChart(){
   // Chart
   if(_weightChart){ try{_weightChart.destroy();}catch(e){} _weightChart=null; }
   var ctx=el('w-chart').getContext('2d');
+  var chartAccent = cssVar('--lime-light') || '#BAFF39';
+  var chartText = cssVar('--txt2') || '#888';
+  var chartGrid = cssVar('--border') || '#262626';
+  var chartTooltip = cssVar('--card') || '#1A1A1A';
+  var chartTooltipText = cssVar('--txt') || '#FFF';
   _weightChart=new Chart(ctx,{
     type:'line',
     data:{labels:labels,datasets:[{
       data:data,
-      borderColor:'#BAFF39',
-      backgroundColor:'rgba(186,255,57,.12)',
+      borderColor:chartAccent,
+      backgroundColor:getTheme()==='light'?'rgba(88,140,24,.12)':'rgba(186,255,57,.12)',
       borderWidth:2.5,
       tension:.3,
       pointRadius:3,
-      pointBackgroundColor:'#BAFF39',
+      pointBackgroundColor:chartAccent,
       pointBorderWidth:0,
       fill:true
     }]},
     options:{
       responsive:true,maintainAspectRatio:false,
       plugins:{legend:{display:false},tooltip:{
-        backgroundColor:'#1A1A1A',
-        titleColor:'#FFF',bodyColor:'#FFF',
-        borderColor:'#262626',borderWidth:1,
+        backgroundColor:chartTooltip,
+        titleColor:chartTooltipText,bodyColor:chartTooltipText,
+        borderColor:chartGrid,borderWidth:1,
         padding:10,displayColors:false,
         callbacks:{label:function(ctx){return ctx.parsed.y.toFixed(1)+' kg';}}
       }},
       scales:{
-        x:{grid:{display:false},ticks:{color:'#666',font:{size:9}}},
-        y:{grid:{color:'#262626'},ticks:{color:'#666',font:{size:9},callback:function(v){return v+' kg';}}}
+        x:{grid:{display:false},ticks:{color:chartText,font:{size:9}}},
+        y:{grid:{color:chartGrid},ticks:{color:chartText,font:{size:9},callback:function(v){return v+' kg';}}}
       }
     }
   });
@@ -7070,10 +7271,21 @@ function exportCSV(){
   for(var i=0;i<S.weights.length;i++){
     rows.push([S.weights[i].date,'weight','peso','',Math.round(S.weights[i].kg*10)/10,'','','','','','']);
   }
+  // Habits — completed habits per day
+  var habName = {};
+  for(var h=0;h<(S.habits||[]).length;h++){ habName[S.habits[h].id] = S.habits[h].name; }
+  var habDayKeys = Object.keys(S.habDays||{}).sort();
+  for(var d=0;d<habDayKeys.length;d++){
+    var done = (S.habDays[habDayKeys[d]] && S.habDays[habDayKeys[d]].done) || [];
+    for(var i=0;i<done.length;i++){
+      rows.push([habDayKeys[d],'habit','hábito',habName[done[i]]||done[i],'','','','','','','']);
+    }
+  }
   // Build CSV
   var csv = rows.map(function(r){
     return r.map(function(c){
       var s = String(c);
+      if(typeof c === 'string' && /^[=+\-@]/.test(s)) s = "'" + s;
       if(s.indexOf(',')>=0 || s.indexOf('"')>=0 || s.indexOf('\n')>=0) s = '"' + s.replace(/"/g,'""') + '"';
       return s;
     }).join(',');
@@ -7161,14 +7373,10 @@ function oClose(e,id){if(e.target.id===id)closeModal(id);}
 document.addEventListener('keydown',function(e){
   if(e.key==='Escape'){
     var o=document.querySelectorAll('.overlay.open');
-    for(var i=0;i<o.length;i++){
-      var id=o[i].id;
-      o[i].classList.remove('open');
-      if(id==='m-food') editingFoodId=null;
-      if(id==='m-activity') editingActivityId=null;
-      if(id==='m-newlib') editingLibId=null;
-    }
-    document.body.style.overflow='';
+    if(!o.length) return;
+    var topOverlay = o[o.length-1];
+    if(topOverlay.id === 'm-onboard') return;
+    closeModal(topOverlay.id);
   }
 });
 
@@ -7473,10 +7681,17 @@ loadState();
 loadAiKey();
 // Init Firebase if config exists
 if(loadFirebaseConfig()) setTimeout(function(){ initFirebase(false); }, 200);
-S.fitDate=today();S.habDate=today();
+if(!S.fitDate) S.fitDate=today();
+if(!S.habDate) S.habDate=today();
 goScreen('s-home');
 updateAvatars();
 maybeShowOnboarding();
+// Service worker (soporte offline) — sólo sobre http(s), no en file://
+if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(e){ console.warn('SW no registrado:', e); });
+  });
+}
 </script>
 </body>
 </html>
