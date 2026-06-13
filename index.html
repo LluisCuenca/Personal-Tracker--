@@ -1595,24 +1595,8 @@ button:active,
   <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px;">
     <div class="mcard">
       <div style="font-size:15px;font-weight:800;margin-bottom:4px;">Módulos</div>
-      <div style="font-size:11px;color:var(--txt2);margin-bottom:16px;">Activa o desactiva secciones</div>
-      <div class="srow">
-        <div><div class="srow-label">Nutrition + Fitness</div><div class="srow-sub">Calorías, macros y actividad</div></div>
-        <label class="sw"><input type="checkbox" id="sw-fit" onchange="toggleMod('fitness')"><span class="sw-t"></span></label>
-      </div>
-      <div class="srow">
-        <div><div class="srow-label">Daily Habits</div><div class="srow-sub">Sistema de coins y hábitos</div></div>
-        <label class="sw"><input type="checkbox" id="sw-hab" onchange="toggleMod('habits')"><span class="sw-t"></span></label>
-      </div>
-      <div class="srow">
-        <div><div class="srow-label">Weekly Planner</div><div class="srow-sub">Rutina semanal y progreso</div></div>
-        <label class="sw"><input type="checkbox" id="sw-plan" onchange="toggleMod('planner')"><span class="sw-t"></span></label>
-      </div>
-    </div>
-    <div class="mcard">
-      <div style="font-size:15px;font-weight:800;margin-bottom:4px;">Orden de la página principal</div>
-      <div style="font-size:11px;color:var(--txt2);margin-bottom:14px;line-height:1.5;">Decide qué bloque quieres ver primero. El orden se guarda y sincroniza con tu cuenta.</div>
-      <div id="home-order-editor"></div>
+      <div style="font-size:11px;color:var(--txt2);margin-bottom:10px;line-height:1.5;">Activa, desactiva y ordena las secciones de la página principal.</div>
+      <div id="module-settings-editor"></div>
     </div>
     <!-- Cloud Sync (Firebase) -->
     <div class="mcard">
@@ -1664,17 +1648,6 @@ button:active,
       <button id="calendar-disconnect-btn" class="btn btn-danger" style="display:none;font-size:12px;" onclick="disconnectGoogleCalendar()">Desconectar Calendar</button>
     </div>
 
-    <div class="mcard">
-      <div style="font-size:15px;font-weight:800;margin-bottom:4px;">Datos</div>
-      <div style="font-size:11px;color:var(--txt2);margin-bottom:16px;">Exporta una copia o resetea la app en este dispositivo.</div>
-      <div style="padding:10px 0 14px;border-bottom:1px solid var(--border);margin-bottom:14px;">
-        <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Estado</div>
-        <div id="settings-sync-status" style="font-size:11px;color:var(--txt2);line-height:1.5;">Comprobando...</div>
-      </div>
-      <button class="btn btn-ghost full" style="font-size:13px;margin-bottom:8px;" onclick="exportData()">Exportar JSON</button>
-      <button class="btn btn-ghost full" style="font-size:13px;margin-bottom:8px;" onclick="exportCSV()">Exportar a CSV</button>
-      <button class="btn btn-danger" onclick="resetData()">Resetear todos los datos</button>
-    </div>
     <div class="mcard">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
         <div style="font-size:15px;font-weight:800;">Auto-estimación</div>
@@ -1739,6 +1712,18 @@ button:active,
           <span class="th-label">Claro</span>
         </button>
       </div>
+    </div>
+
+    <div class="mcard">
+      <div style="font-size:15px;font-weight:800;margin-bottom:4px;">Datos</div>
+      <div style="font-size:11px;color:var(--txt2);margin-bottom:16px;">Exporta una copia o resetea la app en este dispositivo.</div>
+      <div style="padding:10px 0 14px;border-bottom:1px solid var(--border);margin-bottom:14px;">
+        <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Estado</div>
+        <div id="settings-sync-status" style="font-size:11px;color:var(--txt2);line-height:1.5;">Comprobando...</div>
+      </div>
+      <button class="btn btn-ghost full" style="font-size:13px;margin-bottom:8px;" onclick="exportData()">Exportar JSON</button>
+      <button class="btn btn-ghost full" style="font-size:13px;margin-bottom:8px;" onclick="exportCSV()">Exportar a CSV</button>
+      <button class="btn btn-danger" onclick="resetData()">Resetear todos los datos</button>
     </div>
 
     <div class="mcard" style="text-align:center;">
@@ -6646,9 +6631,6 @@ function renderSettings(){
   if(tl_) tl_.className = 'theme-tile' + (t==='light'?' on':'');
   // Firebase sync UI
   updateFirebaseUIState();
-  el('sw-fit').checked=S.modules.fitness;
-  el('sw-hab').checked=S.modules.habits;
-  if(el('sw-plan')) el('sw-plan').checked = (S.modules.planner !== false);
   // Refresh sync status without overriding an active/error cloud state.
   setSyncStatus(_firebaseUser && !_cloudSyncReady ? 'syncing' : currentSyncStatus, _firebaseUser ? 'Google' : 'Local');
   // AI status
@@ -6677,20 +6659,23 @@ function renderSettings(){
     }
   }
   renderCalendarSettings();
-  renderHomeOrderEditor();
+  renderModuleSettingsEditor();
 }
-function renderHomeOrderEditor(){
-  var wrap = el('home-order-editor');
+function renderModuleSettingsEditor(){
+  var wrap = el('module-settings-editor');
   if(!wrap) return;
   var labels = {fitness:'Nutrition + Fitness',habits:'Daily Habits',planner:'Weekly Planner'};
+  var descriptions = {fitness:'Calorías, macros y actividad',habits:'Sistema de coins y hábitos',planner:'Rutina semanal y progreso'};
   var h = '';
   for(var i=0;i<S.homeOrder.length;i++){
     var key = S.homeOrder[i];
-    h += '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;'+(i<S.homeOrder.length-1?'border-bottom:1px solid var(--border);':'')+'">'
+    var enabled = key === 'planner' ? S.modules.planner !== false : !!S.modules[key];
+    h += '<div style="display:flex;align-items:center;gap:9px;padding:12px 0;'+(i<S.homeOrder.length-1?'border-bottom:1px solid var(--border);':'')+'">'
       + '<div style="width:26px;height:26px;border-radius:9px;background:var(--surf);display:flex;align-items:center;justify-content:center;color:var(--txt2);font-size:11px;font-weight:900;">'+(i+1)+'</div>'
-      + '<div style="flex:1;font-size:12px;font-weight:800;">'+labels[key]+'</div>'
-      + '<button class="btn btn-ghost" style="padding:7px 11px;font-size:13px;" onclick="moveHomeBlock(\''+key+'\',-1)" '+(i===0?'disabled':'')+' aria-label="Subir '+labels[key]+'">↑</button>'
-      + '<button class="btn btn-ghost" style="padding:7px 11px;font-size:13px;" onclick="moveHomeBlock(\''+key+'\',1)" '+(i===S.homeOrder.length-1?'disabled':'')+' aria-label="Bajar '+labels[key]+'">↓</button>'
+      + '<div style="flex:1;min-width:0;"><div class="srow-label">'+labels[key]+'</div><div class="srow-sub">'+descriptions[key]+'</div></div>'
+      + '<button class="btn btn-ghost" style="padding:7px 10px;font-size:13px;" onclick="moveHomeBlock(\''+key+'\',-1)" '+(i===0?'disabled':'')+' aria-label="Subir '+labels[key]+'">↑</button>'
+      + '<button class="btn btn-ghost" style="padding:7px 10px;font-size:13px;" onclick="moveHomeBlock(\''+key+'\',1)" '+(i===S.homeOrder.length-1?'disabled':'')+' aria-label="Bajar '+labels[key]+'">↓</button>'
+      + '<label class="sw" aria-label="Activar o desactivar '+labels[key]+'"><input type="checkbox" onchange="toggleMod(\''+key+'\')" '+(enabled?'checked':'')+'><span class="sw-t"></span></label>'
       + '</div>';
   }
   wrap.innerHTML = h;
@@ -6703,12 +6688,13 @@ function moveHomeBlock(key, direction){
   S.homeOrder[idx] = S.homeOrder[next];
   S.homeOrder[next] = temp;
   save();
-  renderHomeOrderEditor();
+  renderModuleSettingsEditor();
   haptic('light');
 }
 function toggleMod(m){
   S.modules[m]=!S.modules[m];
   save();
+  renderModuleSettingsEditor();
   if(CS==='s-home') renderHome();
 }
 function exportData(){var b=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='pt-'+today()+'.json';a.click();}
