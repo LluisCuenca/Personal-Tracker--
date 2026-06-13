@@ -2939,6 +2939,7 @@ function goScreen(name){
   if(name==='s-hablib') renderHabLib();
   if(name==='s-planner'){
     plannerWeekOffset = 0;
+    plannerVisibleWeeks = 1;
     renderPlanner();
     updateAvatars();
     if(S.calendar && S.calendar.enabled && _calendarAccessToken){
@@ -4334,6 +4335,7 @@ function calcStreak(){
 
 /* ═══ WEEKLY PLANNER ═══ */
 var plannerWeekOffset = 0;  // 0 = current week, -1 = prev, +1 = next
+var plannerVisibleWeeks = 1;
 var editingPlanActivityId = null;
 
 var PLAN_CATS = {
@@ -4697,7 +4699,6 @@ function renderPlanner(){
 
   // Compute week stats
   var weekTotal = 0, weekDone = 0;
-  var dayStats = []; // {dow, total, done}
   for(var d=0;d<7;d++){
     var dDate = new Date(monday); dDate.setDate(dDate.getDate()+d);
     var dStr = ds(dDate);
@@ -4708,8 +4709,6 @@ function renderPlanner(){
     }
     weekTotal += dActs.length;
     weekDone += dDone;
-    var jsDow = dDate.getDay();
-    dayStats.push({ jsDow:jsDow, date:dDate, dStr:dStr, total:dActs.length, done:dDone, acts:dActs });
   }
   var weekPct = weekTotal > 0 ? Math.round(weekDone/weekTotal*100) : 0;
 
@@ -4743,32 +4742,24 @@ function renderPlanner(){
   h += '<button class="btn btn-lime-sm" onclick="openModal(\'m-planchoose\')">+ Añadir actividad</button></div>';
   h += '</div>';
 
-  // Week list — day by day
-  if(weekTotal === 0){
-    h += '<div class="empty" style="margin-top:18px;"><div class="empty-t" style="margin-bottom:14px;">Aún no tienes actividades planificadas.<br>Pulsa <strong style="color:var(--lime-light);">+ Añadir actividad</strong> para crear tu rutina semanal.</div></div>';
-  } else {
-    // Order: start with today (or monday if not in current week)
-    var ordering = [];
-    if(plannerWeekOffset === 0){
-      var todayJsDow = now.getDay();
-      // Build ordering starting from today
-      for(var i=0;i<7;i++){
-        var dDate2 = new Date(monday); dDate2.setDate(dDate2.getDate()+i);
-        if(dDate2.getDay() === todayJsDow){ ordering.push(i); break; }
+  // Day list — chronological, with seven more days per expansion
+  var listStart = plannerWeekOffset === 0 ? new Date(now) : new Date(monday);
+  listStart.setHours(0,0,0,0);
+  var visibleDays = plannerVisibleWeeks * 7;
+  h += '<div style="padding:0 16px;">';
+  for(var oi=0; oi<visibleDays; oi++){
+      var listDate = new Date(listStart); listDate.setDate(listDate.getDate()+oi);
+      var listDateStr = ds(listDate);
+      var listActs = getPlannerActivitiesForDate(listDateStr);
+      var listWeekKey = getWeekKey(listDate);
+      var listWeekData = S.planner.weeks[listWeekKey] || {completed:[]};
+      var listDone = 0;
+      for(var ldi=0;ldi<listActs.length;ldi++){
+        if(listWeekData.completed.indexOf(listActs[ldi].id + '_' + listDateStr) >= 0) listDone++;
       }
-      // Add following days
-      var lastIdx = ordering[0];
-      for(var k=1;k<7;k++){ ordering.push((lastIdx + k) % 7); }
-    } else {
-      for(var i=0;i<7;i++) ordering.push(i);
-    }
-    h += '<div style="padding:0 16px;">';
-    for(var oi=0; oi<ordering.length; oi++){
-      var di = ordering[oi];
-      var ds_ = dayStats[di];
+      var ds_ = {jsDow:listDate.getDay(),date:listDate,dStr:listDateStr,total:listActs.length,done:listDone,acts:listActs};
       var isTodayD = ds_.dStr === today();
       var dayName = DOW_LABELS_FULL[ds_.jsDow];
-      var dayPct = ds_.total > 0 ? Math.round(ds_.done/ds_.total*100) : 0;
 
       h += '<div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px;'
          + (isTodayD ? 'border-color:var(--lime-light);box-shadow:0 0 0 2px rgba(186,255,57,.1);' : '')
@@ -4784,16 +4775,16 @@ function renderPlanner(){
       h += '</div>';
       if(ds_.total > 0){
         h += '<div style="font-size:11px;font-weight:700;color:var(--lime-light);">'+ds_.done+'/'+ds_.total+'</div>';
+      } else {
+        h += '<div style="font-size:11px;color:var(--txt3);font-style:italic;padding-left:10px;">Día libre</div>';
       }
       h += '</div>';
 
-      if(ds_.acts.length === 0){
-        h += '<div style="font-size:11px;color:var(--txt3);font-style:italic;">Día libre</div>';
-      } else {
+      if(ds_.acts.length > 0){
         for(var ai=0; ai<ds_.acts.length; ai++){
           var act = ds_.acts[ai];
           var key = act.id + '_' + ds_.dStr;
-          var doneA = weekData.completed.indexOf(key) >= 0;
+          var doneA = listWeekData.completed.indexOf(key) >= 0;
           var catLbl = act.calendarImported ? 'Google Calendar' : (PLAN_CATS[act.category] || PLAN_CATS.other).label;
           h += '<div onclick="togglePlanCompleted(\''+act.id+'\',\''+ds_.dStr+'\')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:'+(doneA?'rgba(186,255,57,.08)':'var(--surf)')+';border:1px solid '+(doneA?'rgba(186,255,57,.25)':'var(--surf2)')+';border-radius:11px;margin-bottom:6px;cursor:pointer;transition:all .18s;">';
           // Checkbox
@@ -4810,9 +4801,11 @@ function renderPlanner(){
         }
       }
       h += '</div>';
-    }
-    h += '</div>';
   }
+  h += '<div style="display:flex;gap:8px;padding:4px 0 18px;">';
+  if(plannerVisibleWeeks > 1) h += '<button class="btn btn-ghost full" style="font-size:12px;" onclick="showFewerPlannerDays()">Ver menos · 7 días</button>';
+  h += '<button class="btn btn-lime full" style="font-size:12px;" onclick="showMorePlannerDays()">Ver más · 7 días</button>';
+  h += '</div></div>';
 
   el('planner-content').innerHTML = h;
   attachRipplesToLimeButtons();
@@ -4820,6 +4813,7 @@ function renderPlanner(){
 
 function navPlanWeek(delta){
   plannerWeekOffset += delta;
+  plannerVisibleWeeks = 1;
   haptic('light');
   var content = el('planner-content');
   if(content){
@@ -4840,6 +4834,19 @@ function navPlanWeek(delta){
   } else {
     renderPlanner();
   }
+}
+
+function showMorePlannerDays(){
+  plannerVisibleWeeks++;
+  haptic('light');
+  renderPlanner();
+}
+
+function showFewerPlannerDays(){
+  if(plannerVisibleWeeks <= 1) return;
+  plannerVisibleWeeks--;
+  haptic('light');
+  renderPlanner();
 }
 
 function togglePlanCompleted(actId, dStr){
