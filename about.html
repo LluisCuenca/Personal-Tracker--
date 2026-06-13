@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Personal Tracker · Salud, hábitos y planificación</title>
+  <meta name="description" content="Personal Tracker reúne nutrición, actividad, hábitos y planificación semanal en una sola aplicación.">
+  <style>
+    :root{color-scheme:dark;--bg:#0d0d0d;--card:#1a1a1a;--text:#f5f5f2;--muted:#aaa;--lime:#baff39;--border:#303030}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 Arial,sans-serif}
+    main{max-width:850px;margin:auto;padding:64px 22px 80px} h1{font-size:54px;line-height:1;margin:10px 0 18px;letter-spacing:-2px}
+    h2{font-size:24px;margin:40px 0 14px} p{color:var(--muted)} a{color:var(--lime)} .brand{color:var(--lime);font-weight:800}
+    .lead{font-size:20px;max-width:680px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:28px 0}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px}.card strong{display:block;margin-bottom:7px}
+    .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px}.btn{display:inline-block;background:var(--lime);color:#0d0d0d;text-decoration:none;font-weight:800;padding:11px 18px;border-radius:999px}
+    .btn.secondary{background:var(--card);color:var(--text);border:1px solid var(--border)} footer{margin-top:54px;padding-top:20px;border-top:1px solid var(--border);font-size:13px;color:var(--muted)}
+  </style>
+</head>
+<body>
+<main>
+  <div class="brand">Personal Tracker®</div>
+  <h1>Tu salud, hábitos y semana, en un solo lugar.</h1>
+  <p class="lead">Personal Tracker es una aplicación personal para registrar nutrición y actividad, construir hábitos y convertir tu Google Calendar en objetivos diarios.</p>
+
+  <div class="actions">
+    <a class="btn" href="index.html">Abrir aplicación</a>
+    <a class="btn secondary" href="privacy.html">Política de privacidad</a>
+    <a class="btn secondary" href="terms.html">Condiciones de servicio</a>
+  </div>
+
+  <h2>Funciones principales</h2>
+  <div class="grid">
+    <div class="card"><strong>Nutrition + Fitness</strong><p>Registra comidas, macros, peso y actividad. Gemini puede ayudarte a estimar valores.</p></div>
+    <div class="card"><strong>Daily Habits</strong><p>Crea hábitos diarios, registra tu progreso y mantén una visión clara de tu constancia.</p></div>
+    <div class="card"><strong>Weekly Planner</strong><p>Planifica rutinas y sincroniza voluntariamente los eventos de tu calendario principal de Google.</p></div>
+    <div class="card"><strong>Sincronización privada</strong><p>Utiliza Google Sign-In y Firebase para acceder a tus propios datos desde varios dispositivos.</p></div>
+  </div>
+
+  <h2>Uso de Google Calendar</h2>
+  <p>La integración es opcional y se activa únicamente cuando el usuario pulsa “Conectar Google Calendar”. Personal Tracker utiliza el permiso solicitado para leer, crear, editar y eliminar eventos del calendario principal con el fin de sincronizarlos con Weekly Planner.</p>
+
+  <footer>Creado por Lluis Cuenca · <a href="privacy.html">Privacidad</a> · <a href="terms.html">Condiciones</a> · <a href="https://github.com/LluisCuenca">Contacto</a></footer>
+</main>
+</body>
+</html>

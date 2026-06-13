@@ -1652,6 +1652,7 @@ button:active,
         <div id="calendar-status-badge" style="font-size:9px;font-weight:700;color:var(--txt3);background:var(--surf);padding:3px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em;">Desconectado</div>
       </div>
       <div style="font-size:11px;color:var(--txt2);margin-bottom:14px;line-height:1.5;">Sincroniza los eventos del calendario principal con Weekly Planner. Los eventos importados cuentan como objetivos diarios.</div>
+      <div style="font-size:10px;color:var(--txt3);margin-bottom:12px;line-height:1.5;">Al conectar Calendar, la app podrá leer, crear, editar y eliminar eventos de tu calendario principal para sincronizarlos con el planner. Consulta la <a href="privacy.html" target="_blank" rel="noopener" style="color:var(--lime-light);">política de privacidad</a>.</div>
       <div id="calendar-connected-info" style="display:none;background:var(--surf);border-radius:10px;padding:11px 12px;margin-bottom:10px;font-size:11px;color:var(--txt2);line-height:1.55;"></div>
       <button id="calendar-connect-btn" class="btn btn-lime-full" style="font-size:13px;padding:12px;margin-bottom:8px;" onclick="connectGoogleCalendar()">Conectar Google Calendar</button>
       <button id="calendar-sync-btn" class="btn btn-ghost full" style="display:none;font-size:13px;margin-bottom:8px;" onclick="syncGoogleCalendar(true)">↻ Sincronizar ahora</button>
@@ -1738,6 +1739,10 @@ button:active,
     <div class="mcard" style="text-align:center;">
       <div style="font-size:22px;font-weight:900;color:var(--lime-light);letter-spacing:-.5px;margin-bottom:4px;">Personal Tracker®</div>
       <div style="font-size:11px;color:var(--txt2);">v2.0 · Lluis Cuenca · 2026</div>
+      <div style="display:flex;justify-content:center;gap:14px;margin-top:12px;font-size:10px;font-weight:700;">
+        <a href="privacy.html" target="_blank" rel="noopener" style="color:var(--txt2);">Privacidad</a>
+        <a href="terms.html" target="_blank" rel="noopener" style="color:var(--txt2);">Condiciones</a>
+      </div>
     </div>
   </div>
 </div>
@@ -3151,6 +3156,11 @@ function renderHome(){
     h+='</div>';
     h+='</div>';
   }
+
+  h+='<div style="display:flex;justify-content:center;gap:14px;padding:6px 16px 24px;font-size:10px;font-weight:700;">'
+    +'<a href="privacy.html" target="_blank" rel="noopener" style="color:var(--txt3);">Política de privacidad</a>'
+    +'<a href="terms.html" target="_blank" rel="noopener" style="color:var(--txt3);">Condiciones de servicio</a>'
+    +'</div>';
 
   el('home-cards').innerHTML=h;
   // Post-render motion: stagger cards in, animate progress bars, ripples
