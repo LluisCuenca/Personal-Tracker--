@@ -1609,6 +1609,11 @@ button:active,
         <label class="sw"><input type="checkbox" id="sw-plan" onchange="toggleMod('planner')"><span class="sw-t"></span></label>
       </div>
     </div>
+    <div class="mcard">
+      <div style="font-size:15px;font-weight:800;margin-bottom:4px;">Orden de la página principal</div>
+      <div style="font-size:11px;color:var(--txt2);margin-bottom:14px;line-height:1.5;">Decide qué bloque quieres ver primero. El orden se guarda y sincroniza con tu cuenta.</div>
+      <div id="home-order-editor"></div>
+    </div>
     <!-- Cloud Sync (Firebase) -->
     <div class="mcard">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
@@ -1925,23 +1930,20 @@ button:active,
     <div class="onboard-content">
     <!-- ════ SLIDE 1: Welcome ════ -->
     <div class="ob-slide" id="ob-s1">
-      <div style="text-align:center;padding:8px 0 6px;">
+      <div style="text-align:center;padding:2px 0 6px;">
         <div style="display:inline-flex;width:74px;height:74px;background:var(--lime-light);border-radius:18px;align-items:center;justify-content:center;margin-bottom:18px;">
           <svg width="44" height="44" viewBox="0 0 64 64" fill="none">
             <path d="M11 32 L22 32 L27 21 L33 43 L39 32 L53 32" stroke="#0D0D0D" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
           </svg>
         </div>
-        <div style="font-size:34px;font-weight:900;letter-spacing:-1.4px;line-height:1;margin-bottom:8px;">Personal<br><span style="color:var(--lime-light);">Tracker®</span></div>
-        <div style="font-size:13px;color:var(--txt2);margin-bottom:24px;line-height:1.5;padding:0 18px;">Tu salud, hábitos y rutina semanal,<br>en una sola app limpia y privada.</div>
+        <div style="font-size:30px;font-weight:900;letter-spacing:-1.2px;line-height:1.02;margin-bottom:9px;">Tu salud, hábitos y semana,<br><span style="color:var(--lime-light);">en un solo lugar.</span></div>
+        <div style="font-size:12px;color:var(--txt2);margin-bottom:18px;line-height:1.5;padding:0 12px;">Una aplicación personal para entender tu progreso, construir constancia y convertir tus planes en objetivos diarios.</div>
       </div>
-      <div style="background:var(--surf);border-radius:14px;padding:16px;margin-bottom:8px;">
-        <div style="font-size:11px;font-weight:800;color:var(--lime-light);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;">Qué puedes hacer</div>
-        <div style="font-size:12px;color:var(--txt);line-height:1.9;">
-          <div style="display:flex;align-items:center;gap:8px;"><span style="color:var(--lime-light);font-weight:900;">·</span> Trackear calorías, macros y actividad</div>
-          <div style="display:flex;align-items:center;gap:8px;"><span style="color:var(--lime-light);font-weight:900;">·</span> Construir hábitos diarios con puntos</div>
-          <div style="display:flex;align-items:center;gap:8px;"><span style="color:var(--lime-light);font-weight:900;">·</span> Planificar tu semana y completarla</div>
-          <div style="display:flex;align-items:center;gap:8px;"><span style="color:var(--lime-light);font-weight:900;">·</span> Sincronizar entre todos tus dispositivos</div>
-        </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+        <div style="background:var(--surf);border-radius:14px;padding:13px;"><div style="font-size:11px;font-weight:800;color:var(--lime-light);margin-bottom:4px;">Nutrition + Fitness</div><div style="font-size:10px;color:var(--txt2);line-height:1.45;">Comidas, macros, peso y actividad con ayuda de Gemini.</div></div>
+        <div style="background:var(--surf);border-radius:14px;padding:13px;"><div style="font-size:11px;font-weight:800;color:var(--lime-light);margin-bottom:4px;">Daily Habits</div><div style="font-size:10px;color:var(--txt2);line-height:1.45;">Construye hábitos y observa tu constancia diaria.</div></div>
+        <div style="background:var(--surf);border-radius:14px;padding:13px;"><div style="font-size:11px;font-weight:800;color:var(--lime-light);margin-bottom:4px;">Weekly Planner</div><div style="font-size:10px;color:var(--txt2);line-height:1.45;">Convierte tu calendario y tus rutinas en objetivos.</div></div>
+        <div style="background:var(--surf);border-radius:14px;padding:13px;"><div style="font-size:11px;font-weight:800;color:var(--lime-light);margin-bottom:4px;">Tu espacio privado</div><div style="font-size:10px;color:var(--txt2);line-height:1.45;">Funciona en local o sincronizado entre dispositivos.</div></div>
       </div>
     </div>
 
@@ -2501,6 +2503,10 @@ function removeDefaultHabits(){
 function applyDefaults(){
   if(!S.modules)   S.modules   = {fitness:true,habits:true,planner:true};
   if(S.modules.planner == null) S.modules.planner = true;
+  if(!S.homeOrder || !Array.isArray(S.homeOrder)) S.homeOrder = ['fitness','habits','planner'];
+  var validHomeOrder = ['fitness','habits','planner'];
+  S.homeOrder = S.homeOrder.filter(function(k){ return validHomeOrder.indexOf(k) >= 0; });
+  for(var ho=0;ho<validHomeOrder.length;ho++) if(S.homeOrder.indexOf(validHomeOrder[ho]) < 0) S.homeOrder.push(validHomeOrder[ho]);
   if(!S.fitDate)   S.fitDate   = today();
   if(!S.profile)   S.profile   = null;
   if(!S.fitDays)   S.fitDays   = {};
@@ -3054,7 +3060,7 @@ function renderHome(){
 
     var todayClass = (balToday !== null && balToday < 0) ? ' neg' : '';
 
-    h+='<div class="mcard">';
+    h+='<div class="mcard" data-home-module="fitness">';
     h+='<div class="mc-top"><div class="mc-title">Nutrition + Fitness</div><button class="btn btn-lime-sm" onclick="goScreen(\'s-fitness\')">Track</button></div>';
     // Big balance today
     h+='<div style="margin-top:14px;display:flex;align-items:flex-end;gap:6px;">';
@@ -3075,7 +3081,7 @@ function renderHome(){
     h+='</div>';
     h+='</div>';
   } else {
-    h+='<div class="mcard off"><div class="mc-title">Nutrition + Fitness</div><div style="font-size:12px;color:var(--txt2);margin-top:8px;">Módulo desactivado</div></div>';
+    h+='<div class="mcard off" data-home-module="fitness"><div class="mc-title">Nutrition + Fitness</div><div style="font-size:12px;color:var(--txt2);margin-top:8px;">Módulo desactivado</div></div>';
   }
 
   // HABITS
@@ -3094,7 +3100,7 @@ function renderHome(){
     }
     var avg7 = n7 > 0 ? Math.round(sum7/n7) : 0;
     var todayClass = ptsToday < 0 ? ' neg' : '';
-    h+='<div class="mcard">';
+    h+='<div class="mcard" data-home-module="habits">';
     h+='<div class="mc-top"><div class="mc-title">Daily Habits</div><button class="btn btn-lime-sm" onclick="goScreen(\'s-habits\')">Track</button></div>';
     // Big today
     h+='<div style="margin-top:14px;display:flex;align-items:flex-end;gap:6px;">';
@@ -3112,7 +3118,7 @@ function renderHome(){
     h+='</div>';
     h+='</div>';
   } else {
-    h+='<div class="mcard off"><div class="mc-title">Daily Habits</div><div style="font-size:12px;color:var(--txt2);margin-top:8px;">Módulo desactivado</div></div>';
+    h+='<div class="mcard off" data-home-module="habits"><div class="mc-title">Daily Habits</div><div style="font-size:12px;color:var(--txt2);margin-top:8px;">Módulo desactivado</div></div>';
   }
 
   // WEEKLY PLANNER
@@ -3139,7 +3145,7 @@ function renderHome(){
     var weekDone = weekData.completed.length;
     var weekPct = weekTotal > 0 ? Math.round(weekDone / weekTotal * 100) : 0;
 
-    h+='<div class="mcard">';
+    h+='<div class="mcard" data-home-module="planner">';
     h+='<div class="mc-top"><div class="mc-title">Weekly Planner</div><button class="btn btn-lime-sm" onclick="goScreen(\'s-planner\')">Plan</button></div>';
     h+='<div style="margin-top:14px;display:flex;align-items:flex-end;gap:6px;">';
     h+='<div class="coins-big" style="font-size:54px;letter-spacing:-2.5px;">'+todayDone+'<span class="coins-unit">/'+todayActs.length+'</span></div>';
@@ -3157,12 +3163,20 @@ function renderHome(){
     h+='</div>';
   }
 
-  h+='<div style="display:flex;justify-content:center;gap:14px;padding:6px 16px 24px;font-size:10px;font-weight:700;">'
+  h+='<div id="home-legal-links" style="display:flex;justify-content:center;gap:14px;padding:6px 16px 24px;font-size:10px;font-weight:700;">'
     +'<a href="privacy.html" target="_blank" rel="noopener" style="color:var(--txt3);">Política de privacidad</a>'
     +'<a href="terms.html" target="_blank" rel="noopener" style="color:var(--txt3);">Condiciones de servicio</a>'
     +'</div>';
 
   el('home-cards').innerHTML=h;
+  var homeCards = el('home-cards');
+  if(homeCards && S.homeOrder){
+    var legalLinks = el('home-legal-links');
+    for(var oi=0;oi<S.homeOrder.length;oi++){
+      var homeBlock = homeCards.querySelector('[data-home-module="'+S.homeOrder[oi]+'"]');
+      if(homeBlock) homeCards.insertBefore(homeBlock, legalLinks);
+    }
+  }
   // Post-render motion: stagger cards in, animate progress bars, ripples
   var cards = el('home-cards');
   if(cards){
@@ -4777,8 +4791,11 @@ function renderPlanner(){
       // Day header
       h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:'+(ds_.acts.length>0?'10px':'0')+';">';
       h += '<div style="display:flex;align-items:center;gap:8px;">';
-      h += '<div style="font-size:14px;font-weight:800;color:'+(isTodayD?'var(--lime-light)':'var(--txt)')+';">'+dayName+(isTodayD?' · Hoy':'')+'</div>';
-      h += '<div style="font-size:11px;color:var(--txt3);font-weight:600;">'+ds_.date.getDate()+'/'+(ds_.date.getMonth()+1)+'</div>';
+      h += '<div style="min-width:42px;height:42px;border-radius:12px;background:'+(isTodayD?'var(--lime-light)':'var(--surf)')+';color:'+(isTodayD?'#0D0D0D':'var(--txt)')+';display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;box-shadow:'+(isTodayD?'0 4px 12px rgba(186,255,57,.18)':'inset 0 0 0 1px var(--border)')+';">'
+        + '<span style="font-size:18px;font-weight:900;letter-spacing:-.5px;">'+ds_.date.getDate()+'</span>'
+        + '<span style="font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-top:3px;opacity:.68;">'+MS[ds_.date.getMonth()].slice(0,3)+'</span></div>';
+      h += '<div><div style="font-size:14px;font-weight:800;color:'+(isTodayD?'var(--lime-light)':'var(--txt)')+';">'+dayName+'</div>'
+        + '<div style="font-size:10px;color:'+(isTodayD?'var(--lime-light)':'var(--txt3)')+';font-weight:700;margin-top:2px;">'+(isTodayD?'Hoy':'Semana '+getWeekKey(ds_.date).split('-W')[1])+'</div></div>';
       h += '</div>';
       if(ds_.total > 0){
         h += '<div style="font-size:11px;font-weight:700;color:var(--lime-light);">'+ds_.done+'/'+ds_.total+'</div>';
@@ -6660,6 +6677,34 @@ function renderSettings(){
     }
   }
   renderCalendarSettings();
+  renderHomeOrderEditor();
+}
+function renderHomeOrderEditor(){
+  var wrap = el('home-order-editor');
+  if(!wrap) return;
+  var labels = {fitness:'Nutrition + Fitness',habits:'Daily Habits',planner:'Weekly Planner'};
+  var h = '';
+  for(var i=0;i<S.homeOrder.length;i++){
+    var key = S.homeOrder[i];
+    h += '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;'+(i<S.homeOrder.length-1?'border-bottom:1px solid var(--border);':'')+'">'
+      + '<div style="width:26px;height:26px;border-radius:9px;background:var(--surf);display:flex;align-items:center;justify-content:center;color:var(--txt2);font-size:11px;font-weight:900;">'+(i+1)+'</div>'
+      + '<div style="flex:1;font-size:12px;font-weight:800;">'+labels[key]+'</div>'
+      + '<button class="btn btn-ghost" style="padding:7px 11px;font-size:13px;" onclick="moveHomeBlock(\''+key+'\',-1)" '+(i===0?'disabled':'')+' aria-label="Subir '+labels[key]+'">↑</button>'
+      + '<button class="btn btn-ghost" style="padding:7px 11px;font-size:13px;" onclick="moveHomeBlock(\''+key+'\',1)" '+(i===S.homeOrder.length-1?'disabled':'')+' aria-label="Bajar '+labels[key]+'">↓</button>'
+      + '</div>';
+  }
+  wrap.innerHTML = h;
+}
+function moveHomeBlock(key, direction){
+  var idx = S.homeOrder.indexOf(key);
+  var next = idx + direction;
+  if(idx < 0 || next < 0 || next >= S.homeOrder.length) return;
+  var temp = S.homeOrder[idx];
+  S.homeOrder[idx] = S.homeOrder[next];
+  S.homeOrder[next] = temp;
+  save();
+  renderHomeOrderEditor();
+  haptic('light');
 }
 function toggleMod(m){
   S.modules[m]=!S.modules[m];
