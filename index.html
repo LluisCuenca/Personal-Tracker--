@@ -1645,6 +1645,19 @@ button:active,
       </div>
     </div>
 
+    <!-- Google Calendar -->
+    <div class="mcard">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+        <div style="font-size:15px;font-weight:800;">Google Calendar</div>
+        <div id="calendar-status-badge" style="font-size:9px;font-weight:700;color:var(--txt3);background:var(--surf);padding:3px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em;">Desconectado</div>
+      </div>
+      <div style="font-size:11px;color:var(--txt2);margin-bottom:14px;line-height:1.5;">Sincroniza los eventos del calendario principal con Weekly Planner. Los eventos importados cuentan como objetivos diarios.</div>
+      <div id="calendar-connected-info" style="display:none;background:var(--surf);border-radius:10px;padding:11px 12px;margin-bottom:10px;font-size:11px;color:var(--txt2);line-height:1.55;"></div>
+      <button id="calendar-connect-btn" class="btn btn-lime-full" style="font-size:13px;padding:12px;margin-bottom:8px;" onclick="connectGoogleCalendar()">Conectar Google Calendar</button>
+      <button id="calendar-sync-btn" class="btn btn-ghost full" style="display:none;font-size:13px;margin-bottom:8px;" onclick="syncGoogleCalendar(true)">↻ Sincronizar ahora</button>
+      <button id="calendar-disconnect-btn" class="btn btn-danger" style="display:none;font-size:12px;" onclick="disconnectGoogleCalendar()">Desconectar Calendar</button>
+    </div>
+
     <div class="mcard">
       <div style="font-size:15px;font-weight:800;margin-bottom:4px;">Datos</div>
       <div style="font-size:11px;color:var(--txt2);margin-bottom:16px;">Exporta una copia o resetea la app en este dispositivo.</div>
@@ -1673,38 +1686,36 @@ button:active,
           ✗ No entiende contexto complejo
         </div>
       </div>
-      <div id="ai-mode-claude" style="display:none;background:rgba(186,255,57,.06);border:1px solid rgba(186,255,57,.18);border-radius:10px;padding:12px;margin-bottom:14px;">
+      <div id="ai-mode-gemini" style="display:none;background:rgba(186,255,57,.06);border:1px solid rgba(186,255,57,.18);border-radius:10px;padding:12px;margin-bottom:14px;">
         <div style="font-size:11px;color:var(--txt2);line-height:1.7;">
-          <strong style="color:var(--lime-light);">Modo actual: Claude API</strong>.
+          <strong style="color:var(--lime-light);">Modo actual: Gemini con Firebase AI Logic</strong>.
           <br><br>
           ✓ Entiende lenguaje natural complejo<br>
           ✓ Detecta contexto, ingredientes múltiples, momentos del día<br>
-          ✓ Mucho más preciso que la base local
+          ✓ No requiere pegar ni publicar una API key
         </div>
       </div>
 
-      <!-- Configurar Claude (cuando NO está activo) -->
+      <!-- Configurar Gemini (cuando NO está activo) -->
       <div id="ai-setup-block">
-        <div style="font-size:12px;font-weight:700;margin-bottom:6px;">Activar Claude API</div>
+        <div style="font-size:12px;font-weight:700;margin-bottom:6px;">Activar Gemini</div>
         <div style="font-size:11px;color:var(--txt2);line-height:1.5;margin-bottom:10px;">
-          Para precisión real con descripciones complejas ("una cookie y un café", "9000 pasos", "ensalada con pollo y aguacate"), conecta Claude.
-          <br><br>
-          La clave manual se guarda únicamente en este dispositivo.
+          Usa el proyecto Firebase de la app para estimar comidas y actividades con Gemini. La base local seguirá disponible como respaldo.
         </div>
-        <input type="password" id="ai-key-input" placeholder="sk-ant-..." style="width:100%;background:var(--surf);border:1.5px solid var(--surf2);border-radius:10px;padding:10px 14px;color:var(--txt);font-family:'Inter',monospace;font-size:11px;outline:none;margin-bottom:8px;box-sizing:border-box;">
-        <button class="btn btn-lime-full" style="margin-bottom:6px;" onclick="saveAiKey()">Activar Claude</button>
-        <div style="font-size:10px;color:var(--txt3);line-height:1.5;">La clave manual se guarda solo en este dispositivo. Para una app pública sin pasos para el usuario, conecta Claude mediante un proxy seguro; nunca publiques la clave en el código.</div>
+        <button class="btn btn-lime-full" style="margin-bottom:6px;" onclick="enableGemini()">Activar Gemini</button>
+        <div style="font-size:10px;color:var(--txt3);line-height:1.5;">Requiere habilitar Firebase AI Logic una sola vez en la consola del proyecto.</div>
       </div>
 
-      <!-- Desactivar Claude (cuando SÍ está activo) -->
+      <!-- Desactivar Gemini (cuando SÍ está activo) -->
       <div id="ai-active-block" style="display:none;">
         <div style="display:flex;align-items:center;gap:10px;background:var(--surf);border-radius:10px;padding:12px;margin-bottom:8px;">
           <div style="flex:1;">
-            <div style="font-size:11px;font-weight:700;color:var(--lime-light);">✓ Claude API conectado</div>
-            <div id="ai-key-masked" style="font-size:10px;color:var(--txt2);margin-top:2px;font-family:monospace;"></div>
+            <div style="font-size:11px;font-weight:700;color:var(--lime-light);">✓ Gemini activado</div>
+            <div style="font-size:10px;color:var(--txt2);margin-top:2px;">Modelo rápido de Gemini mediante Firebase</div>
           </div>
         </div>
-        <button class="btn btn-danger" style="font-size:12px;" onclick="disconnectAi()">Desconectar Claude</button>
+        <button class="btn btn-ghost full" style="font-size:12px;margin-bottom:8px;" onclick="testGemini()">Comprobar conexión</button>
+        <button class="btn btn-danger" style="font-size:12px;" onclick="disableGemini()">Usar sólo base local</button>
       </div>
     </div>
 
@@ -2496,6 +2507,7 @@ function applyDefaults(){
   if(!S.weights)   S.weights   = [];
   if(!S.water)     S.water     = {};
   if(!S.planner)   S.planner   = { activities:[], weeks:{} };
+  if(!S.calendar)  S.calendar  = { enabled:false, lastSync:null };
   if(!S.hiddenRecents) S.hiddenRecents = { foods:[], activities:[] };
   if(S.customLogo) delete S.customLogo;
 }
@@ -2536,6 +2548,7 @@ var FIREBASE_CONFIG = {
 var _firebaseUser = null;
 var _firestoreUnsub = null;
 var _firebaseInited = false;
+var _calendarAccessToken = sessionStorage.getItem('pt7_calendar_token') || null;
 var _deviceId = localStorage.getItem('pt7_device');
 if(!_deviceId){
   _deviceId = Math.random().toString(36).substr(2,9) + Date.now().toString(36);
@@ -2619,7 +2632,13 @@ function signInWithGoogle(){
   if(!_firebaseInited){ initFirebase(true); return setTimeout(signInWithGoogle, 800); }
   cleanUrlBeforeAuth();
   var provider = new firebase.auth.GoogleAuthProvider();
-  firebase.auth().signInWithPopup(provider).catch(function(e){
+  firebase.auth().signInWithPopup(provider).then(function(result){
+    var credential = result && result.credential;
+    if(credential && credential.accessToken){
+      _calendarAccessToken = credential.accessToken;
+      sessionStorage.setItem('pt7_calendar_token', _calendarAccessToken);
+    }
+  }).catch(function(e){
     toast('Error: '+e.message,'error');
   });
 }
@@ -2637,6 +2656,8 @@ function signInWithApple(){
 
 function firebaseSignOut(){
   if(!confirm('¿Cerrar sesión? Tus datos seguirán guardados localmente.')) return;
+  _calendarAccessToken = null;
+  sessionStorage.removeItem('pt7_calendar_token');
   try { firebase.auth().signOut(); } catch(e){}
 }
 
@@ -2924,6 +2945,10 @@ function goScreen(name){
     plannerWeekOffset = 0;
     renderPlanner();
     updateAvatars();
+    if(S.calendar && S.calendar.enabled && _calendarAccessToken){
+      var lastCalendarSync = S.calendar.lastSync ? new Date(S.calendar.lastSync).getTime() : 0;
+      if(Date.now() - lastCalendarSync > 5 * 60 * 1000) syncGoogleCalendar(false);
+    }
   }
   if(name==='s-settings')renderSettings();
 }
@@ -4107,7 +4132,16 @@ function estimateAndAddIngredient(){
     toast('✓ Ingrediente añadido','success');
   }
 
-  // Try local parser first (sync, returns object); Claude key for premium can be added later
+  // Gemini first when enabled; keep the local parser as an offline fallback.
+  if(GEMINI_ENABLED){
+    var prompt = 'Estima la información nutricional de este ingrediente: "'+desc+'". '
+      + 'Responde sólo JSON válido: {"name":"nombre corto","kcal":entero,"prot":gramos_proteína,"carbs":gramos_carbos,"fat":gramos_grasa,"qty":gramos_totales}.';
+    callGeminiAPI(prompt, 'r-ai-btn', _applyResult, function(){
+      _applyResult(parseFoodDescription(desc));
+      toast('Gemini no disponible; estimado con base local', 'info');
+    });
+    return;
+  }
   try {
     var result = parseFoodDescription(desc);
     _applyResult(result);
@@ -4319,6 +4353,266 @@ function getWeekKey(date){
   return year + '-W' + (week < 10 ? '0' + week : week);
 }
 
+/* ─── GOOGLE CALENDAR SYNC ─── */
+var CALENDAR_SCOPE = 'https://www.googleapis.com/auth/calendar.events';
+var _calendarSyncing = false;
+
+function calendarTokenAvailable(){ return !!_calendarAccessToken; }
+function renderCalendarSettings(){
+  var enabled = !!(S.calendar && S.calendar.enabled);
+  var token = calendarTokenAvailable();
+  var badge = el('calendar-status-badge');
+  var connect = el('calendar-connect-btn');
+  var syncBtn = el('calendar-sync-btn');
+  var disconnect = el('calendar-disconnect-btn');
+  var info = el('calendar-connected-info');
+  if(!badge) return;
+  if(enabled && token){
+    badge.textContent = _calendarSyncing ? 'Sincronizando' : 'Conectado';
+    badge.style.color = 'var(--lime-light)';
+    connect.style.display = 'none';
+    syncBtn.style.display = '';
+    disconnect.style.display = '';
+    info.style.display = '';
+    info.innerHTML = '<strong style="color:var(--txt);">Calendar activo</strong><br>'
+      + (S.calendar.lastSync ? 'Última sincronización: '+new Date(S.calendar.lastSync).toLocaleString() : 'Preparado para sincronizar.');
+  } else {
+    badge.textContent = enabled ? 'Reconectar' : 'Desconectado';
+    badge.style.color = 'var(--txt3)';
+    connect.style.display = '';
+    connect.textContent = enabled ? 'Reconectar Google Calendar' : 'Conectar Google Calendar';
+    syncBtn.style.display = 'none';
+    disconnect.style.display = enabled ? '' : 'none';
+    info.style.display = enabled ? '' : 'none';
+    if(enabled) info.innerHTML = 'El permiso de Calendar ha caducado. Reconecta para continuar sincronizando.';
+  }
+}
+
+function connectGoogleCalendar(){
+  if(!_firebaseInited){ initFirebase(true); return setTimeout(connectGoogleCalendar, 900); }
+  cleanUrlBeforeAuth();
+  var provider = new firebase.auth.GoogleAuthProvider();
+  provider.addScope(CALENDAR_SCOPE);
+  provider.setCustomParameters({ prompt:'consent', access_type:'online' });
+  firebase.auth().signInWithPopup(provider).then(function(result){
+    var credential = result && result.credential;
+    if(!credential || !credential.accessToken) throw new Error('Google no devolvió permiso de Calendar');
+    _calendarAccessToken = credential.accessToken;
+    sessionStorage.setItem('pt7_calendar_token', _calendarAccessToken);
+    if(!S.calendar) S.calendar = {};
+    S.calendar.enabled = true;
+    S.calendar.account = (result.user && result.user.email) || '';
+    save();
+    renderCalendarSettings();
+    syncGoogleCalendar(true);
+  }).catch(function(e){
+    console.error('Calendar auth:', e);
+    toast('No se pudo conectar Google Calendar', 'error');
+  });
+}
+
+function disconnectGoogleCalendar(){
+  if(!confirm('¿Desconectar Google Calendar? Los eventos ya creados no se borrarán.')) return;
+  _calendarAccessToken = null;
+  sessionStorage.removeItem('pt7_calendar_token');
+  if(!S.calendar) S.calendar = {};
+  S.calendar.enabled = false;
+  save();
+  renderCalendarSettings();
+  toast('Google Calendar desconectado', 'info');
+}
+
+function calendarApi(method, path, body){
+  if(!_calendarAccessToken) return Promise.reject(new Error('Calendar no conectado'));
+  return fetch('https://www.googleapis.com/calendar/v3'+path, {
+    method:method,
+    headers:{
+      'Authorization':'Bearer '+_calendarAccessToken,
+      'Content-Type':'application/json'
+    },
+    body:body ? JSON.stringify(body) : undefined
+  }).then(function(res){
+    if(res.status === 401 || res.status === 403){
+      _calendarAccessToken = null;
+      sessionStorage.removeItem('pt7_calendar_token');
+      renderCalendarSettings();
+    }
+    if(!res.ok) return res.text().then(function(t){ throw new Error('Calendar '+res.status+': '+t); });
+    if(res.status === 204) return null;
+    return res.json();
+  });
+}
+
+function calendarRange(){
+  var start = new Date();
+  start.setDate(start.getDate()-35);
+  start.setHours(0,0,0,0);
+  var end = new Date();
+  end.setDate(end.getDate()+120);
+  end.setHours(23,59,59,999);
+  return { start:start, end:end };
+}
+function calendarDateTime(dateStr, timeStr){
+  var p = dateStr.split('-'), t = (timeStr || '09:00').split(':');
+  return new Date(parseInt(p[0]), parseInt(p[1])-1, parseInt(p[2]), parseInt(t[0]), parseInt(t[1]), 0).toISOString();
+}
+function firstRoutineDate(act){
+  var d = new Date((act.anchorDate || today())+'T12:00:00');
+  for(var i=0;i<8;i++){
+    if(act.days && act.days.indexOf(d.getDay()) >= 0) return ds(d);
+    d.setDate(d.getDate()+1);
+  }
+  return act.anchorDate || today();
+}
+function calendarRecurrence(act){
+  if(act.oneOffDate || !act.days || !act.days.length) return null;
+  var byDay = ['SU','MO','TU','WE','TH','FR','SA'];
+  var interval = act.frequency === 'biweekly' ? 2 : (act.frequency === 'monthly' ? 4 : 1);
+  return ['RRULE:FREQ=WEEKLY;INTERVAL='+interval+';BYDAY='+act.days.map(function(d){ return byDay[d]; }).join(',')];
+}
+function buildCalendarEvent(act){
+  var dateStr = act.oneOffDate || firstRoutineDate(act);
+  var tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Madrid';
+  var startIso = calendarDateTime(dateStr, act.start);
+  var endIso = calendarDateTime(dateStr, act.end);
+  if(new Date(endIso) <= new Date(startIso)){
+    var nextDay = new Date(dateStr+'T12:00:00');
+    nextDay.setDate(nextDay.getDate()+1);
+    endIso = calendarDateTime(ds(nextDay), act.end);
+  }
+  var event = {
+    summary:act.name,
+    description:'Sincronizado con Personal Tracker',
+    start:{ dateTime:startIso, timeZone:tz },
+    end:{ dateTime:endIso, timeZone:tz },
+    extendedProperties:{ private:{ personalTrackerId:act.id, personalTrackerSource:'app' } }
+  };
+  var recurrence = calendarRecurrence(act);
+  if(recurrence) event.recurrence = recurrence;
+  return event;
+}
+function pushPlannerActivityToCalendar(act){
+  if(act.googleEventId && !act.calendarDirty) return Promise.resolve();
+  var body = buildCalendarEvent(act);
+  var path = '/calendars/primary/events';
+  var request;
+  if(act.googleEventId){
+    request = calendarApi('PATCH', path+'/'+encodeURIComponent(act.googleEventId), body);
+  } else {
+    request = calendarApi('POST', path, body);
+  }
+  return request.then(function(event){
+    if(event && event.id) act.googleEventId = event.id;
+    act.calendarDirty = false;
+  });
+}
+function pushPlannerToCalendar(){
+  var acts = (S.planner && S.planner.activities) || [];
+  var chain = Promise.resolve();
+  acts.forEach(function(act){
+    chain = chain.then(function(){ return pushPlannerActivityToCalendar(act); });
+  });
+  return chain;
+}
+
+function safeCalendarName(name){
+  return (name || 'Evento de Calendar').replace(/[<>&]/g, '').slice(0,120);
+}
+function eventDateAndTime(event){
+  if(event.start && event.start.dateTime){
+    var start = new Date(event.start.dateTime);
+    var end = new Date(event.end.dateTime);
+    return { date:ds(start), start:pad(start.getHours())+':'+pad(start.getMinutes()), end:pad(end.getHours())+':'+pad(end.getMinutes()) };
+  }
+  return { date:event.start.date, start:'09:00', end:'10:00' };
+}
+function importCalendarEvents(events, range){
+  var acts = S.planner.activities || [];
+  var seen = {};
+  var ownIds = {};
+  for(var i=0;i<acts.length;i++) if(acts[i].googleEventId && !acts[i].calendarImported) ownIds[acts[i].googleEventId] = true;
+  for(var j=0;j<events.length;j++){
+    var event = events[j];
+    if(!event || event.status === 'cancelled' || !event.start) continue;
+    var props = event.extendedProperties && event.extendedProperties.private;
+    if(props && props.personalTrackerSource === 'app' && props.personalTrackerId){
+      var linked = null;
+      for(var li=0;li<acts.length;li++) if(acts[li].id === props.personalTrackerId){ linked = acts[li]; break; }
+      if(linked && !linked.calendarDirty){
+        var linkedWhen = eventDateAndTime(event);
+        linked.name = safeCalendarName(event.summary);
+        linked.start = linkedWhen.start;
+        linked.end = linkedWhen.end;
+        if(linked.oneOffDate) linked.oneOffDate = linkedWhen.date;
+      }
+      continue;
+    }
+    if(ownIds[event.id]) continue;
+    seen[event.id] = true;
+    var when = eventDateAndTime(event);
+    var existing = null;
+    for(var k=0;k<acts.length;k++) if(acts[k].calendarImported && acts[k].googleEventId === event.id){ existing = acts[k]; break; }
+    if(!existing){
+      existing = { id:uid(), category:'other', days:null, calendarImported:true, googleEventId:event.id };
+      acts.push(existing);
+    }
+    existing.name = safeCalendarName(event.summary);
+    existing.oneOffDate = when.date;
+    existing.start = when.start;
+    existing.end = when.end;
+  }
+  S.planner.activities = acts.filter(function(act){
+    if(!act.calendarImported || !act.oneOffDate) return true;
+    var d = new Date(act.oneOffDate+'T12:00:00');
+    if(d < range.start || d > range.end) return true;
+    return !!seen[act.googleEventId];
+  });
+}
+
+function fetchCalendarEvents(range){
+  var q = '?singleEvents=true&orderBy=startTime&maxResults=2500'
+    + '&timeMin='+encodeURIComponent(range.start.toISOString())
+    + '&timeMax='+encodeURIComponent(range.end.toISOString());
+  return calendarApi('GET', '/calendars/primary/events'+q).then(function(data){ return data.items || []; });
+}
+function syncGoogleCalendar(showToast){
+  if(_calendarSyncing) return Promise.resolve();
+  if(!S.calendar || !S.calendar.enabled || !_calendarAccessToken){
+    if(showToast) toast('Conecta Google Calendar primero', 'info');
+    renderCalendarSettings();
+    return Promise.resolve();
+  }
+  _calendarSyncing = true;
+  renderCalendarSettings();
+  if(showToast) toast('Sincronizando Calendar…', 'info');
+  var range = calendarRange();
+  return pushPlannerToCalendar().then(function(){
+    return fetchCalendarEvents(range);
+  }).then(function(events){
+    importCalendarEvents(events, range);
+    S.calendar.lastSync = new Date().toISOString();
+    save();
+    if(CS === 's-planner') renderPlanner();
+    if(showToast) toast('✓ Google Calendar sincronizado', 'success');
+  }).catch(function(e){
+    console.error('Calendar sync:', e);
+    if(showToast) toast('Error sincronizando Calendar. Revisa permisos y API.', 'error');
+  }).then(function(){
+    _calendarSyncing = false;
+    renderCalendarSettings();
+  });
+}
+function syncCalendarAfterPlannerChange(){
+  if(S.calendar && S.calendar.enabled && _calendarAccessToken) syncGoogleCalendar(false);
+}
+function deleteCalendarEventForActivity(act){
+  if(!act || !act.googleEventId || !_calendarAccessToken) return;
+  calendarApi('DELETE', '/calendars/primary/events/'+encodeURIComponent(act.googleEventId)).catch(function(e){
+    console.error('Calendar delete:', e);
+    toast('No se pudo borrar el evento de Calendar', 'error');
+  });
+}
+
 // Week index helper (number of weeks from epoch Monday)
 function _weekIndex(dateStr){
   var parts = dateStr.split('-');
@@ -4435,7 +4729,9 @@ function renderPlanner(){
   // Section header
   h += '<div style="padding:18px 16px 8px;display:flex;align-items:center;justify-content:space-between;">';
   h += '<div class="list-section-lbl" style="margin:0;">Tu semana</div>';
-  h += '<button class="btn btn-lime-sm" onclick="openModal(\'m-planchoose\')">+ Añadir actividad</button>';
+  h += '<div style="display:flex;gap:6px;">';
+  if(S.calendar && S.calendar.enabled) h += '<button class="btn btn-ghost" style="padding:8px 12px;font-size:12px;" onclick="syncGoogleCalendar(true)">↻ Calendar</button>';
+  h += '<button class="btn btn-lime-sm" onclick="openModal(\'m-planchoose\')">+ Añadir actividad</button></div>';
   h += '</div>';
 
   // Week list — day by day
@@ -4486,7 +4782,7 @@ function renderPlanner(){
           var act = ds_.acts[ai];
           var key = act.id + '_' + ds_.dStr;
           var doneA = weekData.completed.indexOf(key) >= 0;
-          var catLbl = (PLAN_CATS[act.category] || PLAN_CATS.other).label;
+          var catLbl = act.calendarImported ? 'Google Calendar' : (PLAN_CATS[act.category] || PLAN_CATS.other).label;
           h += '<div onclick="togglePlanCompleted(\''+act.id+'\',\''+ds_.dStr+'\')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:'+(doneA?'rgba(186,255,57,.08)':'var(--surf)')+';border:1px solid '+(doneA?'rgba(186,255,57,.25)':'var(--surf2)')+';border-radius:11px;margin-bottom:6px;cursor:pointer;transition:all .18s;">';
           // Checkbox
           h += '<div style="width:20px;height:20px;border-radius:50%;border:1.5px solid '+(doneA?'var(--lime-light)':'var(--surf3)')+';background:'+(doneA?'var(--lime-light)':'transparent')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .22s cubic-bezier(.34,1.56,.64,1);'+(doneA?'transform:scale(1.05);':'')+'">'
@@ -4748,7 +5044,8 @@ function savePlanActivity(){
       id: uid(),
       name: name, start: start, end: end, category: cat,
       oneOffDate: _editingOneOffDate,
-      days: null
+      days: null,
+      calendarDirty:true
     });
     toast('Actividad puntual creada','success');
   } else if(editingPlanActivityId){
@@ -4761,6 +5058,7 @@ function savePlanActivity(){
       // Editing a one-off — just update
       act.name = name; act.start = start; act.end = end; act.category = cat;
       act.oneOffDate = _editingOneOffDate || act.oneOffDate;
+      act.calendarDirty = true;
       toast('Actividad actualizada','success');
     } else if(_editScope === 'once'){
       // Recurring edited "solo este día" → add skip + create one-off for that date
@@ -4770,7 +5068,8 @@ function savePlanActivity(){
         id: uid(),
         name: name, start: start, end: end, category: cat,
         oneOffDate: _editContextDate,
-        days: null
+        days: null,
+        calendarDirty:true
       });
       toast('Cambio aplicado sólo a este día','success');
     } else {
@@ -4779,6 +5078,7 @@ function savePlanActivity(){
       act.name = name; act.start = start; act.end = end; act.category = cat;
       act.days = _editingPlanDays.slice();
       act.frequency = _editingFreq || 'weekly';
+      act.calendarDirty = true;
       // Set anchor if missing
       if(!act.anchorDate) act.anchorDate = _editContextDate || today();
       toast('Rutina actualizada','success');
@@ -4793,13 +5093,15 @@ function savePlanActivity(){
       days: _editingPlanDays.slice(),
       frequency: _editingFreq || 'weekly',
       anchorDate: today(),
-      skipDates: []
+      skipDates: [],
+      calendarDirty:true
     });
     toast('Rutina creada','success');
   }
   save();
   closeModal('m-planact');
   renderPlanner();
+  syncCalendarAfterPlannerChange();
 }
 
 function deletePlanActivity(){
@@ -4811,6 +5113,7 @@ function deletePlanActivity(){
     ? '¿Eliminar esta actividad puntual?'
     : '¿Eliminar esta rutina recurrente? Se borrará de toda tu rutina.';
   if(!confirm(msg)) return;
+  deleteCalendarEventForActivity(act);
   var newA = [];
   for(var i=0;i<S.planner.activities.length;i++){
     if(S.planner.activities[i].id !== editingPlanActivityId) newA.push(S.planner.activities[i]);
@@ -4821,6 +5124,7 @@ function deletePlanActivity(){
   closeModal('m-planact');
   toast('Actividad eliminada','success');
   renderPlanner();
+  syncCalendarAfterPlannerChange();
 }
 
 /* ═══ HABITS: VIEWS (mirroring fitness day/week/month) ═══ */
@@ -6136,14 +6440,12 @@ function applyActivityResult(r){
 function estimateFoodAI(){
   var desc = el('f-ai-desc').value.trim();
   if(!desc){ toast('Describe qué has comido primero', 'info'); return; }
-  if(AI_KEY){
-    // Use Claude API (smarter, understands context like "una cookie y un café")
-    estimateFoodWithClaude(desc);
+  if(GEMINI_ENABLED){
+    estimateFoodWithGemini(desc);
   } else {
-    // Fall back to local DB
     var result = parseFoodDescription(desc);
     if(!result){
-      toast('No reconocí ningún alimento. Activa Claude en Ajustes para más precisión.', 'error');
+      toast('No reconocí ningún alimento. Activa Gemini en Ajustes para más precisión.', 'error');
       return;
     }
     applyFoodResult(result);
@@ -6154,13 +6456,13 @@ function estimateFoodAI(){
 function estimateActivityAI(){
   var desc = el('a-ai-desc').value.trim();
   if(!desc){ toast('Describe la actividad primero', 'info'); return; }
-  if(AI_KEY){
-    estimateActivityWithClaude(desc);
+  if(GEMINI_ENABLED){
+    estimateActivityWithGemini(desc);
   } else {
     var weight = (S.profile && S.profile.weight) || 70;
     var result = parseActivityDescription(desc, weight);
     if(!result){
-      toast('No reconocí esa actividad. Activa Claude en Ajustes para más precisión.', 'error');
+      toast('No reconocí esa actividad. Activa Gemini en Ajustes para más precisión.', 'error');
       return;
     }
     applyActivityResult(result);
@@ -6168,29 +6470,49 @@ function estimateActivityAI(){
   }
 }
 
-/* ─── Claude API (opcional, mucho más inteligente) ─── */
-var AI_KEY = null;
-var AI_MODEL = 'claude-haiku-4-5-20251001';
+/* ─── Gemini via Firebase AI Logic ─── */
+var GEMINI_ENABLED = localStorage.getItem('pt7_gemini_enabled') !== 'false';
+var GEMINI_MODEL = 'gemini-2.5-flash';
+var _geminiModelPromise = null;
 
-function loadAiKey(){ AI_KEY = localStorage.getItem('pt7_aikey') || null; }
-function saveAiKey(){
-  var key = el('ai-key-input').value.trim();
-  if(!key){ toast('Introduce una API key', 'error'); return; }
-  if(key.indexOf('sk-ant-') !== 0){
-    if(!confirm('La key suele empezar por "sk-ant-". ¿Continuar?')) return;
-  }
-  AI_KEY = key;
-  localStorage.setItem('pt7_aikey', key);
-  el('ai-key-input').value = '';
-  renderSettings();
-  toast('✓ Claude API activado', 'success');
-}
-function disconnectAi(){
-  if(!confirm('¿Desactivar Claude API? Volverá a usarse la base local.')) return;
-  AI_KEY = null;
+function loadAiKey(){
+  // Remove legacy browser-stored Claude keys. Gemini credentials are managed
+  // by Firebase AI Logic and are never embedded in or stored by the app.
   localStorage.removeItem('pt7_aikey');
+}
+function enableGemini(){
+  GEMINI_ENABLED = true;
+  localStorage.setItem('pt7_gemini_enabled', 'true');
   renderSettings();
-  toast('Claude desactivado', 'info');
+  testGemini();
+}
+function disableGemini(){
+  GEMINI_ENABLED = false;
+  localStorage.setItem('pt7_gemini_enabled', 'false');
+  renderSettings();
+  toast('Base local activada', 'info');
+}
+function loadGeminiModel(){
+  if(_geminiModelPromise) return _geminiModelPromise;
+  _geminiModelPromise = Promise.all([
+    import('https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js'),
+    import('https://www.gstatic.com/firebasejs/12.7.0/firebase-ai.js')
+  ]).then(function(mods){
+    var appMod = mods[0], aiMod = mods[1];
+    var app = null;
+    var apps = appMod.getApps();
+    for(var i=0;i<apps.length;i++) if(apps[i].name === 'personal-tracker-ai') app = apps[i];
+    if(!app) app = appMod.initializeApp(FIREBASE_CONFIG, 'personal-tracker-ai');
+    var ai = aiMod.getAI(app, { backend:new aiMod.GoogleAIBackend() });
+    return aiMod.getGenerativeModel(ai, {
+      model:GEMINI_MODEL,
+      generationConfig:{ responseMimeType:'application/json' }
+    });
+  }).catch(function(e){
+    _geminiModelPromise = null;
+    throw e;
+  });
+  return _geminiModelPromise;
 }
 
 function setAiBtnLoading(btnId, loading){
@@ -6206,45 +6528,41 @@ function setAiBtnLoading(btnId, loading){
   }
 }
 
-function callClaudeAPI(prompt, btnId, onSuccess){
-  if(!AI_KEY){ toast('No hay API key configurada', 'error'); return; }
+function parseGeminiJSON(text){
+  text = (text || '').trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
+  return JSON.parse(text);
+}
+function callGeminiAPI(prompt, btnId, onSuccess, onError){
   setAiBtnLoading(btnId, true);
-  var xhr = new XMLHttpRequest();
-  xhr.open('POST', 'https://api.anthropic.com/v1/messages', true);
-  xhr.setRequestHeader('Content-Type', 'application/json');
-  xhr.setRequestHeader('x-api-key', AI_KEY);
-  xhr.setRequestHeader('anthropic-version', '2023-06-01');
-  xhr.setRequestHeader('anthropic-dangerous-direct-browser-access', 'true');
-  xhr.onreadystatechange = function(){
-    if(xhr.readyState !== 4) return;
+  loadGeminiModel().then(function(model){
+    return model.generateContent(prompt);
+  }).then(function(result){
     setAiBtnLoading(btnId, false);
-    if(xhr.status >= 200 && xhr.status < 300){
-      try {
-        var data = JSON.parse(xhr.responseText);
-        var text = data.content[0].text.trim();
-        text = text.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
-        var parsed = JSON.parse(text);
-        if(onSuccess) onSuccess(parsed);
-      } catch(e){
-        toast('Respuesta inválida de Claude', 'error');
-      }
-    } else if(xhr.status === 401){
-      toast('API key inválida — revísala en Ajustes', 'error');
-    } else if(xhr.status === 429){
-      toast('Sin saldo o límite alcanzado', 'error');
-    } else {
-      toast('Error ' + xhr.status + ' en la llamada a Claude', 'error');
-    }
-  };
-  xhr.onerror = function(){ setAiBtnLoading(btnId, false); toast('Sin conexión', 'error'); };
-  var body = {
-    model: AI_MODEL, max_tokens: 400,
-    messages: [{ role: 'user', content: prompt }]
-  };
-  xhr.send(JSON.stringify(body));
+    var parsed = parseGeminiJSON(result.response.text());
+    if(onSuccess) onSuccess(parsed);
+  }).catch(function(e){
+    console.error('Gemini:', e);
+    setAiBtnLoading(btnId, false);
+    if(onError) onError(e);
+    else toast('Gemini no está disponible. Revisa Firebase AI Logic.', 'error');
+  });
 }
 
-function estimateFoodWithClaude(desc){
+function testGemini(){
+  toast('Comprobando Gemini…', 'info');
+  loadGeminiModel().then(function(model){
+    return model.generateContent('Responde sólo con este JSON: {"ok":true}');
+  }).then(function(result){
+    var data = parseGeminiJSON(result.response.text());
+    if(!data.ok) throw new Error('Respuesta inesperada');
+    toast('✓ Gemini conectado', 'success');
+  }).catch(function(e){
+    console.error('Test Gemini:', e);
+    toast('Activa Firebase AI Logic en la consola del proyecto', 'error');
+  });
+}
+
+function estimateFoodWithGemini(desc){
   var prompt = 'Estima la información nutricional de esta comida: "' + desc + '".\n\n'
     + 'Responde SÓLO con JSON válido sin markdown:\n'
     + '{"name": "nombre corto", "kcal": entero, "prot": gramos_proteína, "carbs": gramos_carbos, "fat": gramos_grasa, "qty": gramos_totales, "cat": "alimento" o "receta", "mealTime": "desayuno"|"comida"|"cena"|"snack"|""}\n\n'
@@ -6253,14 +6571,22 @@ function estimateFoodWithClaude(desc){
     + '- "mealTime" si está claro por contexto, si no, "".\n'
     + '- Para carnes/pescados asume peso EN CRUDO si no se especifica.\n'
     + '- Sé realista, no exageres proteínas.';
-  callClaudeAPI(prompt, 'f-ai-btn', function(r){
+  callGeminiAPI(prompt, 'f-ai-btn', function(r){
     applyFoodResult(r);
     if(r.mealTime && el('f-mealtime')) el('f-mealtime').value = r.mealTime;
-    toast('✓ Estimado por Claude', 'success');
+    toast('✓ Estimado por Gemini', 'success');
+  }, function(){
+    var local = parseFoodDescription(desc);
+    if(local){
+      applyFoodResult(local);
+      toast('Gemini no disponible; estimado con base local', 'info');
+    } else {
+      toast('Gemini no disponible y alimento no reconocido', 'error');
+    }
   });
 }
 
-function estimateActivityWithClaude(desc){
+function estimateActivityWithGemini(desc){
   var weight = (S.profile && S.profile.weight) || 70;
   var prompt = 'Para una persona de ' + weight + ' kg haciendo esta actividad: "' + desc + '".\n\n'
     + 'Estima calorías usando contexto (pasos, distancia, duración, etc.). Responde SÓLO con JSON:\n'
@@ -6270,9 +6596,17 @@ function estimateActivityWithClaude(desc){
     + '- Si dice "X km": detectar correr/bici/caminar.\n'
     + '- Considera intensidad mencionada.\n'
     + '- Si no se menciona duración, intenta deducirla.';
-  callClaudeAPI(prompt, 'a-ai-btn', function(r){
+  callGeminiAPI(prompt, 'a-ai-btn', function(r){
     applyActivityResult(r);
-    toast('✓ Estimado por Claude', 'success');
+    toast('✓ Estimado por Gemini', 'success');
+  }, function(){
+    var local = parseActivityDescription(desc, weight);
+    if(local){
+      applyActivityResult(local);
+      toast('Gemini no disponible; estimado con base local', 'info');
+    } else {
+      toast('Gemini no disponible y actividad no reconocida', 'error');
+    }
   });
 }
 
@@ -6295,31 +6629,27 @@ function renderSettings(){
   var activeBlock = el('ai-active-block');
   var badge = el('ai-status-badge');
   var modeLocal = el('ai-mode-local');
-  var modeClaude = el('ai-mode-claude');
-  if(AI_KEY){
+  var modeGemini = el('ai-mode-gemini');
+  if(GEMINI_ENABLED){
     if(setupBlock) setupBlock.style.display = 'none';
     if(activeBlock) activeBlock.style.display = '';
     if(modeLocal) modeLocal.style.display = 'none';
-    if(modeClaude) modeClaude.style.display = '';
+    if(modeGemini) modeGemini.style.display = '';
     if(badge){
-      badge.textContent = 'Claude';
+      badge.textContent = 'Gemini';
       badge.style.background = 'rgba(186,255,57,.2)';
-    }
-    // Mask key: show last 6 chars
-    var masked = el('ai-key-masked');
-    if(masked && AI_KEY.length > 10){
-      masked.textContent = 'sk-ant-...' + AI_KEY.slice(-6);
     }
   } else {
     if(setupBlock) setupBlock.style.display = '';
     if(activeBlock) activeBlock.style.display = 'none';
     if(modeLocal) modeLocal.style.display = '';
-    if(modeClaude) modeClaude.style.display = 'none';
+    if(modeGemini) modeGemini.style.display = 'none';
     if(badge){
       badge.textContent = 'Base local';
       badge.style.background = 'rgba(186,255,57,.1)';
     }
   }
+  renderCalendarSettings();
 }
 function toggleMod(m){
   S.modules[m]=!S.modules[m];
