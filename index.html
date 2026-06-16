@@ -2593,7 +2593,7 @@ var FIREBASE_CONFIG = {
 var _firebaseUser = null;
 var _firestoreUnsub = null;
 var _firebaseInited = false;
-var _calendarAccessToken = sessionStorage.getItem('pt7_calendar_token') || null;
+var _calendarAccessToken = localStorage.getItem('pt7_calendar_token') || null;
 var _deviceId = localStorage.getItem('pt7_device');
 if(!_deviceId){
   _deviceId = Math.random().toString(36).substr(2,9) + Date.now().toString(36);
@@ -2681,7 +2681,7 @@ function signInWithGoogle(){
     var credential = result && result.credential;
     if(credential && credential.accessToken){
       _calendarAccessToken = credential.accessToken;
-      sessionStorage.setItem('pt7_calendar_token', _calendarAccessToken);
+      localStorage.setItem('pt7_calendar_token', _calendarAccessToken);
     }
   }).catch(function(e){
     toast('Error: '+e.message,'error');
@@ -2702,7 +2702,7 @@ function signInWithApple(){
 function firebaseSignOut(){
   if(!confirm('¿Cerrar sesión? Tus datos seguirán guardados en Google y se eliminarán de este dispositivo.')) return;
   _calendarAccessToken = null;
-  sessionStorage.removeItem('pt7_calendar_token');
+  localStorage.removeItem('pt7_calendar_token');
   try {
     firebase.auth().signOut().then(function(){
       localStorage.removeItem('pt7');
@@ -4531,7 +4531,7 @@ function connectGoogleCalendar(){
     var credential = result && result.credential;
     if(!credential || !credential.accessToken) throw new Error('Google no devolvió permiso de Calendar');
     _calendarAccessToken = credential.accessToken;
-    sessionStorage.setItem('pt7_calendar_token', _calendarAccessToken);
+    localStorage.setItem('pt7_calendar_token', _calendarAccessToken);
     if(!S.calendar) S.calendar = {};
     S.calendar.enabled = true;
     S.calendar.account = (result.user && result.user.email) || '';
@@ -4547,7 +4547,7 @@ function connectGoogleCalendar(){
 function disconnectGoogleCalendar(){
   if(!confirm('¿Desconectar Google Calendar? Los eventos ya creados no se borrarán.')) return;
   _calendarAccessToken = null;
-  sessionStorage.removeItem('pt7_calendar_token');
+  localStorage.removeItem('pt7_calendar_token');
   if(!S.calendar) S.calendar = {};
   S.calendar.enabled = false;
   save();
@@ -4567,7 +4567,7 @@ function calendarApi(method, path, body){
   }).then(function(res){
     if(res.status === 401 || res.status === 403){
       _calendarAccessToken = null;
-      sessionStorage.removeItem('pt7_calendar_token');
+      localStorage.removeItem('pt7_calendar_token');
       renderCalendarSettings();
     }
     if(!res.ok) return res.text().then(function(t){ throw new Error('Calendar '+res.status+': '+t); });
@@ -4735,8 +4735,21 @@ function syncGoogleCalendar(showToast){
     renderCalendarSettings();
   });
 }
+var _calendarReconnectWarned = false;
 function syncCalendarAfterPlannerChange(){
-  if(S.calendar && S.calendar.enabled && _calendarAccessToken) syncGoogleCalendar(false);
+  if(!S.calendar || !S.calendar.enabled) return;
+  if(_calendarAccessToken){
+    _calendarReconnectWarned = false;
+    syncGoogleCalendar(false);
+  } else {
+    // Calendar está activado pero el permiso ha caducado: el cambio queda
+    // guardado y marcado (calendarDirty) y subirá al reconectar. Avisamos una vez.
+    renderCalendarSettings();
+    if(!_calendarReconnectWarned){
+      _calendarReconnectWarned = true;
+      toast('Guardado. Reconecta Google Calendar en Ajustes para subirlo', 'info');
+    }
+  }
 }
 function deleteCalendarEventForActivity(act){
   if(!act || !act.googleEventId || !_calendarAccessToken) return;
@@ -7688,6 +7701,10 @@ if(!S.habDate) S.habDate=today();
 goScreen('s-home');
 updateAvatars();
 maybeShowOnboarding();
+// Si Calendar sigue conectado, sincroniza al arrancar para subir cambios pendientes.
+if(S.calendar && S.calendar.enabled && _calendarAccessToken){
+  setTimeout(function(){ syncGoogleCalendar(false); }, 1200);
+}
 // Service worker (soporte offline) — sólo sobre http(s), no en file://
 if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   window.addEventListener('load', function(){
