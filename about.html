@@ -9,17 +9,21 @@
 <meta name="theme-color" content="#0D0D0D">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%23BAFF39'/><path d='M11 32 L22 32 L27 21 L33 43 L39 32 L53 32' stroke='%230D0D0D' stroke-width='4.2' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
+  @font-face{font-family:'Neue Haas Unica';src:url('NeueHaasUnicaPro-Light.ttf') format('truetype');font-weight:300;font-style:normal;font-display:swap}
+  @font-face{font-family:'Neue Haas Unica';src:url('NeueHaasUnicaPro-Regular.ttf') format('truetype');font-weight:400;font-style:normal;font-display:swap}
+  @font-face{font-family:'Neue Haas Unica';src:url('NeueHaasUnicaPro-Medium.ttf') format('truetype');font-weight:500;font-style:normal;font-display:swap}
+  @font-face{font-family:'Neue Haas Unica';src:url('NeueHaasUnicaPro-Bold.ttf') format('truetype');font-weight:700;font-style:normal;font-display:swap}
+  @font-face{font-family:'Neue Haas Unica';src:url('NeueHaasUnicaPro-Black.ttf') format('truetype');font-weight:900;font-style:normal;font-display:swap}
   :root{
     --bg:#0A0A0A;--bg2:#0F0F0F;--card:#141414;--card2:#1A1A1A;--border:#262626;--border2:#333;
     --txt:#F5F5F2;--muted:#A8A8A2;--muted2:#73736E;--lime:#BAFF39;--lime-d:#9BE020;--lime-soft:rgba(186,255,57,.12);
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
-  body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  body{background:var(--bg);color:var(--txt);font-family:'Neue Haas Unica','Helvetica Neue',Arial,sans-serif;line-height:1.65;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow-x:hidden;letter-spacing:-.01em}
+  svg{display:block}
+  .licon{width:21px;height:21px;stroke:currentColor;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-linejoin:round;color:var(--lime)}
   a{color:inherit;text-decoration:none}
   .wrap{max-width:880px;margin:0 auto;padding:0 24px}
   .lime{color:var(--lime)}
@@ -65,6 +69,12 @@
 </head>
 <body>
 <div class="grain"></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M5 21c0-9 6-15 15-15 0 9-6 15-15 15z"/><path d="M5 21c4-6 8-9 12-11"/></symbol>
+  <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 3c.5 3 2.5 4.5 4 6.5 1 1.4 1.5 2.8 1.5 4.5a5.5 5.5 0 11-11 0c0-1.3.4-2.4 1.2-3.4.3 1.2 1 1.7 1.6 1.9-.2-3 .7-6.2 1.7-9.5z"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2.5"/><path d="M4 9.5h16M8.5 3v4M15.5 3v4"/></symbol>
+  <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18a4 4 0 01-.5-7.97A5 5 0 0116.5 9 3.5 3.5 0 0117 18z"/></symbol>
+</defs></svg>
 
 <header class="nav">
   <div class="nav-in">
@@ -103,10 +113,10 @@
     <div class="eyebrow">Funciones principales</div>
     <h2>Qué incluye</h2>
     <div class="grid">
-      <div class="card"><div class="ic">🥗</div><strong>Nutrition + Fitness</strong><p>Registra comidas, macros, peso y actividad. Gemini puede ayudarte a estimar valores en lenguaje natural.</p></div>
-      <div class="card"><div class="ic">🔥</div><strong>Daily Habits</strong><p>Crea hábitos diarios, registra tu progreso y mantén una visión clara de tu constancia con puntos y rachas.</p></div>
-      <div class="card"><div class="ic">🗓️</div><strong>Weekly Planner</strong><p>Planifica rutinas y sincroniza voluntariamente los eventos de tu calendario principal de Google.</p></div>
-      <div class="card"><div class="ic">☁️</div><strong>Sincronización privada</strong><p>Usa Google Sign-In y Firebase para acceder a tus propios datos desde varios dispositivos.</p></div>
+      <div class="card"><div class="ic"><svg class="licon"><use href="#i-leaf"/></svg></div><strong>Nutrition + Fitness</strong><p>Registra comidas, macros, peso y actividad. Gemini puede ayudarte a estimar valores en lenguaje natural.</p></div>
+      <div class="card"><div class="ic"><svg class="licon"><use href="#i-flame"/></svg></div><strong>Daily Habits</strong><p>Crea hábitos diarios, registra tu progreso y mantén una visión clara de tu constancia con puntos y rachas.</p></div>
+      <div class="card"><div class="ic"><svg class="licon"><use href="#i-calendar"/></svg></div><strong>Weekly Planner</strong><p>Planifica rutinas y sincroniza voluntariamente los eventos de tu calendario principal de Google.</p></div>
+      <div class="card"><div class="ic"><svg class="licon"><use href="#i-cloud"/></svg></div><strong>Sincronización privada</strong><p>Usa Google Sign-In y Firebase para acceder a tus propios datos desde varios dispositivos.</p></div>
     </div>
   </div>
 </section>

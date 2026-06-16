@@ -7965,8 +7965,10 @@ loadState();
 loadAiKey();
 // Init Firebase if config exists
 if(loadFirebaseConfig()) setTimeout(function(){ initFirebase(false); }, 200);
-if(!S.fitDate) S.fitDate=today();
-if(!S.habDate) S.habDate=today();
+// Abre siempre en el día de hoy si la fecha guardada es de un día pasado,
+// para que la home (que siempre muestra hoy) y las secciones coincidan.
+if(!S.fitDate || S.fitDate < today()) S.fitDate=today();
+if(!S.habDate || S.habDate < today()) S.habDate=today();
 goScreen('s-home');
 updateAvatars();
 maybeShowOnboarding();
