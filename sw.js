@@ -3,10 +3,11 @@
    LZ-String, fuentes). Nunca intercepta las llamadas de Firebase/Google para que
    la sincronización y el login sigan necesitando red. */
 
-var CACHE = 'pt-cache-v1';
+var CACHE = 'pt-cache-v2';
 var APP_SHELL = [
   './',
   './index.html',
+  './webapp.html',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
@@ -39,10 +40,15 @@ self.addEventListener('fetch', function(e){
     return;
   }
 
-  // Navegación: red primero, con índice cacheado como respaldo offline.
+  // Navegación: red primero; offline, devuelve la página pedida cacheada
+  // (landing o web app) y, si no, la web app como respaldo principal.
   if(req.mode === 'navigate'){
     e.respondWith(
-      fetch(req).catch(function(){ return caches.match('./index.html'); })
+      fetch(req).catch(function(){
+        return caches.match(req).then(function(r){
+          return r || caches.match('./webapp.html') || caches.match('./index.html');
+        });
+      })
     );
     return;
   }
