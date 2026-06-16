@@ -4501,6 +4501,13 @@ function guessPlanCategory(title){
   return 'other';
 }
 
+// Clave para agrupar eventos del calendario en "rutinas":
+// usa el id de serie de Google si existe; si no, agrupa por nombre.
+function planSeriesKey(act){
+  if(!act) return '';
+  return act.recurringId || ('name:' + String(act.name || '').trim().toLowerCase());
+}
+
 var DOW_LABELS_FULL = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 var DOW_LABELS_SHORT = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
 var DOW_LABELS_LETTER = ['D','L','M','X','J','V','S'];
@@ -4800,9 +4807,11 @@ function importCalendarEvents(events, range){
   for(var i=0;i<acts.length;i++){
     if(acts[i].googleEventId) byEventId[acts[i].googleEventId] = acts[i];
     if(acts[i].id) byActId[acts[i].id] = acts[i];
-    // Recuerda la categoría elegida por el usuario para cada serie del calendario,
+    // Recuerda la categoría elegida por el usuario para cada serie (por id o por nombre),
     // para que las nuevas semanas de esa rutina entren ya con el tipo correcto.
-    if(acts[i].recurringId && acts[i].category && acts[i].category !== 'other') seriesCat[acts[i].recurringId] = acts[i].category;
+    if((acts[i].calendarImported || acts[i].googleEventId) && acts[i].category && acts[i].category !== 'other'){
+      seriesCat[planSeriesKey(acts[i])] = acts[i].category;
+    }
   }
   for(var j=0;j<events.length;j++){
     var event = events[j];
@@ -4842,9 +4851,11 @@ function importCalendarEvents(events, range){
 
     // 2) Evento externo de Google → importar/actualizar sin duplicar por googleEventId.
     var recId = event.recurringEventId || null; // id de la serie si es un evento recurrente
+    var evName = safeCalendarName(event.summary);
+    var skey = recId || ('name:' + evName.trim().toLowerCase());
     var existing = byEventId[event.id] || null;
     if(!existing){
-      var cat0 = (recId && seriesCat[recId]) || guessPlanCategory(event.summary);
+      var cat0 = seriesCat[skey] || guessPlanCategory(event.summary);
       existing = { id:uid(), category:cat0, days:null, calendarImported:true, googleEventId:event.id, recurringId:recId };
       acts.push(existing);
       byEventId[event.id] = existing;
@@ -5297,8 +5308,18 @@ function editPlanActivity(id, contextDateStr){
     el('pa-date-field').style.display = '';
     _editingOneOffDate = act.oneOffDate;
     renderOneOffDatePicker();
-    // ¿Instancia de una rutina importada de Google? → permitir editar toda la serie.
-    _editingSeriesId = (act.calendarImported && act.recurringId) ? act.recurringId : null;
+    // ¿Es una actividad del calendario que se repite (misma serie o mismo nombre)?
+    // → permitir aplicar el tipo a toda la rutina, aunque se importara suelta.
+    var isCalAct = act.calendarImported || act.googleEventId;
+    var skey = planSeriesKey(act);
+    var groupCount = 0;
+    if(isCalAct){
+      for(var gi=0; gi<S.planner.activities.length; gi++){
+        var ga = S.planner.activities[gi];
+        if((ga.calendarImported || ga.googleEventId) && ga.oneOffDate && planSeriesKey(ga) === skey) groupCount++;
+      }
+    }
+    _editingSeriesId = (isCalAct && (act.recurringId || groupCount >= 2)) ? skey : null;
     if(_editingSeriesId){
       el('pa-sheet-title').textContent = 'Editar rutina (Google Calendar)';
       el('pa-edit-scope').style.display = '';
@@ -5428,10 +5449,12 @@ function savePlanActivity(){
     if(act.oneOffDate && _editingSeriesId){
       // Instancia de una rutina importada de Google.
       // Si se eligió "toda la rutina", aplica el TIPO a toda la serie (local).
+      // Agrupa por id de serie de Google o, en su defecto, por nombre.
       if(_editScope === 'routine'){
         for(var si=0; si<S.planner.activities.length; si++){
-          if(S.planner.activities[si].recurringId === _editingSeriesId){
-            S.planner.activities[si].category = cat;
+          var sa = S.planner.activities[si];
+          if((sa.calendarImported || sa.googleEventId) && planSeriesKey(sa) === _editingSeriesId){
+            sa.category = cat;
           }
         }
       }
