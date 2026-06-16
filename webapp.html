@@ -1566,8 +1566,14 @@ button:active,
     </div>
 
     <!-- Date picker (only for one-off) -->
-    <div class="field" id="pa-date-field" style="display:none;"><label>Día</label>
-      <div id="pa-date-picker" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+    <div class="field" id="pa-date-field" style="display:none;"><label>Día (cualquier fecha del año)</label>
+      <input type="date" id="pa-date-input" onchange="pickOneOffDate(this.value)" style="width:100%;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <button type="button" class="day-nav-btn" onclick="event.preventDefault();shiftOneOffWeek(-1)" aria-label="Semana anterior">‹</button>
+        <div id="pa-date-weeklbl" style="flex:1;text-align:center;font-size:11px;color:var(--txt2);font-weight:700;"></div>
+        <button type="button" class="day-nav-btn" onclick="event.preventDefault();shiftOneOffWeek(1)" aria-label="Semana siguiente">›</button>
+      </div>
+      <div id="pa-date-picker" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:space-between;"></div>
     </div>
 
     <!-- Edit mode: choice between editing routine vs just this day -->
@@ -1849,6 +1855,8 @@ button:active,
       <button class="btn btn-lime-sm full ai-est-btn" id="f-ai-btn" onclick="estimateFoodAI()">✦ Estimar</button>
     </div>
 
+    <button class="btn btn-ghost full" id="f-recipe-btn" style="font-size:12.5px;margin-bottom:14px;" onclick="closeModal('m-food');setTimeout(openRecipeBuilder,220);">+ Crear receta (plato con varios ingredientes)</button>
+
     <div class="field"><label>Nombre</label><input type="text" id="f-name" placeholder="Ej: Pechuga plancha"></div>
     <div class="f2">
       <div class="field"><label>Cantidad (g)</label><input type="number" id="f-qty" placeholder="100"></div>
@@ -2103,11 +2111,7 @@ button:active,
     <div class="sheet-t">¿Qué quieres añadir?</div>
     <button class="type-choice" onclick="closeModal('m-addchoose');setTimeout(function(){openModal('m-food');},200);">
       <div class="tc-label">Alimento</div>
-      <div class="tc-desc">Comida individual con calorías y macros</div>
-    </button>
-    <button class="type-choice" onclick="closeModal('m-addchoose');setTimeout(function(){openRecipeBuilder();},200);">
-      <div class="tc-label">Receta</div>
-      <div class="tc-desc">Plato combinado con varios ingredientes</div>
+      <div class="tc-desc">Comida o receta con calorías y macros</div>
     </button>
     <button class="type-choice" onclick="closeModal('m-addchoose');setTimeout(function(){openModal('m-activity');},200);">
       <div class="tc-label">Actividad</div>
@@ -3063,6 +3067,7 @@ function goScreen(name){
   CS=name;window.scrollTo(0,0);
   if(name==='s-home')renderHome();
   if(name==='s-fitness'){
+    S.fitDate=today();
     fitMonthY=new Date().getFullYear();fitMonthM=new Date().getMonth();
     setFitView(fitView);
   }
@@ -3835,6 +3840,8 @@ function editFood(id){
   el('f-cat').value=item.cat||'alimento';
   if(el('f-mealtime')) el('f-mealtime').value=item.mealTime||'';
   el('f-save').checked=false;
+  if(el('f-recipe-btn')) el('f-recipe-btn').style.display='none';
+  _recentSel.foods={};
   el('m-food').classList.add('open');
   document.body.style.overflow='hidden';
   renderQuickChips();
@@ -3882,8 +3889,10 @@ function editActivity(id){
   el('a-kcal').value=item.kcal;
   el('a-notes').value=item.notes||'';
   el('a-save').checked=false;
+  _recentSel.acts={};
   el('m-activity').classList.add('open');
   document.body.style.overflow='hidden';
+  renderQuickChips();
 }
 
 function addActivity(){
@@ -5263,8 +5272,14 @@ function openPlanActivity(mode){
     el('pa-days-field').style.display = 'none';
     el('pa-freq-field').style.display = 'none';
     el('pa-date-field').style.display = '';
-    // Default to today
-    _editingOneOffDate = today();
+    // Por defecto: hoy, o el primer día de la semana que estás viendo en el planner.
+    if(plannerWeekOffset && plannerWeekOffset !== 0){
+      var m = getMonday(new Date()); m.setDate(m.getDate() + plannerWeekOffset*7);
+      _editingOneOffDate = ds(m);
+    } else {
+      _editingOneOffDate = today();
+    }
+    _oneOffViewMonday = null;
     renderOneOffDatePicker();
   } else {
     el('pa-days-field').style.display = '';
@@ -5307,6 +5322,7 @@ function editPlanActivity(id, contextDateStr){
     el('pa-freq-field').style.display = 'none';
     el('pa-date-field').style.display = '';
     _editingOneOffDate = act.oneOffDate;
+    _oneOffViewMonday = null;
     renderOneOffDatePicker();
     // ¿Es una actividad del calendario que se repite (misma serie o mismo nombre)?
     // → permitir aplicar el tipo a toda la rutina, aunque se importara suelta.
@@ -5375,19 +5391,28 @@ function setEditScope(scope){
   }
 }
 
+var _oneOffViewMonday = null; // semana mostrada en el selector rápido
+function _ensureOneOffView(){
+  var base = _editingOneOffDate ? new Date(_editingOneOffDate+'T12:00:00') : new Date();
+  _oneOffViewMonday = getMonday(base);
+}
 function renderOneOffDatePicker(){
-  // Show 7 days of current week with date numbers
-  var monday = getMonday(new Date());
-  monday.setDate(monday.getDate() + plannerWeekOffset * 7);
+  if(!_oneOffViewMonday) _ensureOneOffView();
+  var monday = new Date(_oneOffViewMonday);
   var wrap = el('pa-date-picker');
   if(!wrap) return;
+  var di = el('pa-date-input'); if(di) di.value = _editingOneOffDate || '';
+  var sun = new Date(monday); sun.setDate(sun.getDate()+6);
+  var MS = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  var lbl = el('pa-date-weeklbl');
+  if(lbl) lbl.textContent = monday.getDate()+' '+MS[monday.getMonth()]+' – '+sun.getDate()+' '+MS[sun.getMonth()]+' '+sun.getFullYear();
   var h = '';
   for(var i=0;i<7;i++){
     var d = new Date(monday); d.setDate(d.getDate()+i);
     var dstr = ds(d);
     var sel = dstr === _editingOneOffDate;
     var jsDow = d.getDay();
-    h += '<button onclick="event.preventDefault();pickOneOffDate(\''+dstr+'\')" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 10px;border-radius:12px;border:1.5px solid '+(sel?'var(--lime-light)':'var(--surf2)')+';background:'+(sel?'var(--lime-light)':'var(--surf)')+';color:'+(sel?'#0D0D0D':'var(--txt)')+';font-family:Inter;cursor:pointer;transition:all .18s;min-width:46px;">'
+    h += '<button onclick="event.preventDefault();pickOneOffDate(\''+dstr+'\')" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 10px;border-radius:12px;border:1.5px solid '+(sel?'var(--lime-light)':'var(--surf2)')+';background:'+(sel?'var(--lime-light)':'var(--surf)')+';color:'+(sel?'#0D0D0D':'var(--txt)')+';font-family:Inter;cursor:pointer;transition:all .18s;min-width:42px;flex:1;">'
        + '<span style="font-size:9px;font-weight:'+(sel?'800':'600')+';opacity:'+(sel?'.7':'.6')+';text-transform:uppercase;letter-spacing:.07em;">'+DOW_LABELS_LETTER[jsDow]+'</span>'
        + '<span style="font-size:15px;font-weight:'+(sel?'900':'700')+';">'+d.getDate()+'</span>'
        + '</button>';
@@ -5395,7 +5420,14 @@ function renderOneOffDatePicker(){
   wrap.innerHTML = h;
 }
 function pickOneOffDate(dstr){
+  if(!dstr) return;
   _editingOneOffDate = dstr;
+  _ensureOneOffView(); // la semana mostrada salta a la de la fecha elegida
+  renderOneOffDatePicker();
+}
+function shiftOneOffWeek(delta){
+  if(!_oneOffViewMonday) _ensureOneOffView();
+  _oneOffViewMonday.setDate(_oneOffViewMonday.getDate() + delta*7);
   renderOneOffDatePicker();
 }
 
@@ -7456,26 +7488,79 @@ function quickAddActivity(name, dur, kcal){
   el('a-dur').value = dur;
   el('a-kcal').value = kcal;
 }
+/* ═══ SELECCIÓN MÚLTIPLE DE RECIENTES ═══ */
+var _recentSel = { foods:{}, acts:{} };
+function _fkey(n){ return String(n||'').toLowerCase(); }
+function toggleRecentFood(name,kcal,prot,carbs,fat,qty,cat){
+  var k=_fkey(name);
+  if(_recentSel.foods[k]) delete _recentSel.foods[k];
+  else _recentSel.foods[k]={name:name,kcal:kcal,prot:prot,carbs:carbs,fat:fat,qty:qty,cat:cat||'alimento'};
+  haptic('light');
+  renderQuickChips();
+}
+function toggleRecentActivity(name,dur,kcal){
+  var k=_fkey(name);
+  if(_recentSel.acts[k]) delete _recentSel.acts[k];
+  else _recentSel.acts[k]={name:name,dur:dur,kcal:kcal};
+  haptic('light');
+  renderQuickChips();
+}
+function addSelectedRecentFoods(){
+  var keys=Object.keys(_recentSel.foods);
+  if(!keys.length) return;
+  var day=S.fitDate; if(!S.fitDays[day]) S.fitDays[day]={foods:[],activities:[]};
+  var mt=(el('f-mealtime')||{value:''}).value||'';
+  for(var i=0;i<keys.length;i++){
+    var it=_recentSel.foods[keys[i]];
+    S.fitDays[day].foods.push({id:uid(),name:it.name,kcal:it.kcal,prot:it.prot,carbs:it.carbs||0,fat:it.fat||0,qty:it.qty||100,cat:it.cat||'alimento',mealTime:mt});
+  }
+  var n=keys.length;
+  _recentSel.foods={};
+  save();
+  closeModal('m-food');
+  if(CS==='s-fitness') renderFitness();
+  haptic('success');
+  toast(n+(n===1?' alimento añadido':' alimentos añadidos')+' a hoy','success');
+}
+function addSelectedRecentActivities(){
+  var keys=Object.keys(_recentSel.acts);
+  if(!keys.length) return;
+  var day=S.fitDate; if(!S.fitDays[day]) S.fitDays[day]={foods:[],activities:[]};
+  for(var i=0;i<keys.length;i++){
+    var it=_recentSel.acts[keys[i]];
+    S.fitDays[day].activities.push({id:uid(),name:it.name,dur:it.dur||30,kcal:it.kcal||0,notes:''});
+  }
+  var n=keys.length;
+  _recentSel.acts={};
+  save();
+  closeModal('m-activity');
+  if(CS==='s-fitness') renderFitness();
+  haptic('success');
+  toast(n+(n===1?' actividad añadida':' actividades añadidas')+' a hoy','success');
+}
 function renderQuickChips(){
   // Food
   var fwrap = el('f-quick-chips');
   if(fwrap){
     var recents = getRecentFoods(8);
-    var h = '<span class="quick-chips-label">Recientes</span>';
+    var selN = Object.keys(_recentSel.foods).length;
+    var h = '<span class="quick-chips-label">Recientes · toca para seleccionar</span>';
     if(recents.length){
       h += '<div class="quick-chips" style="gap:8px;">';
       for(var i=0;i<recents.length;i++){
         var r = recents[i];
         var nameEsc = r.name.replace(/'/g,"\\'").replace(/"/g,'&quot;');
+        var sel = !!_recentSel.foods[_fkey(r.name)];
         var args = "'"+r.name.replace(/'/g,"\\'")+"',"+r.kcal+","+(r.prot||0)+","+(r.carbs||0)+","+(r.fat||0)+","+(r.qty||100)+",'"+(r.cat||'alimento')+"'";
-        h += '<button class="hab-chip" onclick="quickAddFood('+args+')">'
-           + '<span class="hab-chip-dot"></span>'
+        h += '<button class="hab-chip" aria-pressed="'+sel+'" onclick="toggleRecentFood('+args+')"'+(sel?' style="background:rgba(186,255,57,.16);border-color:var(--lime-light);"':'')+'>'
+           + '<span class="hab-chip-dot"'+(sel?' style="background:var(--lime-light);"':'')+'></span>'
            + '<span class="hab-chip-name">'+r.name+'</span>'
            + '<span class="hab-chip-pts">'+r.kcal+'kcal</span>'
            + '<span class="hab-chip-x" onclick="event.stopPropagation();hideRecentFood(\''+nameEsc+'\')" title="Quitar de recientes">×</span>'
            + '</button>';
       }
       h += '</div>';
+      if(selN>0) h += '<button class="btn btn-lime full" style="margin-top:10px;font-size:13px;" onclick="addSelectedRecentFoods()">Añadir '+selN+(selN===1?' a hoy':' a hoy')+'</button>';
     } else {
       h += '<div style="font-size:12px;color:var(--txt2);padding:14px;text-align:center;background:var(--surf);border-radius:12px;">Aún no tienes alimentos recientes.<br><span style="font-size:11px;">Los que añadas aparecerán aquí para acceso rápido.</span></div>';
     }
@@ -7486,21 +7571,24 @@ function renderQuickChips(){
   var awrap = el('a-quick-chips');
   if(awrap){
     var recA = getRecentActivities(8);
-    var h2 = '<span class="quick-chips-label">Recientes</span>';
+    var selA = Object.keys(_recentSel.acts).length;
+    var h2 = '<span class="quick-chips-label">Recientes · toca para seleccionar</span>';
     if(recA.length){
       h2 += '<div class="quick-chips" style="gap:8px;">';
       for(var i=0;i<recA.length;i++){
         var a = recA[i];
         var nameEscA = a.name.replace(/'/g,"\\'").replace(/"/g,'&quot;');
+        var selAc = !!_recentSel.acts[_fkey(a.name)];
         var args2 = "'"+a.name.replace(/'/g,"\\'")+"',"+(a.dur||30)+","+(a.kcal||0);
-        h2 += '<button class="hab-chip" onclick="quickAddActivity('+args2+')">'
-            + '<span class="hab-chip-dot"></span>'
+        h2 += '<button class="hab-chip" aria-pressed="'+selAc+'" onclick="toggleRecentActivity('+args2+')"'+(selAc?' style="background:rgba(186,255,57,.16);border-color:var(--lime-light);"':'')+'>'
+            + '<span class="hab-chip-dot"'+(selAc?' style="background:var(--lime-light);"':'')+'></span>'
             + '<span class="hab-chip-name">'+a.name+'</span>'
             + '<span class="hab-chip-pts">'+(a.dur||30)+'min</span>'
             + '<span class="hab-chip-x" onclick="event.stopPropagation();hideRecentActivity(\''+nameEscA+'\')" title="Quitar de recientes">×</span>'
             + '</button>';
       }
       h2 += '</div>';
+      if(selA>0) h2 += '<button class="btn btn-lime full" style="margin-top:10px;font-size:13px;" onclick="addSelectedRecentActivities()">Añadir '+selA+' a hoy</button>';
     } else {
       h2 += '<div style="font-size:12px;color:var(--txt2);padding:14px;text-align:center;background:var(--surf);border-radius:12px;">Aún no tienes actividades recientes.<br><span style="font-size:11px;">Las que añadas aparecerán aquí para acceso rápido.</span></div>';
     }
@@ -7612,6 +7700,7 @@ function openModal(id){
       el('a-save').checked=false;
     }
     if(el('a-ai-desc')) el('a-ai-desc').value='';
+    _recentSel.acts = {};
     renderQuickChips();
   }
   if(id==='m-food'){
@@ -7622,7 +7711,9 @@ function openModal(id){
       if(el('f-mealtime')) el('f-mealtime').value='';
       el('f-save').checked=false;
     }
+    if(el('f-recipe-btn')) el('f-recipe-btn').style.display = editingFoodId ? 'none' : '';
     if(el('f-ai-desc')) el('f-ai-desc').value='';
+    _recentSel.foods = {};
     renderQuickChips();
   }
   if(id==='m-calendar')openCal();
