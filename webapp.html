@@ -5967,6 +5967,7 @@ function openNewHabit(){
   // Show existing chips section
   el('nh-existing-wrap').style.display = '';
   el('nh-divider').style.display = '';
+  _recentSel.habs = {};
   renderHabitChips();
   openModal('m-newhabit');
 }
@@ -5989,19 +5990,51 @@ function renderHabitChips(){
     return;
   }
   var h = '';
+  var selN = 0;
   for(var i=0;i<allH.length;i++){
     var hb = allH[i];
     var done = hd.done.indexOf(hb.id) >= 0;
+    var sel = !done && !!_recentSel.habs[hb.id];
+    if(sel) selN++;
     var ptsSign = hb.coins > 0 ? '+' : '';
-    h += '<div class="hab-chip'+(done?' done':'')+'" onclick="toggleHabitFromChip(\''+hb.id+'\')" style="cursor:pointer;">'
-       + (done ? '<span class="hab-chip-check">✓</span>' : '<span class="hab-chip-dot"></span>')
+    // Ya hecho hoy → al tocar lo desmarca (deshacer rápido).
+    // No hecho → al tocar lo selecciona para añadir en bloque.
+    var onclick = done ? 'toggleHabitFromChip(\''+hb.id+'\')' : 'toggleHabitSel(\''+hb.id+'\')';
+    var inlineStyle = 'cursor:pointer;' + (sel ? 'background:rgba(186,255,57,.16);border-color:var(--lime-light);' : '');
+    h += '<div class="hab-chip'+(done?' done':'')+'" onclick="'+onclick+'" style="'+inlineStyle+'">'
+       + (done ? '<span class="hab-chip-check">✓</span>' : '<span class="hab-chip-dot"'+(sel?' style="background:var(--lime-light);"':'')+'></span>')
        + '<span class="hab-chip-name">'+hb.name+'</span>'
        + '<span class="hab-chip-pts">'+ptsSign+hb.coins+'</span>'
        + '<span class="hab-chip-edit" onclick="event.stopPropagation();editHabit(\''+hb.id+'\')" title="Editar">✎</span>'
        + '<span class="hab-chip-x" onclick="event.stopPropagation();deleteHabitFromChip(\''+hb.id+'\')" title="Eliminar">×</span>'
        + '</div>';
   }
-  wrap.innerHTML = h;
+  wrap.style.display = 'block';
+  var inner = '<div class="quick-chips" style="gap:8px;">' + h + '</div>';
+  if(selN > 0) inner += '<button class="btn btn-lime full" style="margin-top:10px;font-size:13px;" onclick="markSelectedHabits()">Añadir '+selN+' a hoy</button>';
+  wrap.innerHTML = inner;
+}
+function toggleHabitSel(id){
+  if(_recentSel.habs[id]) delete _recentSel.habs[id];
+  else _recentSel.habs[id] = true;
+  haptic('light');
+  renderHabitChips();
+}
+function markSelectedHabits(){
+  var ids = Object.keys(_recentSel.habs);
+  if(!ids.length) return;
+  var day = S.habDate;
+  if(!S.habDays[day]) S.habDays[day] = {done:[]};
+  var n = 0;
+  for(var i=0;i<ids.length;i++){
+    if(S.habDays[day].done.indexOf(ids[i]) < 0){ S.habDays[day].done.push(ids[i]); n++; }
+  }
+  _recentSel.habs = {};
+  haptic('success');
+  save();
+  renderHabitChips();
+  if(CS==='s-habits') renderHabits();
+  toast(n+(n===1?' hábito marcado':' hábitos marcados')+' hoy','success');
 }
 
 function toggleHabitFromChip(id){
@@ -7489,7 +7522,7 @@ function quickAddActivity(name, dur, kcal){
   el('a-kcal').value = kcal;
 }
 /* ═══ SELECCIÓN MÚLTIPLE DE RECIENTES ═══ */
-var _recentSel = { foods:{}, acts:{} };
+var _recentSel = { foods:{}, acts:{}, habs:{} };
 function _fkey(n){ return String(n||'').toLowerCase(); }
 function toggleRecentFood(name,kcal,prot,carbs,fat,qty,cat){
   var k=_fkey(name);
