@@ -1665,6 +1665,7 @@ button:active,
       <div id="calendar-connected-info" style="display:none;background:var(--surf);border-radius:10px;padding:11px 12px;margin-bottom:10px;font-size:11px;color:var(--txt2);line-height:1.55;"></div>
       <button id="calendar-connect-btn" class="btn btn-lime-full" style="display:none;font-size:13px;padding:12px;margin-bottom:8px;" onclick="connectGoogleCalendar()">Reconectar Google Calendar</button>
       <button id="calendar-sync-btn" class="btn btn-ghost full" style="display:none;font-size:13px;margin-bottom:8px;" onclick="syncGoogleCalendar(true)">↻ Sincronizar ahora</button>
+      <button id="calendar-reimport-btn" class="btn btn-ghost full" style="display:none;font-size:13px;margin-bottom:8px;" onclick="reimportFromGoogle()">⤓ Reimportar eventos de Google</button>
       <button id="calendar-disconnect-btn" class="btn btn-danger" style="display:none;font-size:12px;" onclick="disconnectGoogleCalendar()">Desconectar Calendar</button>
     </div>
 
@@ -4595,6 +4596,7 @@ function renderCalendarSettings(){
   var badge = el('calendar-status-badge');
   var connect = el('calendar-connect-btn');
   var syncBtn = el('calendar-sync-btn');
+  var reimport = el('calendar-reimport-btn');
   var disconnect = el('calendar-disconnect-btn');
   var info = el('calendar-connected-info');
   var toggle = el('calendar-sync-toggle');
@@ -4607,6 +4609,7 @@ function renderCalendarSettings(){
     badge.style.color = 'var(--lime-light)';
     connect.style.display = 'none';
     syncBtn.style.display = '';
+    if(reimport) reimport.style.display = '';
     info.style.display = '';
     info.innerHTML = '<strong style="color:var(--txt);">Calendar activo</strong><br>'
       + (S.calendar.lastSync ? 'Última sincronización: '+new Date(S.calendar.lastSync).toLocaleString() : 'Preparado para sincronizar.');
@@ -4616,6 +4619,7 @@ function renderCalendarSettings(){
     badge.style.color = 'var(--txt3)';
     connect.style.display = '';
     syncBtn.style.display = 'none';
+    if(reimport) reimport.style.display = 'none';
     info.style.display = '';
     info.innerHTML = 'El permiso de Calendar ha caducado. Pulsa Reconectar para renovarlo.';
   } else {
@@ -4623,6 +4627,7 @@ function renderCalendarSettings(){
     badge.style.color = 'var(--txt3)';
     connect.style.display = 'none';
     syncBtn.style.display = 'none';
+    if(reimport) reimport.style.display = 'none';
     info.style.display = 'none';
   }
 }
@@ -4790,43 +4795,93 @@ function eventDateAndTime(event){
 function importCalendarEvents(events, range){
   var acts = S.planner.activities || [];
   var seen = {};
-  var ownIds = {};
-  for(var i=0;i<acts.length;i++) if(acts[i].googleEventId && !acts[i].calendarImported) ownIds[acts[i].googleEventId] = true;
+  // Índices para deduplicar y re-vincular sin solapar.
+  var byEventId = {}, byActId = {};
+  for(var i=0;i<acts.length;i++){
+    if(acts[i].googleEventId) byEventId[acts[i].googleEventId] = acts[i];
+    if(acts[i].id) byActId[acts[i].id] = acts[i];
+  }
   for(var j=0;j<events.length;j++){
     var event = events[j];
     if(!event || event.status === 'cancelled' || !event.start) continue;
+    var when = eventDateAndTime(event);
     var props = event.extendedProperties && event.extendedProperties.private;
-    if(props && props.personalTrackerSource === 'app' && props.personalTrackerId){
-      var linked = null;
-      for(var li=0;li<acts.length;li++) if(acts[li].id === props.personalTrackerId){ linked = acts[li]; break; }
-      if(linked && !linked.calendarDirty){
-        var linkedWhen = eventDateAndTime(event);
-        linked.name = safeCalendarName(event.summary);
-        linked.start = linkedWhen.start;
-        linked.end = linkedWhen.end;
-        if(linked.oneOffDate) linked.oneOffDate = linkedWhen.date;
+    var appSourced = props && props.personalTrackerSource === 'app' && props.personalTrackerId;
+
+    // 1) Evento creado por la app → re-vincular por su id (o por googleEventId).
+    if(appSourced){
+      var linked = byActId[props.personalTrackerId] || byEventId[event.id] || null;
+      if(linked){
+        if(!linked.calendarDirty){
+          linked.name = safeCalendarName(event.summary);
+          linked.start = when.start;
+          linked.end = when.end;
+          if(linked.oneOffDate) linked.oneOffDate = when.date;
+        }
+        seen[event.id] = true;
+        continue;
       }
+      // Huérfano: la actividad se borró pero el evento sigue en Google.
+      // Lo recuperamos reusando su id original para re-vincular (no duplica).
+      var recovered = {
+        id: props.personalTrackerId,
+        name: safeCalendarName(event.summary),
+        category: guessPlanCategory(event.summary),
+        days: null, oneOffDate: when.date, start: when.start, end: when.end,
+        googleEventId: event.id, calendarImported: false, calendarDirty: false, calendarSync: true
+      };
+      acts.push(recovered);
+      byActId[recovered.id] = recovered;
+      byEventId[event.id] = recovered;
+      seen[event.id] = true;
       continue;
     }
-    if(ownIds[event.id]) continue;
-    seen[event.id] = true;
-    var when = eventDateAndTime(event);
-    var existing = null;
-    for(var k=0;k<acts.length;k++) if(acts[k].calendarImported && acts[k].googleEventId === event.id){ existing = acts[k]; break; }
+
+    // 2) Evento externo de Google → importar/actualizar sin duplicar por googleEventId.
+    var existing = byEventId[event.id] || null;
     if(!existing){
       existing = { id:uid(), category:guessPlanCategory(event.summary), days:null, calendarImported:true, googleEventId:event.id };
       acts.push(existing);
+      byEventId[event.id] = existing;
     }
-    existing.name = safeCalendarName(event.summary);
-    existing.oneOffDate = when.date;
-    existing.start = when.start;
-    existing.end = when.end;
+    if(!existing.calendarDirty){
+      existing.name = safeCalendarName(event.summary);
+      existing.oneOffDate = when.date;
+      existing.start = when.start;
+      existing.end = when.end;
+    }
+    seen[event.id] = true;
   }
   S.planner.activities = acts.filter(function(act){
     if(!act.calendarImported || !act.oneOffDate) return true;
     var d = new Date(act.oneOffDate+'T12:00:00');
     if(d < range.start || d > range.end) return true;
     return !!seen[act.googleEventId];
+  });
+}
+
+// Reimportar (sólo trae de Google, sin empujar) — útil para recuperar eventos.
+function reimportFromGoogle(){
+  if(!S.calendar || !S.calendar.enabled){ toast('Activa la sincronización con Calendar primero','info'); return; }
+  if(_calendarSyncing) return;
+  _calendarSyncing = true;
+  renderCalendarSettings();
+  toast('Reimportando desde Google…','info');
+  var range = calendarRange();
+  ensureCalendarToken(false).then(function(){
+    return fetchCalendarEvents(range);
+  }).then(function(events){
+    importCalendarEvents(events, range);
+    S.calendar.lastSync = new Date().toISOString();
+    save();
+    if(CS === 's-planner') renderPlanner();
+    toast('✓ Eventos reimportados desde Google','success');
+  }).catch(function(e){
+    console.error('Reimport:', e);
+    toast('No se pudo reimportar. Pulsa Reconectar en Ajustes.','error');
+  }).then(function(){
+    _calendarSyncing = false;
+    renderCalendarSettings();
   });
 }
 
