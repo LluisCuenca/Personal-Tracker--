@@ -4485,6 +4485,21 @@ var PLAN_CATS = {
   other:   { label:'Otro',     color:'#8A8F98' }
 };
 
+// Adivina la categoría de un evento importado por palabras clave del título.
+function guessPlanCategory(title){
+  var t = ' ' + (title || '').toLowerCase() + ' ';
+  var map = [
+    ['sport',  /escalad|boulder|climb|gym|gimnasio|correr|running|\brun\b|p[áa]del|tenis|f[úu]tbol|baloncesto|bici|ciclism|nataci|nadar|yoga|pilates|entren|workout|deporte|surf|crossfit|spinning/],
+    ['work',   /trabajo|work|reuni[óo]n|meeting|oficina|cliente|proyecto|llamada|\bcall\b|standup|entrevista|curro/],
+    ['meal',   /desayun|almuerz|comida|cena|lunch|dinner|breakfast|brunch/],
+    ['social', /amig|fiesta|party|social|cumple|birthday|drinks|copas|caf[ée]|coffee|quedada|boda/],
+    ['rest',   /descans|siesta|relax|spa|masaje|meditaci/],
+    ['leisure',/cine|pel[íi]cula|movie|concierto|museo|teatro|viaje|playa|beach|paseo|compras|shopping|juego|gaming/]
+  ];
+  for(var i=0;i<map.length;i++){ if(map[i][1].test(t)) return map[i][0]; }
+  return 'other';
+}
+
 var DOW_LABELS_FULL = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 var DOW_LABELS_SHORT = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
 var DOW_LABELS_LETTER = ['D','L','M','X','J','V','S'];
@@ -4799,7 +4814,7 @@ function importCalendarEvents(events, range){
     var existing = null;
     for(var k=0;k<acts.length;k++) if(acts[k].calendarImported && acts[k].googleEventId === event.id){ existing = acts[k]; break; }
     if(!existing){
-      existing = { id:uid(), category:'other', days:null, calendarImported:true, googleEventId:event.id };
+      existing = { id:uid(), category:guessPlanCategory(event.summary), days:null, calendarImported:true, googleEventId:event.id };
       acts.push(existing);
     }
     existing.name = safeCalendarName(event.summary);
@@ -5232,8 +5247,8 @@ function editPlanActivity(id, contextDateStr){
     setEditScope('routine');
   }
   el('pa-delete-btn').style.display = '';
-  // Toggle de Calendar: oculto para eventos importados de Google; reflejado para los propios.
-  _setPlanCalendarField(act.calendarSync !== false, !!(S.calendar && S.calendar.enabled) && !act.calendarImported);
+  // Toggle de Calendar (también para eventos importados: al editarlos la app los adopta).
+  _setPlanCalendarField(act.calendarSync !== false, !!(S.calendar && S.calendar.enabled));
   openModal('m-planact');
 }
 
@@ -5333,6 +5348,9 @@ function savePlanActivity(){
       // Editing a one-off — just update
       act.name = name; act.start = start; act.end = end; act.category = cat;
       act.oneOffDate = _editingOneOffDate || act.oneOffDate;
+      // Al editar un evento importado, la app lo adopta como propio para que no
+      // lo borre el filtro de importación tras la siguiente sincronización.
+      act.calendarImported = false;
       act.calendarSync = calSync;
       act.calendarDirty = true;
       toast('Actividad actualizada','success');
@@ -5355,6 +5373,7 @@ function savePlanActivity(){
       act.name = name; act.start = start; act.end = end; act.category = cat;
       act.days = _editingPlanDays.slice();
       act.frequency = _editingFreq || 'weekly';
+      act.calendarImported = false;
       act.calendarSync = calSync;
       act.calendarDirty = true;
       // Set anchor if missing
