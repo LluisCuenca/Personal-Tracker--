@@ -4796,10 +4796,13 @@ function importCalendarEvents(events, range){
   var acts = S.planner.activities || [];
   var seen = {};
   // Índices para deduplicar y re-vincular sin solapar.
-  var byEventId = {}, byActId = {};
+  var byEventId = {}, byActId = {}, seriesCat = {};
   for(var i=0;i<acts.length;i++){
     if(acts[i].googleEventId) byEventId[acts[i].googleEventId] = acts[i];
     if(acts[i].id) byActId[acts[i].id] = acts[i];
+    // Recuerda la categoría elegida por el usuario para cada serie del calendario,
+    // para que las nuevas semanas de esa rutina entren ya con el tipo correcto.
+    if(acts[i].recurringId && acts[i].category && acts[i].category !== 'other') seriesCat[acts[i].recurringId] = acts[i].category;
   }
   for(var j=0;j<events.length;j++){
     var event = events[j];
@@ -4838,12 +4841,15 @@ function importCalendarEvents(events, range){
     }
 
     // 2) Evento externo de Google → importar/actualizar sin duplicar por googleEventId.
+    var recId = event.recurringEventId || null; // id de la serie si es un evento recurrente
     var existing = byEventId[event.id] || null;
     if(!existing){
-      existing = { id:uid(), category:guessPlanCategory(event.summary), days:null, calendarImported:true, googleEventId:event.id };
+      var cat0 = (recId && seriesCat[recId]) || guessPlanCategory(event.summary);
+      existing = { id:uid(), category:cat0, days:null, calendarImported:true, googleEventId:event.id, recurringId:recId };
       acts.push(existing);
       byEventId[event.id] = existing;
     }
+    if(recId && !existing.recurringId) existing.recurringId = recId; // backfill en importados antiguos
     if(!existing.calendarDirty){
       existing.name = safeCalendarName(event.summary);
       existing.oneOffDate = when.date;
@@ -5179,6 +5185,8 @@ var _editingPlanDays = [];
 var _editingOneOffDate = null;   // YYYY-MM-DD for one-off mode
 var _editingMode = 'routine';    // 'routine' or 'oneoff'
 var _editScope = 'routine';      // 'routine' or 'once' (for editing recurring)
+var _editingSeriesId = null;     // recurringId si se edita una rutina importada de Google
+var _editOrig = null;            // valores originales para detectar qué cambió
 var _editContextDate = null;     // The date the user was viewing when they tapped edit
 var _editingFreq = 'weekly';     // 'weekly' | 'biweekly' | 'monthly'
 
@@ -5228,6 +5236,8 @@ function openPlanActivity(mode){
   // mode: 'routine' (default) or 'oneoff'
   _editingMode = mode || 'routine';
   editingPlanActivityId = null;
+  _editingSeriesId = null;
+  _editOrig = null;
   _editingPlanDays = [];
   _editingOneOffDate = null;
   _editingFreq = 'weekly';
@@ -5276,6 +5286,7 @@ function editPlanActivity(id, contextDateStr){
   el('pa-name').value = act.name;
   el('pa-cat').value = act.category;
   _initTimePickers(act.start, act.end);
+  _editOrig = { name: act.name, start: act.start, end: act.end };
 
   if(act.oneOffDate){
     // One-off activity edit
@@ -5286,8 +5297,18 @@ function editPlanActivity(id, contextDateStr){
     el('pa-date-field').style.display = '';
     _editingOneOffDate = act.oneOffDate;
     renderOneOffDatePicker();
-    el('pa-edit-scope').style.display = 'none';
+    // ¿Instancia de una rutina importada de Google? → permitir editar toda la serie.
+    _editingSeriesId = (act.calendarImported && act.recurringId) ? act.recurringId : null;
+    if(_editingSeriesId){
+      el('pa-sheet-title').textContent = 'Editar rutina (Google Calendar)';
+      el('pa-edit-scope').style.display = '';
+      _editScope = 'routine';
+      setEditScope('routine');
+    } else {
+      el('pa-edit-scope').style.display = 'none';
+    }
   } else {
+    _editingSeriesId = null;
     // Recurring — show scope selector + frequency
     _editingMode = 'routine';
     el('pa-sheet-title').textContent = 'Editar rutina';
@@ -5316,7 +5337,12 @@ function setEditScope(scope){
   if(bo) bo.style.flex = '1';
   var hint = el('pa-scope-hint');
   if(hint){
-    if(scope === 'routine'){
+    if(_editingSeriesId){
+      // Rutina importada de Google: el tipo se puede aplicar a toda la serie.
+      hint.textContent = (scope === 'routine')
+        ? 'El tipo se aplicará a toda la rutina importada. El nombre y la hora, sólo a este día.'
+        : 'Los cambios afectarán sólo a este día.';
+    } else if(scope === 'routine'){
       hint.textContent = 'Los cambios se aplicarán a todas las semanas, incluida ésta.';
     } else {
       // Format context date
@@ -5399,7 +5425,30 @@ function savePlanActivity(){
     for(var i=0;i<S.planner.activities.length;i++) if(S.planner.activities[i].id === editingPlanActivityId){ act = S.planner.activities[i]; break; }
     if(!act){ closeModal('m-planact'); return; }
 
-    if(act.oneOffDate){
+    if(act.oneOffDate && _editingSeriesId){
+      // Instancia de una rutina importada de Google.
+      // Si se eligió "toda la rutina", aplica el TIPO a toda la serie (local).
+      if(_editScope === 'routine'){
+        for(var si=0; si<S.planner.activities.length; si++){
+          if(S.planner.activities[si].recurringId === _editingSeriesId){
+            S.planner.activities[si].category = cat;
+          }
+        }
+      }
+      var onlyCat = _editOrig && name === _editOrig.name && start === _editOrig.start && end === _editOrig.end;
+      if(onlyCat){
+        // Solo cambió el tipo → no tocamos Google ni rompemos el vínculo.
+        act.category = cat;
+      } else {
+        // También cambió nombre/hora de este día → adoptamos y empujamos esta instancia.
+        act.name = name; act.start = start; act.end = end; act.category = cat;
+        act.oneOffDate = _editingOneOffDate || act.oneOffDate;
+        act.calendarImported = false;
+        act.calendarSync = calSync;
+        act.calendarDirty = true;
+      }
+      toast(_editScope === 'routine' ? 'Tipo aplicado a toda la rutina' : 'Actividad actualizada','success');
+    } else if(act.oneOffDate){
       // Editing a one-off — just update
       act.name = name; act.start = start; act.end = end; act.category = cat;
       act.oneOffDate = _editingOneOffDate || act.oneOffDate;
