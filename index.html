@@ -21,6 +21,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async></script>
 <style>
 /* ─── RESET ─── */
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
@@ -1579,6 +1580,16 @@ button:active,
       <div id="pa-scope-hint" style="font-size:10px;color:var(--txt2);margin-top:8px;line-height:1.5;"></div>
     </div>
 
+    <div class="field" id="pa-calendar-field" style="display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--surf);border-radius:12px;padding:11px 14px;">
+        <div>
+          <div class="srow-label" style="font-size:13px;">Sincronizar con Google Calendar</div>
+          <div class="srow-sub">Crea un evento para esta actividad.</div>
+        </div>
+        <label class="sw" aria-label="Sincronizar esta actividad con Google Calendar"><input type="checkbox" id="pa-calendar-sync" checked><span class="sw-t"></span></label>
+      </div>
+    </div>
+
     <div class="modal-btns">
       <button class="btn btn-ghost" onclick="closeModal('m-planact')">Cancelar</button>
       <button class="btn btn-lime full" id="pa-save-btn" onclick="savePlanActivity()">Crear</button>
@@ -1644,8 +1655,15 @@ button:active,
       </div>
       <div style="font-size:11px;color:var(--txt2);margin-bottom:14px;line-height:1.5;">Sincroniza los eventos del calendario principal con Weekly Planner. Los eventos importados cuentan como objetivos diarios.</div>
       <div style="font-size:10px;color:var(--txt3);margin-bottom:12px;line-height:1.5;">Al conectar Calendar, la app podrá leer, crear, editar y eliminar eventos de tu calendario principal para sincronizarlos con el planner. Consulta la <a href="privacy.html" target="_blank" rel="noopener" style="color:var(--lime-light);">política de privacidad</a>.</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-bottom:12px;">
+        <div>
+          <div class="srow-label">Sincronizar con Google Calendar</div>
+          <div class="srow-sub">Activa o desactiva la sincronización cuando quieras.</div>
+        </div>
+        <label class="sw" aria-label="Activar o desactivar la sincronización con Google Calendar"><input type="checkbox" id="calendar-sync-toggle" onchange="toggleCalendarSync()"><span class="sw-t"></span></label>
+      </div>
       <div id="calendar-connected-info" style="display:none;background:var(--surf);border-radius:10px;padding:11px 12px;margin-bottom:10px;font-size:11px;color:var(--txt2);line-height:1.55;"></div>
-      <button id="calendar-connect-btn" class="btn btn-lime-full" style="font-size:13px;padding:12px;margin-bottom:8px;" onclick="connectGoogleCalendar()">Conectar Google Calendar</button>
+      <button id="calendar-connect-btn" class="btn btn-lime-full" style="display:none;font-size:13px;padding:12px;margin-bottom:8px;" onclick="connectGoogleCalendar()">Reconectar Google Calendar</button>
       <button id="calendar-sync-btn" class="btn btn-ghost full" style="display:none;font-size:13px;margin-bottom:8px;" onclick="syncGoogleCalendar(true)">↻ Sincronizar ahora</button>
       <button id="calendar-disconnect-btn" class="btn btn-danger" style="display:none;font-size:12px;" onclick="disconnectGoogleCalendar()">Desconectar Calendar</button>
     </div>
@@ -2678,11 +2696,8 @@ function signInWithGoogle(){
   cleanUrlBeforeAuth();
   var provider = new firebase.auth.GoogleAuthProvider();
   firebase.auth().signInWithPopup(provider).then(function(result){
-    var credential = result && result.credential;
-    if(credential && credential.accessToken){
-      _calendarAccessToken = credential.accessToken;
-      localStorage.setItem('pt7_calendar_token', _calendarAccessToken);
-    }
+    // El token de Google Calendar se gestiona aparte con Google Identity Services
+    // (ver ensureCalendarToken). Aquí solo iniciamos sesión para Firestore.
   }).catch(function(e){
     toast('Error: '+e.message,'error');
   });
@@ -4490,7 +4505,75 @@ function getWeekKey(date){
 var CALENDAR_SCOPE = 'https://www.googleapis.com/auth/calendar.events';
 var _calendarSyncing = false;
 
-function calendarTokenAvailable(){ return !!_calendarAccessToken; }
+// ── Google Identity Services: token con refresco silencioso ──
+// Pega aquí el "ID de cliente" OAuth de tipo Web (Google Cloud → Credenciales).
+// Debes añadir https://personaltracker.org a los "Orígenes de JavaScript autorizados".
+var GOOGLE_OAUTH_CLIENT_ID = '546203589672-rcui5nhvn3tvgg7b9fciu7i13u2mhugb.apps.googleusercontent.com';
+var _gisTokenClient = null;
+var _calTokenResolve = null, _calTokenReject = null;
+
+function _setCalendarToken(token, expiresIn){
+  _calendarAccessToken = token;
+  localStorage.setItem('pt7_calendar_token', token);
+  var ms = (expiresIn ? parseInt(expiresIn) : 3600) * 1000;
+  localStorage.setItem('pt7_calendar_token_exp', String(Date.now() + ms));
+}
+function _clearCalendarToken(){
+  _calendarAccessToken = null;
+  localStorage.removeItem('pt7_calendar_token');
+  localStorage.removeItem('pt7_calendar_token_exp');
+}
+function calendarTokenAvailable(){
+  if(!_calendarAccessToken) return false;
+  var exp = parseInt(localStorage.getItem('pt7_calendar_token_exp') || '0');
+  // Sin caducidad registrada o ya pasada → se renovará en silencio.
+  if(!exp || Date.now() > exp) return false;
+  return true;
+}
+function initGisTokenClient(){
+  if(_gisTokenClient) return _gisTokenClient;
+  if(typeof google === 'undefined' || !google.accounts || !google.accounts.oauth2) return null;
+  if(GOOGLE_OAUTH_CLIENT_ID.indexOf('PEGA_AQUI') === 0) return null;
+  _gisTokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_OAUTH_CLIENT_ID,
+    scope: CALENDAR_SCOPE,
+    callback: function(resp){
+      if(resp && resp.access_token){
+        _setCalendarToken(resp.access_token, resp.expires_in);
+        if(_calTokenResolve){ _calTokenResolve(_calendarAccessToken); }
+      } else if(_calTokenReject){
+        _calTokenReject(new Error('Sin token'));
+      }
+      _calTokenResolve = _calTokenReject = null;
+    },
+    error_callback: function(err){
+      if(_calTokenReject) _calTokenReject(err || new Error('Error de permiso'));
+      _calTokenResolve = _calTokenReject = null;
+    }
+  });
+  return _gisTokenClient;
+}
+// Devuelve un token válido. Si caducó, lo renueva en silencio (sin popup).
+// interactive=true fuerza el consentimiento (primera conexión / reconexión manual).
+function ensureCalendarToken(interactive){
+  if(!interactive && calendarTokenAvailable()){
+    return Promise.resolve(_calendarAccessToken);
+  }
+  var client = initGisTokenClient();
+  if(!client){
+    return Promise.reject(new Error('Google Identity no está listo o falta el Client ID'));
+  }
+  return new Promise(function(resolve, reject){
+    _calTokenResolve = resolve;
+    _calTokenReject = reject;
+    try {
+      client.requestAccessToken({ prompt: interactive ? 'consent' : '' });
+    } catch(e){
+      _calTokenResolve = _calTokenReject = null;
+      reject(e);
+    }
+  });
+}
 function renderCalendarSettings(){
   var enabled = !!(S.calendar && S.calendar.enabled);
   var token = calendarTokenAvailable();
@@ -4499,60 +4582,79 @@ function renderCalendarSettings(){
   var syncBtn = el('calendar-sync-btn');
   var disconnect = el('calendar-disconnect-btn');
   var info = el('calendar-connected-info');
+  var toggle = el('calendar-sync-toggle');
   if(!badge) return;
+  if(toggle) toggle.checked = enabled;
+  // El toggle hace de desactivar: el botón rojo separado ya no es necesario.
+  if(disconnect) disconnect.style.display = 'none';
   if(enabled && token){
     badge.textContent = _calendarSyncing ? 'Sincronizando' : 'Conectado';
     badge.style.color = 'var(--lime-light)';
     connect.style.display = 'none';
     syncBtn.style.display = '';
-    disconnect.style.display = '';
     info.style.display = '';
     info.innerHTML = '<strong style="color:var(--txt);">Calendar activo</strong><br>'
       + (S.calendar.lastSync ? 'Última sincronización: '+new Date(S.calendar.lastSync).toLocaleString() : 'Preparado para sincronizar.');
-  } else {
-    badge.textContent = enabled ? 'Reconectar' : 'Desconectado';
+  } else if(enabled && !token){
+    // Activado pero el permiso caducó y el refresco silencioso no bastó.
+    badge.textContent = 'Reconectar';
     badge.style.color = 'var(--txt3)';
     connect.style.display = '';
-    connect.textContent = enabled ? 'Reconectar Google Calendar' : 'Conectar Google Calendar';
     syncBtn.style.display = 'none';
-    disconnect.style.display = enabled ? '' : 'none';
-    info.style.display = enabled ? '' : 'none';
-    if(enabled) info.innerHTML = 'El permiso de Calendar ha caducado. Reconecta para continuar sincronizando.';
+    info.style.display = '';
+    info.innerHTML = 'El permiso de Calendar ha caducado. Pulsa Reconectar para renovarlo.';
+  } else {
+    badge.textContent = 'Desconectado';
+    badge.style.color = 'var(--txt3)';
+    connect.style.display = 'none';
+    syncBtn.style.display = 'none';
+    info.style.display = 'none';
   }
 }
 
 function connectGoogleCalendar(){
-  if(!_firebaseInited){ initFirebase(true); return setTimeout(connectGoogleCalendar, 900); }
-  cleanUrlBeforeAuth();
-  var provider = new firebase.auth.GoogleAuthProvider();
-  provider.addScope(CALENDAR_SCOPE);
-  provider.setCustomParameters({ prompt:'consent', access_type:'online' });
-  firebase.auth().signInWithPopup(provider).then(function(result){
-    var credential = result && result.credential;
-    if(!credential || !credential.accessToken) throw new Error('Google no devolvió permiso de Calendar');
-    _calendarAccessToken = credential.accessToken;
-    localStorage.setItem('pt7_calendar_token', _calendarAccessToken);
+  toast('Conectando con Google Calendar…', 'info');
+  ensureCalendarToken(true).then(function(){
     if(!S.calendar) S.calendar = {};
     S.calendar.enabled = true;
-    S.calendar.account = (result.user && result.user.email) || '';
     save();
     renderCalendarSettings();
     syncGoogleCalendar(true);
   }).catch(function(e){
     console.error('Calendar auth:', e);
-    toast('No se pudo conectar Google Calendar', 'error');
+    var msg = (GOOGLE_OAUTH_CLIENT_ID.indexOf('PEGA_AQUI') === 0)
+      ? 'Falta configurar el Client ID de Google en la app'
+      : 'No se pudo conectar Google Calendar';
+    toast(msg, 'error');
+    renderCalendarSettings(); // restaura el toggle si se canceló
   });
 }
 
+// Toggle maestro de Ajustes: el usuario elige si sincronizar o no.
+function toggleCalendarSync(){
+  var on = !(S.calendar && S.calendar.enabled);
+  if(on){
+    connectGoogleCalendar();
+  } else {
+    disconnectGoogleCalendar();
+  }
+}
+
 function disconnectGoogleCalendar(){
-  if(!confirm('¿Desconectar Google Calendar? Los eventos ya creados no se borrarán.')) return;
-  _calendarAccessToken = null;
-  localStorage.removeItem('pt7_calendar_token');
+  if(!confirm('¿Desactivar la sincronización con Google Calendar? Los eventos ya creados no se borrarán.')){
+    renderCalendarSettings(); // restaura el toggle si se canceló
+    return;
+  }
+  // Revoca el permiso en Google si es posible.
+  if(typeof google !== 'undefined' && google.accounts && google.accounts.oauth2 && _calendarAccessToken){
+    try { google.accounts.oauth2.revoke(_calendarAccessToken, function(){}); } catch(e){}
+  }
+  _clearCalendarToken();
   if(!S.calendar) S.calendar = {};
   S.calendar.enabled = false;
   save();
   renderCalendarSettings();
-  toast('Google Calendar desconectado', 'info');
+  toast('Sincronización con Calendar desactivada', 'info');
 }
 
 function calendarApi(method, path, body){
@@ -4566,8 +4668,7 @@ function calendarApi(method, path, body){
     body:body ? JSON.stringify(body) : undefined
   }).then(function(res){
     if(res.status === 401 || res.status === 403){
-      _calendarAccessToken = null;
-      localStorage.removeItem('pt7_calendar_token');
+      _clearCalendarToken();
       renderCalendarSettings();
     }
     if(!res.ok) return res.text().then(function(t){ throw new Error('Calendar '+res.status+': '+t); });
@@ -4625,6 +4726,18 @@ function buildCalendarEvent(act){
   return event;
 }
 function pushPlannerActivityToCalendar(act){
+  // El usuario desactivó la sincronización de esta actividad concreta.
+  if(act.calendarSync === false){
+    if(act.googleEventId){
+      // Si ya existía un evento, lo borramos de Google y desvinculamos.
+      var prevId = act.googleEventId;
+      act.googleEventId = null;
+      act.calendarDirty = false;
+      return calendarApi('DELETE', '/calendars/primary/events/'+encodeURIComponent(prevId)).catch(function(){});
+    }
+    act.calendarDirty = false;
+    return Promise.resolve();
+  }
   if(act.googleEventId && !act.calendarDirty) return Promise.resolve();
   var body = buildCalendarEvent(act);
   var path = '/calendars/primary/events';
@@ -4710,8 +4823,8 @@ function fetchCalendarEvents(range){
 }
 function syncGoogleCalendar(showToast){
   if(_calendarSyncing) return Promise.resolve();
-  if(!S.calendar || !S.calendar.enabled || !_calendarAccessToken){
-    if(showToast) toast('Conecta Google Calendar primero', 'info');
+  if(!S.calendar || !S.calendar.enabled){
+    if(showToast) toast('Activa la sincronización con Google Calendar primero', 'info');
     renderCalendarSettings();
     return Promise.resolve();
   }
@@ -4719,7 +4832,10 @@ function syncGoogleCalendar(showToast){
   renderCalendarSettings();
   if(showToast) toast('Sincronizando Calendar…', 'info');
   var range = calendarRange();
-  return pushPlannerToCalendar().then(function(){
+  // Renueva el token en silencio si hace falta antes de sincronizar.
+  return ensureCalendarToken(false).then(function(){
+    return pushPlannerToCalendar();
+  }).then(function(){
     return fetchCalendarEvents(range);
   }).then(function(events){
     importCalendarEvents(events, range);
@@ -4729,27 +4845,16 @@ function syncGoogleCalendar(showToast){
     if(showToast) toast('✓ Google Calendar sincronizado', 'success');
   }).catch(function(e){
     console.error('Calendar sync:', e);
-    if(showToast) toast('Error sincronizando Calendar. Revisa permisos y API.', 'error');
+    if(showToast) toast('No se pudo sincronizar. Pulsa "Reconectar" en Ajustes.', 'error');
   }).then(function(){
     _calendarSyncing = false;
     renderCalendarSettings();
   });
 }
-var _calendarReconnectWarned = false;
 function syncCalendarAfterPlannerChange(){
-  if(!S.calendar || !S.calendar.enabled) return;
-  if(_calendarAccessToken){
-    _calendarReconnectWarned = false;
-    syncGoogleCalendar(false);
-  } else {
-    // Calendar está activado pero el permiso ha caducado: el cambio queda
-    // guardado y marcado (calendarDirty) y subirá al reconectar. Avisamos una vez.
-    renderCalendarSettings();
-    if(!_calendarReconnectWarned){
-      _calendarReconnectWarned = true;
-      toast('Guardado. Reconecta Google Calendar en Ajustes para subirlo', 'info');
-    }
-  }
+  // Con refresco silencioso, syncGoogleCalendar renueva el token solo si caducó.
+  // El cambio queda marcado (calendarDirty) y sube en la siguiente sync válida.
+  if(S.calendar && S.calendar.enabled) syncGoogleCalendar(false);
 }
 function deleteCalendarEventForActivity(act){
   if(!act || !act.googleEventId || !_calendarAccessToken) return;
@@ -5078,7 +5183,17 @@ function openPlanActivity(mode){
   }
   el('pa-edit-scope').style.display = 'none';
   el('pa-delete-btn').style.display = 'none';
+  // Toggle de sincronización por actividad (sólo si Calendar está activo).
+  _setPlanCalendarField(true, !!(S.calendar && S.calendar.enabled));
   openModal('m-planact');
+}
+
+// Muestra/oculta y prepara el interruptor de Calendar del modal.
+function _setPlanCalendarField(checked, show){
+  var field = el('pa-calendar-field');
+  var chk = el('pa-calendar-sync');
+  if(field) field.style.display = show ? '' : 'none';
+  if(chk) chk.checked = checked;
 }
 
 function editPlanActivity(id, contextDateStr){
@@ -5117,6 +5232,8 @@ function editPlanActivity(id, contextDateStr){
     setEditScope('routine');
   }
   el('pa-delete-btn').style.display = '';
+  // Toggle de Calendar: oculto para eventos importados de Google; reflejado para los propios.
+  _setPlanCalendarField(act.calendarSync !== false, !!(S.calendar && S.calendar.enabled) && !act.calendarImported);
   openModal('m-planact');
 }
 
@@ -5192,6 +5309,7 @@ function savePlanActivity(){
   var start = _readTimePicker('pa-start');
   var end = _readTimePicker('pa-end');
   var cat = el('pa-cat').value;
+  var calSync = el('pa-calendar-sync') ? el('pa-calendar-sync').checked : true;
 
   if(_editingMode === 'oneoff' && !editingPlanActivityId){
     // Create new one-off
@@ -5201,6 +5319,7 @@ function savePlanActivity(){
       name: name, start: start, end: end, category: cat,
       oneOffDate: _editingOneOffDate,
       days: null,
+      calendarSync: calSync,
       calendarDirty:true
     });
     toast('Actividad puntual creada','success');
@@ -5214,6 +5333,7 @@ function savePlanActivity(){
       // Editing a one-off — just update
       act.name = name; act.start = start; act.end = end; act.category = cat;
       act.oneOffDate = _editingOneOffDate || act.oneOffDate;
+      act.calendarSync = calSync;
       act.calendarDirty = true;
       toast('Actividad actualizada','success');
     } else if(_editScope === 'once'){
@@ -5225,6 +5345,7 @@ function savePlanActivity(){
         name: name, start: start, end: end, category: cat,
         oneOffDate: _editContextDate,
         days: null,
+        calendarSync: calSync,
         calendarDirty:true
       });
       toast('Cambio aplicado sólo a este día','success');
@@ -5234,6 +5355,7 @@ function savePlanActivity(){
       act.name = name; act.start = start; act.end = end; act.category = cat;
       act.days = _editingPlanDays.slice();
       act.frequency = _editingFreq || 'weekly';
+      act.calendarSync = calSync;
       act.calendarDirty = true;
       // Set anchor if missing
       if(!act.anchorDate) act.anchorDate = _editContextDate || today();
@@ -5250,6 +5372,7 @@ function savePlanActivity(){
       frequency: _editingFreq || 'weekly',
       anchorDate: today(),
       skipDates: [],
+      calendarSync: calSync,
       calendarDirty:true
     });
     toast('Rutina creada','success');
@@ -7701,9 +7824,10 @@ if(!S.habDate) S.habDate=today();
 goScreen('s-home');
 updateAvatars();
 maybeShowOnboarding();
-// Si Calendar sigue conectado, sincroniza al arrancar para subir cambios pendientes.
-if(S.calendar && S.calendar.enabled && _calendarAccessToken){
-  setTimeout(function(){ syncGoogleCalendar(false); }, 1200);
+// Si la sincronización de Calendar está activada, sincroniza al arrancar.
+// ensureCalendarToken renovará el token en silencio si hiciera falta.
+if(S.calendar && S.calendar.enabled){
+  setTimeout(function(){ syncGoogleCalendar(false); }, 1800);
 }
 // Service worker (soporte offline) — sólo sobre http(s), no en file://
 if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
