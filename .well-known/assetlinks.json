@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "org.personaltracker.app",
+      "sha256_cert_fingerprints": [
+        "C4:9D:77:54:F5:34:58:B8:F3:38:FE:A8:61:14:96:FF:7D:3E:B8:BC:4A:15:B3:3E:7E:6C:A3:16:A2:25:C9:D7"
+      ]
+    }
+  }
+]

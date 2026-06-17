@@ -1,5 +1,11 @@
 # Scripts de despliegue local (no se publican en la web)
 deploy/
 
+# Build local Android / APK (no publicar toolchain, keystores ni artefactos)
+.android-build/
+android-twa/
+*.apk
+*.aab
+
 # Sistema
 .DS_Store
