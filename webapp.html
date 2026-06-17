@@ -1563,8 +1563,7 @@ button:active,
     <div class="sheet-t">Plan con IA</div>
     <div style="font-size:12px;color:var(--txt2);line-height:1.55;margin-bottom:16px;" id="kp-intro">¿En cuántos micro-pasos quieres dividir el objetivo? La IA los generará en orden, del primer paso al objetivo final.</div>
     <div class="field"><label>Número de micro-pasos</label>
-      <div id="kp-chips" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;"></div>
-      <input type="number" id="kp-count" min="2" max="12" value="5" inputmode="numeric" onchange="renderKaizenPlanChips()">
+      <input type="number" id="kp-count" min="2" max="12" value="5" inputmode="numeric" placeholder="Ej: 5">
     </div>
     <div class="modal-btns">
       <button class="btn btn-ghost" onclick="closeModal('m-kaizenplan')">Cancelar</button>
@@ -3161,9 +3160,13 @@ function enableSync(){ showSyncInfo(); }
 
 /* ═══ NAV ═══ */
 function goScreen(name){
+  // Dirección de la transición: volver a Inicio = desde la izquierda; abrir sección = desde la derecha.
+  var back = (name === 's-home');
   var all=document.querySelectorAll('.screen');
-  for(var i=0;i<all.length;i++)all[i].classList.remove('active');
-  el(name).classList.add('active');
+  for(var i=0;i<all.length;i++)all[i].classList.remove('active','nav-fwd','nav-back');
+  var next = el(name);
+  next.classList.add('active');
+  next.classList.add(back ? 'nav-back' : 'nav-fwd');
   CS=name;window.scrollTo(0,0);
   if(name==='s-home')renderHome();
   if(name==='s-fitness'){
@@ -8436,25 +8439,7 @@ function openKaizenPlanModal(goalId){
     : '¿En cuántos micro-pasos quieres dividir el objetivo? La IA los generará en orden, del primer paso al objetivo final.';
   el('kp-go').textContent = hadSteps ? '✦ Replantear plan' : '✦ Generar plan';
   el('kp-count').value = 5;
-  renderKaizenPlanChips();
   openModal('m-kaizenplan');
-}
-function renderKaizenPlanChips(){
-  var inp = el('kp-count'); if(!inp) return;
-  var val = parseInt(inp.value) || 5;
-  if(val < 2) val = 2; if(val > 12) val = 12;
-  inp.value = val;
-  var opts = [3,5,7,10];
-  var h = '';
-  for(var i=0;i<opts.length;i++){
-    var n = opts[i], sel = n === val;
-    h += '<button type="button" onclick="setKaizenPlanCount('+n+')" style="flex:1;padding:11px 0;border-radius:11px;border:1.5px solid '+(sel?'var(--lime-light)':'var(--surf2)')+';background:'+(sel?'var(--lime-light)':'var(--surf)')+';color:'+(sel?'#0D0D0D':'var(--txt)')+';font-weight:'+(sel?'900':'700')+';font-size:15px;cursor:pointer;transition:all .15s;">'+n+'</button>';
-  }
-  el('kp-chips').innerHTML = h;
-}
-function setKaizenPlanCount(n){
-  el('kp-count').value = n;
-  renderKaizenPlanChips();
 }
 function runKaizenPlan(){
   var goalId = _kaizenPlanGoalId;
