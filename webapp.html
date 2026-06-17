@@ -1263,6 +1263,20 @@ button:active,
   border-radius:99px;background:var(--surf);border:1px solid var(--border);
   color:var(--txt2);font-size:10px;font-weight:800;padding:5px 8px;
 }
+.kai-goal-card{
+  background:var(--card);border:1px solid var(--border);border-radius:18px;
+  padding:12px 12px;margin-bottom:8px;
+}
+.kai-goal-head{display:flex;align-items:center;gap:10px;}
+.kai-goal-main{flex:1;min-width:0;cursor:pointer;}
+.kai-goal-title{font-size:18px;font-weight:900;letter-spacing:-.45px;line-height:1.12;}
+.kai-goal-sub{font-size:10px;font-weight:800;color:var(--txt3);margin-top:5px;text-transform:uppercase;letter-spacing:.06em;}
+.kai-check{
+  width:28px;height:28px;border-radius:50%;border:1.5px solid var(--surf3);
+  background:transparent;color:transparent;display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:900;cursor:pointer;flex-shrink:0;
+}
+.kai-check.on{background:var(--lime-light);border-color:var(--lime-light);color:#0D0D0D;}
 .kai-card-actions{display:flex;gap:6px;flex-shrink:0;}
 .kai-mini-btn{
   width:30px;height:30px;border-radius:50%;border:none;background:var(--surf2);
@@ -1270,10 +1284,20 @@ button:active,
   font-family:Inter,sans-serif;font-size:13px;font-weight:800;cursor:pointer;
 }
 .kai-mini-btn:hover{color:var(--lime-light);background:var(--surf3);}
-.kai-group-title{
-  font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;
-  color:var(--txt2);margin:16px 2px 8px;
+.kai-category{
+  margin-bottom:10px;border:1px solid var(--border);border-radius:18px;overflow:hidden;
+  background:var(--card);
 }
+.kai-category-head{
+  width:100%;border:none;background:var(--surf);color:var(--txt);
+  padding:13px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;
+  font-family:Inter,sans-serif;text-align:left;
+}
+.kai-cat-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+.kai-cat-title{flex:1;font-size:14px;font-weight:900;letter-spacing:-.2px;}
+.kai-cat-count{font-size:10px;font-weight:800;color:var(--txt2);}
+.kai-cat-actions{display:flex;gap:5px;}
+.kai-category-body{padding:10px;}
 
 /* Frequency buttons */
 .freq-btn{
@@ -1598,12 +1622,8 @@ button:active,
     <div class="field"><label>Categoría</label>
       <div style="display:flex;gap:8px;">
         <select id="kg-category" style="flex:1;"></select>
-        <button class="btn btn-ghost-sm" type="button" onclick="createKaizenCategory()">+ Categoría</button>
+        <button class="btn btn-lime-sm" type="button" style="box-shadow:0 0 18px rgba(186,255,57,.18);" onclick="createKaizenCategory()">+ Categoría</button>
       </div>
-    </div>
-    <div class="f2">
-      <div class="field"><label>Prioridad (%)</label><input type="number" id="kg-priority" min="1" max="100" step="1" placeholder="50"></div>
-      <div class="field"><label>Deadline</label><input type="date" id="kg-deadline"></div>
     </div>
     <div class="modal-btns">
       <button class="btn btn-ghost" onclick="closeModal('m-kaizengoal')">Cancelar</button>
@@ -2743,15 +2763,12 @@ function applyDefaults(){
   if(!S.calendar)  S.calendar  = { enabled:false, lastSync:null };
   if(!S.kaizen)    S.kaizen    = { goals:[] };
   if(!Array.isArray(S.kaizen.categories)) S.kaizen.categories = ['Personal','Trabajo','Deporte'];
-  if(!S.kaizen.viewBy) S.kaizen.viewBy = 'category';
+  if(!S.kaizen.openCats) S.kaizen.openCats = {};
   if(!Array.isArray(S.kaizen.goals)) S.kaizen.goals = [];
   for(var kg=0;kg<S.kaizen.goals.length;kg++){
     var goal = S.kaizen.goals[kg];
     if(!Array.isArray(goal.steps)) goal.steps = [];
     if(!goal.category) goal.category = 'Personal';
-    if(goal.priority == null) goal.priority = 50;
-    goal.priority = Math.max(1, Math.min(100, parseInt(goal.priority) || 50));
-    if(goal.deadline == null) goal.deadline = '';
     goal.completed = !!goal.completed;
   }
   if(!S.hiddenRecents) S.hiddenRecents = { foods:[], activities:[] };
