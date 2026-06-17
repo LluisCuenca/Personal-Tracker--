@@ -1501,6 +1501,140 @@ button:active,
 .cal-d.hd::after{content:'';width:4px;height:4px;background:var(--lime-light);border-radius:50%;position:absolute;bottom:2px;}
 .cal-d.dim{color:var(--txt3);}
 
+/* ─── VISUAL COHERENCE PASS ─── */
+:root,[data-theme="dark"]{
+  --space-x:16px;
+  --shadow-soft:0 14px 34px rgba(0,0,0,.18);
+  --shadow-card:0 8px 24px rgba(0,0,0,.14);
+  --hairline:1px solid var(--border);
+}
+[data-theme="light"]{
+  --shadow-soft:0 14px 30px rgba(48,53,43,.08);
+  --shadow-card:0 8px 20px rgba(48,53,43,.065);
+}
+body{letter-spacing:-.01em;}
+.hdr{padding:calc(26px + env(safe-area-inset-top)) 22px 0;}
+.logo{font-size:31px;letter-spacing:-1.05px;}
+.av{width:50px;height:50px;border-width:1px;box-shadow:var(--shadow-card);}
+.cards{padding:18px var(--space-x) 0;gap:12px;}
+.mcard,
+.fit-hdr-card,
+.coins-banner,
+.macro-box,
+.stat-box,
+.list-row,
+.lib-card,
+.hab-row,
+.mhcard,
+.chart-wrap,
+.kai-category,
+.kai-goal-card{
+  box-shadow:var(--shadow-card);
+}
+.mcard{border-radius:24px;padding:20px 18px;}
+.home-card{
+  position:relative;
+  overflow:hidden;
+  min-height:178px;
+  border-color:rgba(255,255,255,.08);
+}
+.home-card::after{
+  content:'';
+  position:absolute;
+  inset:auto 18px 0 18px;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(186,255,57,.22),transparent);
+  opacity:.55;
+}
+.home-card:active{transform:scale(.992);}
+.mc-top{margin-bottom:14px;gap:12px;}
+.mc-title{font-size:17px;font-weight:850;letter-spacing:-.35px;line-height:1.1;}
+.home-info-btn{width:26px;height:26px;font-size:11px;margin-left:6px;}
+.btn{
+  min-height:40px;
+  border-radius:var(--r-pill);
+  gap:6px;
+  letter-spacing:-.015em;
+  line-height:1;
+}
+.btn-lime{padding:11px 20px;font-size:13.5px;}
+.btn-lime-sm{min-height:38px;padding:9px 15px;font-size:12.5px;}
+.btn-lime-full{min-height:46px;padding:14px 18px;font-size:14px;}
+.btn-ghost{min-height:38px;padding:9px 15px;font-size:12.5px;border:1px solid var(--border);}
+.btn-ghost-sm{min-height:36px;padding:8px 14px;font-size:12px;border:1px solid var(--border);}
+.btn-danger{min-height:44px;padding:13px 16px;font-size:13.5px;}
+.fit-hdr-card{border-radius:22px;margin:14px var(--space-x) 0;padding:18px;}
+.fit-date-big{font-size:21px;font-weight:850;letter-spacing:-.55px;line-height:1.08;}
+.fit-date-sub{font-size:11.5px;line-height:1.35;}
+.day-nav-btn{width:40px;height:40px;font-size:21px;border-width:1px;}
+.view-toggle{margin:12px var(--space-x) 0;padding:4px;gap:4px;}
+.vt-btn{min-height:34px;padding:8px 0;font-size:12px;font-weight:800;}
+.coins-banner{border-radius:24px;padding:20px 18px;margin:14px var(--space-x) 0;}
+.coins-row{gap:14px;}
+.coins-big{font-size:56px;letter-spacing:-2.7px;}
+.coins-unit{font-size:18px;}
+.coins-meta{font-size:11.5px;line-height:1.35;}
+.coins-side .ce{font-size:12.5px;line-height:1.35;}
+.coins-streak{font-size:11.5px;line-height:1.45;}
+.stat-strip{gap:8px;margin:12px var(--space-x) 10px;}
+.stat-box{border-radius:16px;padding:12px 8px;}
+.stat-n{font-size:17px;font-weight:850;}
+.stat-l{font-size:9.5px;line-height:1.25;}
+.macro-grid{gap:10px;}
+.macro-box{border-radius:18px;padding:15px 14px;}
+.macro-lbl{font-size:10.5px;margin-bottom:9px;}
+.macro-val{font-size:27px;}
+.macro-sub,.macro-goal{font-size:10.5px;line-height:1.35;}
+.list-wrap{margin:0 var(--space-x) 12px;}
+.list-section-lbl{font-size:13.5px;font-weight:800;color:var(--txt2);letter-spacing:-.05px;}
+.list-section-lbl.emph{font-size:17px;font-weight:900;color:var(--txt);letter-spacing:-.35px;}
+.list-row{border-radius:18px;padding:13px 14px;gap:9px;}
+.lr-name{font-size:14.5px;font-weight:700;}
+.lr-kcal{font-size:12.5px;}
+.lr-prot{font-size:10.8px;}
+.hsec{padding:0 var(--space-x);margin-top:16px;}
+.hsec-title{font-size:13.5px;font-weight:850;}
+.hab-row{border-radius:18px;padding:13px 14px;gap:10px;}
+.hab-name{font-size:13.5px;font-weight:800;line-height:1.25;}
+.hab-desc{font-size:11px;line-height:1.35;}
+.hab-points{min-width:56px;padding:6px 8px;}
+.habit-remove,.kai-mini-btn{box-shadow:none;}
+.quick-collapsible{border-radius:16px;}
+.quick-toggle{min-height:42px;padding:12px 14px;font-size:12.5px;}
+.hab-chip{border-radius:16px;min-height:42px;padding:10px 13px;}
+.sheet{border-radius:30px 30px 0 0;padding:0 20px calc(34px + env(safe-area-inset-bottom));}
+.sh{margin:14px auto 20px;}
+.sheet-t{font-size:23px;letter-spacing:-.55px;line-height:1.05;margin-bottom:20px;padding-right:42px;}
+.sheet-x{top:32px;right:18px;width:38px;height:38px;}
+.field{margin-bottom:13px;}
+.field label{font-size:10px;font-weight:800;margin-bottom:7px;}
+.field input,.field select,.ai-input{border-radius:14px;padding:13px 14px;font-size:14px;}
+.chk-row{border-radius:14px;padding:13px 14px;}
+.type-choice{border-radius:18px;padding:17px 18px;margin-bottom:9px;}
+.tc-label{font-size:16.5px;}
+.tc-desc{font-size:11.5px;line-height:1.45;}
+.planner-day-card{
+  border-radius:20px !important;
+  padding:16px !important;
+  margin-bottom:12px !important;
+  box-shadow:var(--shadow-card);
+}
+.planner-day-card.today{box-shadow:0 0 0 1px rgba(186,255,57,.2),var(--shadow-card) !important;}
+.planner-day-title{font-size:19px !important;letter-spacing:-.55px !important;line-height:1.05;}
+.planner-day-meta{font-size:10px !important;}
+.planner-event-row{border-radius:14px !important;padding:12px 13px !important;margin-bottom:7px !important;}
+.planner-event-title{font-size:14.5px !important;line-height:1.2;}
+.planner-event-meta{font-size:11.2px !important;line-height:1.35;margin-top:3px !important;}
+.kai-category{border-radius:20px;margin-bottom:12px;}
+.kai-category-head{padding:14px 15px;}
+.kai-cat-title{font-size:14.5px;}
+.kai-goal-card{border-radius:20px;padding:13px;margin-bottom:9px;}
+.kai-goal-title{font-size:17px;line-height:1.14;}
+.kai-check{width:30px;height:30px;}
+.ob-hero-card,.ob-feature-card,.mod-pick,.theme-tile,.ai-block{border-radius:18px;}
+[data-theme="light"] .home-card{border-color:rgba(25,28,23,.08);}
+[data-theme="light"] .home-card::after{background:linear-gradient(90deg,transparent,rgba(63,111,0,.18),transparent);}
+
 /* ─── UTIL ─── */
 .px{padding:0 16px;}
 .divider{height:1px;background:var(--border);}
