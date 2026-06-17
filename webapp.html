@@ -1508,8 +1508,8 @@ button:active,
       <div class="tc-desc">Actividad recurrente que se repite cada semana en los días que elijas</div>
     </button>
     <button class="type-choice" onclick="closeModal('m-planchoose');setTimeout(function(){openPlanActivity('oneoff');},200);">
-      <div class="tc-label">Actividad puntual</div>
-      <div class="tc-desc">Sólo para un día concreto de esta semana</div>
+      <div class="tc-label">Actividad</div>
+      <div class="tc-desc">Un evento puntual: un día, todo el día o varios días</div>
     </button>
     <button class="btn btn-ghost full" style="margin-top:8px;" onclick="closeModal('m-planchoose')">Cancelar</button>
   </div>
@@ -1522,9 +1522,13 @@ button:active,
     <div class="sheet-t" id="pa-sheet-title">Nueva actividad</div>
     <div class="field"><label>Nombre</label><input type="text" id="pa-name" placeholder="Ej: Escalada"></div>
 
-    <!-- Custom time picker -->
-    <div class="field"><label>Hora</label>
-      <div class="time-picker-wrap">
+    <!-- Custom time picker + all-day toggle -->
+    <div class="field" id="pa-time-field"><label>Hora</label>
+      <div id="pa-allday-row" style="display:none;align-items:center;justify-content:space-between;background:var(--surf);border-radius:12px;padding:10px 14px;margin-bottom:10px;">
+        <span style="font-size:13px;color:var(--txt);font-weight:600;">Todo el día</span>
+        <label class="sw" aria-label="Todo el día"><input type="checkbox" id="pa-allday" onchange="toggleAllDay()"><span class="sw-t"></span></label>
+      </div>
+      <div class="time-picker-wrap" id="pa-time-pickers">
         <div class="time-picker">
           <select id="pa-start-h" class="tp-select"></select>
           <span class="tp-sep">:</span>
@@ -1565,15 +1569,29 @@ button:active,
       </div>
     </div>
 
-    <!-- Date picker (only for one-off) -->
-    <div class="field" id="pa-date-field" style="display:none;"><label>Día (cualquier fecha del año)</label>
-      <input type="date" id="pa-date-input" onchange="pickOneOffDate(this.value)" style="width:100%;margin-bottom:10px;">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-        <button type="button" class="day-nav-btn" onclick="event.preventDefault();shiftOneOffWeek(-1)" aria-label="Semana anterior">‹</button>
-        <div id="pa-date-weeklbl" style="flex:1;text-align:center;font-size:11px;color:var(--txt2);font-weight:700;"></div>
-        <button type="button" class="day-nav-btn" onclick="event.preventDefault();shiftOneOffWeek(1)" aria-label="Semana siguiente">›</button>
+    <!-- Date (only for one-off) -->
+    <div class="field" id="pa-date-field" style="display:none;"><label id="pa-date-label">Día</label>
+      <div style="position:relative;">
+        <button type="button" class="btn btn-ghost full" style="justify-content:space-between;font-size:13px;padding:12px 16px;pointer-events:none;">
+          <span>Abrir calendario</span><span id="pa-date-val" style="color:var(--lime-light);font-weight:700;"></span>
+        </button>
+        <input type="date" id="pa-date-input" onchange="pickOneOffDate(this.value)" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;">
       </div>
-      <div id="pa-date-picker" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:space-between;"></div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surf);border-radius:12px;padding:10px 14px;margin-top:12px;">
+        <span style="font-size:13px;color:var(--txt);font-weight:600;">Varios días</span>
+        <label class="sw" aria-label="Varios días"><input type="checkbox" id="pa-multiday" onchange="toggleMultiDay()"><span class="sw-t"></span></label>
+      </div>
+
+      <div id="pa-enddate-wrap" style="display:none;margin-top:10px;">
+        <label style="display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--txt2);margin-bottom:6px;">Termina</label>
+        <div style="position:relative;">
+          <button type="button" class="btn btn-ghost full" style="justify-content:space-between;font-size:13px;padding:12px 16px;pointer-events:none;">
+            <span>Abrir calendario</span><span id="pa-enddate-val" style="color:var(--lime-light);font-weight:700;"></span>
+          </button>
+          <input type="date" id="pa-enddate-input" onchange="pickEndDate(this.value)" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;">
+        </div>
+      </div>
     </div>
 
     <!-- Edit mode: choice between editing routine vs just this day -->
@@ -4742,21 +4760,30 @@ function calendarRecurrence(act){
 }
 function buildCalendarEvent(act){
   var dateStr = act.oneOffDate || firstRoutineDate(act);
+  var endDateStr = act.endDate || dateStr;
   var tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Madrid';
-  var startIso = calendarDateTime(dateStr, act.start);
-  var endIso = calendarDateTime(dateStr, act.end);
-  if(new Date(endIso) <= new Date(startIso)){
-    var nextDay = new Date(dateStr+'T12:00:00');
-    nextDay.setDate(nextDay.getDate()+1);
-    endIso = calendarDateTime(ds(nextDay), act.end);
-  }
   var event = {
     summary:act.name,
     description:'Sincronizado con Personal Tracker',
-    start:{ dateTime:startIso, timeZone:tz },
-    end:{ dateTime:endIso, timeZone:tz },
     extendedProperties:{ private:{ personalTrackerId:act.id, personalTrackerSource:'app' } }
   };
+  if(act.allDay){
+    // Eventos de todo el día: end.date es exclusivo (un día después del final).
+    var endEx = new Date(endDateStr+'T12:00:00');
+    endEx.setDate(endEx.getDate()+1);
+    event.start = { date: dateStr };
+    event.end = { date: ds(endEx) };
+  } else {
+    var startIso = calendarDateTime(dateStr, act.start);
+    var endIso = calendarDateTime(endDateStr, act.end);
+    if(new Date(endIso) <= new Date(startIso)){
+      var nextDay = new Date(endDateStr+'T12:00:00');
+      nextDay.setDate(nextDay.getDate()+1);
+      endIso = calendarDateTime(ds(nextDay), act.end);
+    }
+    event.start = { dateTime:startIso, timeZone:tz };
+    event.end = { dateTime:endIso, timeZone:tz };
+  }
   var recurrence = calendarRecurrence(act);
   if(recurrence) event.recurrence = recurrence;
   return event;
@@ -4804,9 +4831,18 @@ function eventDateAndTime(event){
   if(event.start && event.start.dateTime){
     var start = new Date(event.start.dateTime);
     var end = new Date(event.end.dateTime);
-    return { date:ds(start), start:pad(start.getHours())+':'+pad(start.getMinutes()), end:pad(end.getHours())+':'+pad(end.getMinutes()) };
+    var sd = ds(start), ed = ds(end);
+    return { date:sd, start:pad(start.getHours())+':'+pad(start.getMinutes()), end:pad(end.getHours())+':'+pad(end.getMinutes()), allDay:false, endDate: (ed && ed !== sd) ? ed : null };
   }
-  return { date:event.start.date, start:'09:00', end:'10:00' };
+  // Evento de todo el día: end.date es exclusivo → el último día real es end.date − 1.
+  var sd2 = event.start.date;
+  var endIncl = sd2;
+  if(event.end && event.end.date){
+    var e2 = new Date(event.end.date+'T12:00:00');
+    e2.setDate(e2.getDate()-1);
+    endIncl = ds(e2);
+  }
+  return { date:sd2, start:'00:00', end:'23:59', allDay:true, endDate: (endIncl && endIncl !== sd2) ? endIncl : null };
 }
 function importCalendarEvents(events, range){
   var acts = S.planner.activities || [];
@@ -4837,6 +4873,8 @@ function importCalendarEvents(events, range){
           linked.name = safeCalendarName(event.summary);
           linked.start = when.start;
           linked.end = when.end;
+          linked.allDay = when.allDay;
+          linked.endDate = when.endDate;
           if(linked.oneOffDate) linked.oneOffDate = when.date;
         }
         seen[event.id] = true;
@@ -4849,6 +4887,7 @@ function importCalendarEvents(events, range){
         name: safeCalendarName(event.summary),
         category: guessPlanCategory(event.summary),
         days: null, oneOffDate: when.date, start: when.start, end: when.end,
+        allDay: when.allDay, endDate: when.endDate,
         googleEventId: event.id, calendarImported: false, calendarDirty: false, calendarSync: true
       };
       acts.push(recovered);
@@ -4875,6 +4914,8 @@ function importCalendarEvents(events, range){
       existing.oneOffDate = when.date;
       existing.start = when.start;
       existing.end = when.end;
+      existing.allDay = when.allDay;
+      existing.endDate = when.endDate;
     }
     seen[event.id] = true;
   }
@@ -4978,7 +5019,9 @@ function getPlannerActivitiesForDate(dateStr){
   for(var i=0;i<S.planner.activities.length;i++){
     var a = S.planner.activities[i];
     if(a.oneOffDate){
-      if(a.oneOffDate === dateStr) out.push(a);
+      // Evento de uno o varios días: incluido si dateStr está en el rango.
+      var endD = a.endDate || a.oneOffDate;
+      if(dateStr >= a.oneOffDate && dateStr <= endD) out.push(a);
     } else if(a.days && a.days.indexOf(jsDow) >= 0){
       // Recurring — check skip + frequency
       if(a.skipDates && a.skipDates.indexOf(dateStr) >= 0) continue;
@@ -5131,7 +5174,9 @@ function renderPlanner(){
               + '</div>';
           h += '<div style="flex:1;">';
           h += '<div style="font-size:13px;font-weight:700;'+(doneA?'opacity:.6;text-decoration:line-through;':'')+'">'+act.name+'</div>';
-          h += '<div style="font-size:11px;color:var(--txt2);margin-top:1px;">'+catDot+act.start+' – '+act.end+' · '+catLbl+'</div>';
+          var timeLbl = act.allDay ? 'Todo el día' : (act.start+' – '+act.end);
+          if(act.endDate && act.endDate !== act.oneOffDate) timeLbl += ' · varios días';
+          h += '<div style="font-size:11px;color:var(--txt2);margin-top:1px;">'+catDot+timeLbl+' · '+catLbl+'</div>';
           h += '</div>';
           // Edit button
           h += '<button onclick="event.stopPropagation();editPlanActivity(\''+act.id+'\',\''+ds_.dStr+'\')" style="width:28px;height:28px;border:none;background:var(--surf2);color:var(--txt2);border-radius:50%;cursor:pointer;font-size:12px;font-family:Inter;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✎</button>';
@@ -5260,9 +5305,11 @@ function openPlanActivity(mode){
   _editOrig = null;
   _editingPlanDays = [];
   _editingOneOffDate = null;
+  _editingEndDate = null;
+  _editingAllDay = false;
   _editingFreq = 'weekly';
   setPlanFreq('weekly');
-  el('pa-sheet-title').textContent = _editingMode === 'oneoff' ? 'Nueva actividad puntual' : 'Nueva rutina semanal';
+  el('pa-sheet-title').textContent = _editingMode === 'oneoff' ? 'Nueva actividad' : 'Nueva rutina semanal';
   el('pa-save-btn').textContent = _editingMode === 'oneoff' ? 'Añadir actividad' : 'Añadir rutina';
   el('pa-name').value = '';
   el('pa-cat').value = 'sport';
@@ -5272,6 +5319,7 @@ function openPlanActivity(mode){
     el('pa-days-field').style.display = 'none';
     el('pa-freq-field').style.display = 'none';
     el('pa-date-field').style.display = '';
+    el('pa-allday-row').style.display = 'flex';
     // Por defecto: hoy, o el primer día de la semana que estás viendo en el planner.
     if(plannerWeekOffset && plannerWeekOffset !== 0){
       var m = getMonday(new Date()); m.setDate(m.getDate() + plannerWeekOffset*7);
@@ -5279,12 +5327,12 @@ function openPlanActivity(mode){
     } else {
       _editingOneOffDate = today();
     }
-    _oneOffViewMonday = null;
-    renderOneOffDatePicker();
+    renderOneOffDates();
   } else {
     el('pa-days-field').style.display = '';
     el('pa-freq-field').style.display = '';
     el('pa-date-field').style.display = 'none';
+    el('pa-allday-row').style.display = 'none';
     renderDaysPicker([]);
   }
   el('pa-edit-scope').style.display = 'none';
@@ -5317,13 +5365,15 @@ function editPlanActivity(id, contextDateStr){
   if(act.oneOffDate){
     // One-off activity edit
     _editingMode = 'oneoff';
-    el('pa-sheet-title').textContent = 'Editar actividad puntual';
+    el('pa-sheet-title').textContent = 'Editar actividad';
     el('pa-days-field').style.display = 'none';
     el('pa-freq-field').style.display = 'none';
     el('pa-date-field').style.display = '';
+    el('pa-allday-row').style.display = 'flex';
     _editingOneOffDate = act.oneOffDate;
-    _oneOffViewMonday = null;
-    renderOneOffDatePicker();
+    _editingEndDate = (act.endDate && act.endDate !== act.oneOffDate) ? act.endDate : null;
+    _editingAllDay = !!act.allDay;
+    renderOneOffDates();
     // ¿Es una actividad del calendario que se repite (misma serie o mismo nombre)?
     // → permitir aplicar el tipo a toda la rutina, aunque se importara suelta.
     var isCalAct = act.calendarImported || act.googleEventId;
@@ -5346,12 +5396,15 @@ function editPlanActivity(id, contextDateStr){
     }
   } else {
     _editingSeriesId = null;
+    _editingEndDate = null;
+    _editingAllDay = false;
     // Recurring — show scope selector + frequency
     _editingMode = 'routine';
     el('pa-sheet-title').textContent = 'Editar rutina';
     el('pa-days-field').style.display = '';
     el('pa-freq-field').style.display = '';
     el('pa-date-field').style.display = 'none';
+    el('pa-allday-row').style.display = 'none';
     renderDaysPicker(act.days.slice());
     _editingFreq = act.frequency || 'weekly';
     setPlanFreq(_editingFreq);
@@ -5391,44 +5444,57 @@ function setEditScope(scope){
   }
 }
 
-var _oneOffViewMonday = null; // semana mostrada en el selector rápido
-function _ensureOneOffView(){
-  var base = _editingOneOffDate ? new Date(_editingOneOffDate+'T12:00:00') : new Date();
-  _oneOffViewMonday = getMonday(base);
-}
-function renderOneOffDatePicker(){
-  if(!_oneOffViewMonday) _ensureOneOffView();
-  var monday = new Date(_oneOffViewMonday);
-  var wrap = el('pa-date-picker');
-  if(!wrap) return;
-  var di = el('pa-date-input'); if(di) di.value = _editingOneOffDate || '';
-  var sun = new Date(monday); sun.setDate(sun.getDate()+6);
+var _editingEndDate = null;  // fecha fin para eventos de varios días
+var _editingAllDay = false;  // evento de todo el día
+function _fmtDateShort(dstr){
+  if(!dstr) return '';
+  var p = dstr.split('-');
+  var d = new Date(parseInt(p[0]), parseInt(p[1])-1, parseInt(p[2]));
   var MS = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-  var lbl = el('pa-date-weeklbl');
-  if(lbl) lbl.textContent = monday.getDate()+' '+MS[monday.getMonth()]+' – '+sun.getDate()+' '+MS[sun.getMonth()]+' '+sun.getFullYear();
-  var h = '';
-  for(var i=0;i<7;i++){
-    var d = new Date(monday); d.setDate(d.getDate()+i);
-    var dstr = ds(d);
-    var sel = dstr === _editingOneOffDate;
-    var jsDow = d.getDay();
-    h += '<button onclick="event.preventDefault();pickOneOffDate(\''+dstr+'\')" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 10px;border-radius:12px;border:1.5px solid '+(sel?'var(--lime-light)':'var(--surf2)')+';background:'+(sel?'var(--lime-light)':'var(--surf)')+';color:'+(sel?'#0D0D0D':'var(--txt)')+';font-family:Inter;cursor:pointer;transition:all .18s;min-width:42px;flex:1;">'
-       + '<span style="font-size:9px;font-weight:'+(sel?'800':'600')+';opacity:'+(sel?'.7':'.6')+';text-transform:uppercase;letter-spacing:.07em;">'+DOW_LABELS_LETTER[jsDow]+'</span>'
-       + '<span style="font-size:15px;font-weight:'+(sel?'900':'700')+';">'+d.getDate()+'</span>'
-       + '</button>';
-  }
-  wrap.innerHTML = h;
+  return DOW_LABELS_SHORT[d.getDay()] + ' ' + d.getDate() + ' ' + MS[d.getMonth()];
+}
+// Mantiene compatibilidad con llamadas previas: refresca los botones de fecha.
+function renderOneOffDatePicker(){ renderOneOffDates(); }
+function renderOneOffDates(){
+  var di = el('pa-date-input'); if(di) di.value = _editingOneOffDate || '';
+  var dv = el('pa-date-val'); if(dv) dv.textContent = _fmtDateShort(_editingOneOffDate);
+  var ei = el('pa-enddate-input'); if(ei) ei.value = _editingEndDate || _editingOneOffDate || '';
+  var ev = el('pa-enddate-val'); if(ev) ev.textContent = _fmtDateShort(_editingEndDate);
+  // Todo el día → oculta el selector de hora
+  var tp = el('pa-time-pickers'); if(tp) tp.style.display = _editingAllDay ? 'none' : '';
+  var ad = el('pa-allday'); if(ad) ad.checked = _editingAllDay;
+  var md = el('pa-multiday'); if(md) md.checked = !!_editingEndDate;
+  var ew = el('pa-enddate-wrap'); if(ew) ew.style.display = _editingEndDate ? '' : 'none';
 }
 function pickOneOffDate(dstr){
   if(!dstr) return;
   _editingOneOffDate = dstr;
-  _ensureOneOffView(); // la semana mostrada salta a la de la fecha elegida
-  renderOneOffDatePicker();
+  // Si la fecha fin queda antes de la de inicio, la igualamos.
+  if(_editingEndDate && _editingEndDate < dstr) _editingEndDate = dstr;
+  renderOneOffDates();
 }
-function shiftOneOffWeek(delta){
-  if(!_oneOffViewMonday) _ensureOneOffView();
-  _oneOffViewMonday.setDate(_oneOffViewMonday.getDate() + delta*7);
-  renderOneOffDatePicker();
+function pickEndDate(dstr){
+  if(!dstr) return;
+  // La fecha fin no puede ser anterior a la de inicio.
+  _editingEndDate = (_editingOneOffDate && dstr < _editingOneOffDate) ? _editingOneOffDate : dstr;
+  renderOneOffDates();
+}
+function toggleAllDay(){
+  _editingAllDay = !!(el('pa-allday') && el('pa-allday').checked);
+  renderOneOffDates();
+}
+function toggleMultiDay(){
+  var on = !!(el('pa-multiday') && el('pa-multiday').checked);
+  if(on){
+    if(!_editingEndDate){
+      var base = new Date((_editingOneOffDate||today())+'T12:00:00');
+      base.setDate(base.getDate()+1);
+      _editingEndDate = ds(base);
+    }
+  } else {
+    _editingEndDate = null;
+  }
+  renderOneOffDates();
 }
 
 function renderDaysPicker(selected){
@@ -5459,6 +5525,8 @@ function savePlanActivity(){
   var end = _readTimePicker('pa-end');
   var cat = el('pa-cat').value;
   var calSync = el('pa-calendar-sync') ? el('pa-calendar-sync').checked : true;
+  var allDay = !!_editingAllDay;
+  var endDate = (_editingEndDate && _editingEndDate !== _editingOneOffDate) ? _editingEndDate : null;
 
   if(_editingMode === 'oneoff' && !editingPlanActivityId){
     // Create new one-off
@@ -5467,11 +5535,12 @@ function savePlanActivity(){
       id: uid(),
       name: name, start: start, end: end, category: cat,
       oneOffDate: _editingOneOffDate,
+      endDate: endDate, allDay: allDay,
       days: null,
       calendarSync: calSync,
       calendarDirty:true
     });
-    toast('Actividad puntual creada','success');
+    toast('Actividad creada','success');
   } else if(editingPlanActivityId){
     // Edit existing
     var act = null;
@@ -5498,6 +5567,7 @@ function savePlanActivity(){
         // También cambió nombre/hora de este día → adoptamos y empujamos esta instancia.
         act.name = name; act.start = start; act.end = end; act.category = cat;
         act.oneOffDate = _editingOneOffDate || act.oneOffDate;
+        act.endDate = endDate; act.allDay = allDay;
         act.calendarImported = false;
         act.calendarSync = calSync;
         act.calendarDirty = true;
@@ -5507,6 +5577,7 @@ function savePlanActivity(){
       // Editing a one-off — just update
       act.name = name; act.start = start; act.end = end; act.category = cat;
       act.oneOffDate = _editingOneOffDate || act.oneOffDate;
+      act.endDate = endDate; act.allDay = allDay;
       // Al editar un evento importado, la app lo adopta como propio para que no
       // lo borre el filtro de importación tras la siguiente sincronización.
       act.calendarImported = false;
