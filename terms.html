@@ -6,10 +6,14 @@
   <title>Condiciones de servicio · Personal Tracker</title>
   <meta name="description" content="Condiciones de servicio de Personal Tracker.">
   <style>
-    :root{color-scheme:dark;--bg:#0d0d0d;--card:#1a1a1a;--text:#f5f5f2;--muted:#aaa;--lime:#baff39;--border:#303030}
-    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 Arial,sans-serif}
-    main{max-width:780px;margin:auto;padding:48px 22px 80px} h1{font-size:38px;line-height:1.05;margin:0 0 8px} h2{font-size:20px;margin:36px 0 10px}
-    p,li{color:var(--muted)} strong{color:var(--text)} a{color:var(--lime)} .brand{color:var(--lime);font-weight:800}
+    @font-face{font-family:'Neue Haas Unica Pro';src:url('NeueHaasUnicaPro-Light.ttf') format('truetype');font-weight:300;font-style:normal;font-display:swap}
+    @font-face{font-family:'Neue Haas Unica Pro';src:url('NeueHaasUnicaPro-Medium.ttf') format('truetype');font-weight:500;font-style:normal;font-display:swap}
+    @font-face{font-family:'Neue Haas Unica Pro';src:url('NeueHaasUnicaPro-Bold.ttf') format('truetype');font-weight:700;font-style:normal;font-display:swap}
+    @font-face{font-family:'Neue Haas Unica Pro';src:url('NeueHaasUnicaPro-Heavy.ttf') format('truetype');font-weight:900;font-style:normal;font-display:swap}
+    :root{color-scheme:dark;--bg:#0d0d0d;--card:#1a1a1a;--text:#f5f5f2;--muted:#aaa;--lime:#baff39;--border:#303030;--font-family:'Neue Haas Unica Pro','Helvetica Neue',Arial,sans-serif;--font-light:300;--font-medium:500;--font-bold:700;--font-heavy:900}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-family);font-size:16px;font-weight:var(--font-light);line-height:1.65}
+    main{max-width:780px;margin:auto;padding:48px 22px 80px} h1{font-size:38px;line-height:1.05;margin:0 0 8px;font-weight:var(--font-heavy)} h2{font-size:20px;margin:36px 0 10px;font-weight:var(--font-bold)}
+    p,li{color:var(--muted)} strong{color:var(--text);font-weight:var(--font-bold)} a{color:var(--lime)} .brand{color:var(--lime);font-weight:var(--font-bold)}
     .meta,.notice{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px 18px;margin:22px 0}
     .meta{font-size:13px}.notice{color:var(--text)} ul{padding-left:22px} footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--border);font-size:13px}
   </style>

@@ -10,25 +10,26 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%23BAFF39'/><path d='M11 32 L22 32 L27 21 L33 43 L39 32 L53 32' stroke='%230D0D0D' stroke-width='4.2' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
-  @font-face{font-family:'Neue Haas Unica';src:url('NeueHaasUnicaPro-Light.ttf') format('truetype');font-weight:300;font-style:normal;font-display:swap}
-  @font-face{font-family:'Neue Haas Unica';src:url('NeueHaasUnicaPro-Regular.ttf') format('truetype');font-weight:400;font-style:normal;font-display:swap}
-  @font-face{font-family:'Neue Haas Unica';src:url('NeueHaasUnicaPro-Medium.ttf') format('truetype');font-weight:500;font-style:normal;font-display:swap}
-  @font-face{font-family:'Neue Haas Unica';src:url('NeueHaasUnicaPro-Bold.ttf') format('truetype');font-weight:700;font-style:normal;font-display:swap}
-  @font-face{font-family:'Neue Haas Unica';src:url('NeueHaasUnicaPro-Black.ttf') format('truetype');font-weight:900;font-style:normal;font-display:swap}
+  @font-face{font-family:'Neue Haas Unica Pro';src:url('NeueHaasUnicaPro-Light.ttf') format('truetype');font-weight:300;font-style:normal;font-display:swap}
+  @font-face{font-family:'Neue Haas Unica Pro';src:url('NeueHaasUnicaPro-Medium.ttf') format('truetype');font-weight:500;font-style:normal;font-display:swap}
+  @font-face{font-family:'Neue Haas Unica Pro';src:url('NeueHaasUnicaPro-Bold.ttf') format('truetype');font-weight:700;font-style:normal;font-display:swap}
+  @font-face{font-family:'Neue Haas Unica Pro';src:url('NeueHaasUnicaPro-Heavy.ttf') format('truetype');font-weight:900;font-style:normal;font-display:swap}
   :root{
     --bg:#0A0A0A;--bg2:#0F0F0F;--card:#141414;--card2:#1A1A1A;--border:#262626;--border2:#333;
     --txt:#F5F5F2;--muted:#A8A8A2;--muted2:#73736E;--lime:#BAFF39;--lime-d:#9BE020;--lime-soft:rgba(186,255,57,.12);
+    --font-family:'Neue Haas Unica Pro','Helvetica Neue',Arial,sans-serif;
+    --font-light:300;--font-medium:500;--font-bold:700;--font-heavy:900;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
-  body{background:var(--bg);color:var(--txt);font-family:'Neue Haas Unica','Helvetica Neue',Arial,sans-serif;line-height:1.65;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow-x:hidden;letter-spacing:-.01em}
+  body{background:var(--bg);color:var(--txt);font-family:var(--font-family);font-weight:var(--font-light);line-height:1.65;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow-x:hidden;letter-spacing:-.01em}
   svg{display:block}
   .licon{width:21px;height:21px;stroke:currentColor;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-linejoin:round;color:var(--lime)}
   a{color:inherit;text-decoration:none}
   .wrap{max-width:880px;margin:0 auto;padding:0 24px}
   .lime{color:var(--lime)}
   .grain{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.04;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
-  .btn{display:inline-flex;align-items:center;gap:9px;justify-content:center;font-weight:700;font-size:15px;border-radius:100px;padding:13px 22px;cursor:pointer;border:1px solid transparent;transition:transform .15s,background .2s,border-color .2s}
+  .btn{display:inline-flex;align-items:center;gap:9px;justify-content:center;font-weight:var(--font-bold);font-size:15px;border-radius:100px;padding:13px 22px;cursor:pointer;border:1px solid transparent;transition:transform .15s,background .2s,border-color .2s}
   .btn:active{transform:scale(.97)}
   .btn-lime{background:var(--lime);color:#0A0A0A;box-shadow:0 8px 30px -8px rgba(186,255,57,.5)}
   .btn-lime:hover{background:var(--lime-d)}
@@ -37,31 +38,31 @@
   .btn-sm{padding:10px 18px;font-size:13.5px}
   header.nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(16px) saturate(140%);-webkit-backdrop-filter:blur(16px) saturate(140%);background:rgba(10,10,10,.6);border-bottom:1px solid rgba(255,255,255,.06)}
   .nav-in{display:flex;align-items:center;justify-content:space-between;height:66px;max-width:880px;margin:0 auto;padding:0 24px}
-  .brand{display:flex;align-items:center;gap:11px;font-weight:800;font-size:16.5px;letter-spacing:-.3px}
+  .brand{display:flex;align-items:center;gap:11px;font-weight:var(--font-bold);font-size:16.5px;letter-spacing:-.3px}
   .brand svg{width:30px;height:30px;border-radius:8px;display:block}
   .hero{position:relative;z-index:1;padding:84px 0 30px;overflow:hidden}
   .glow{position:absolute;border-radius:50%;filter:blur(70px);z-index:-1;pointer-events:none;top:-160px;left:30%;width:680px;height:520px;max-width:120vw;background:radial-gradient(ellipse at center,rgba(186,255,57,.16),transparent 60%)}
-  .badge{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:var(--muted);background:rgba(255,255,255,.04);border:1px solid var(--border);padding:7px 15px;border-radius:100px;margin-bottom:24px}
+  .badge{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:var(--font-bold);color:var(--muted);background:rgba(255,255,255,.04);border:1px solid var(--border);padding:7px 15px;border-radius:100px;margin-bottom:24px}
   .badge .dot{width:7px;height:7px;border-radius:50%;background:var(--lime);box-shadow:0 0 10px var(--lime)}
-  h1{font-size:clamp(36px,6vw,60px);line-height:1.03;font-weight:900;letter-spacing:-1.8px;margin-bottom:20px}
+  h1{font-size:clamp(36px,6vw,60px);line-height:1.03;font-weight:var(--font-heavy);letter-spacing:-1.8px;margin-bottom:20px}
   .lead{font-size:clamp(17px,2.3vw,21px);color:var(--muted);max-width:640px;line-height:1.55}
   .actions{display:flex;flex-wrap:wrap;gap:11px;margin-top:30px}
   section{position:relative;z-index:1;padding:54px 0}
-  h2{font-size:clamp(24px,3.6vw,34px);font-weight:900;letter-spacing:-.9px;margin-bottom:16px;line-height:1.1}
+  h2{font-size:clamp(24px,3.6vw,34px);font-weight:var(--font-heavy);letter-spacing:-.9px;margin-bottom:16px;line-height:1.1}
   p.body{color:var(--muted);font-size:16.5px;line-height:1.7;margin-bottom:14px}
-  p.body strong{color:var(--txt);font-weight:700}
-  .eyebrow{font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--lime);margin-bottom:12px}
+  p.body strong{color:var(--txt);font-weight:var(--font-bold)}
+  .eyebrow{font-size:12px;font-weight:var(--font-bold);letter-spacing:.14em;text-transform:uppercase;color:var(--lime);margin-bottom:12px}
   .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:30px 0}
   .card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px;transition:border-color .2s,transform .2s}
   .card:hover{border-color:#3a3a3a;transform:translateY(-2px)}
   .card .ic{width:42px;height:42px;border-radius:12px;background:var(--lime-soft);display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:14px}
-  .card strong{display:block;font-size:17px;font-weight:800;margin-bottom:7px;letter-spacing:-.3px}
+  .card strong{display:block;font-size:17px;font-weight:var(--font-bold);margin-bottom:7px;letter-spacing:-.3px}
   .card p{color:var(--muted);font-size:14px;line-height:1.55}
   .panel{background:linear-gradient(180deg,var(--card),var(--bg2));border:1px solid var(--border);border-radius:24px;padding:36px 32px}
   .panel h2{margin-bottom:14px}
   .divider{height:1px;background:var(--border);margin:46px 0}
   footer{border-top:1px solid var(--border);padding:40px 0 56px;position:relative;z-index:1}
-  .f-links{display:flex;gap:22px;flex-wrap:wrap;margin:16px 0;font-size:14px;font-weight:600}
+  .f-links{display:flex;gap:22px;flex-wrap:wrap;margin:16px 0;font-size:14px;font-weight:var(--font-bold)}
   .f-links a{color:var(--muted)}.f-links a:hover{color:var(--lime)}
   .f-copy{font-size:13px;color:var(--muted2)}
   @media(max-width:760px){.grid{grid-template-columns:1fr}section{padding:42px 0}.panel{padding:28px 22px}}
