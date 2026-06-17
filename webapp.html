@@ -1541,6 +1541,23 @@ button:active,
   </div>
 </div>
 
+<!-- KAIZEN: PLAN CON IA (elegir nº de pasos) -->
+<div class="overlay" id="m-kaizenplan" onclick="oClose(event,'m-kaizenplan')">
+  <div class="sheet">
+    <div class="sh"></div>
+    <div class="sheet-t">Plan con IA</div>
+    <div style="font-size:12px;color:var(--txt2);line-height:1.55;margin-bottom:16px;" id="kp-intro">¿En cuántos micro-pasos quieres dividir el objetivo? La IA los generará en orden, del primer paso al objetivo final.</div>
+    <div class="field"><label>Número de micro-pasos</label>
+      <div id="kp-chips" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;"></div>
+      <input type="number" id="kp-count" min="2" max="12" value="5" inputmode="numeric" onchange="renderKaizenPlanChips()">
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-ghost" onclick="closeModal('m-kaizenplan')">Cancelar</button>
+      <button class="btn btn-lime full" id="kp-go" onclick="runKaizenPlan()">✦ Generar plan</button>
+    </div>
+  </div>
+</div>
+
 <!-- PLANNER ADD CHOOSER -->
 <div class="overlay" id="m-planchoose" onclick="oClose(event,'m-planchoose')">
   <div class="sheet">
@@ -8206,7 +8223,7 @@ function renderKaizen(){
       }
       h += '<div style="display:flex;gap:8px;margin-top:10px;">';
       h += '<button class="btn btn-ghost full" style="font-size:12px;" onclick="addKaizenStep(\''+g.id+'\')">+ Añadir paso</button>';
-      h += '<button class="btn btn-lime full" id="kai-ai-'+g.id+'" style="font-size:12px;" onclick="generateKaizenPlan(\''+g.id+'\')">'+(steps.length?'✦ Repensar plan':'✦ Crear plan con IA')+'</button>';
+      h += '<button class="btn btn-lime full" id="kai-ai-'+g.id+'" style="font-size:12px;" onclick="openKaizenPlanModal(\''+g.id+'\')">'+(steps.length?'✦ Repensar plan':'✦ Crear plan con IA')+'</button>';
       h += '</div>';
       h += '<button class="btn btn-ghost full" style="font-size:12px;margin-top:8px;color:var(--txt2);" onclick="openKaizenGoal(\''+g.id+'\')">Editar objetivo</button>';
     }
