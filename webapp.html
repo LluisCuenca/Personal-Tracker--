@@ -2106,6 +2106,13 @@ button:active,
         </div>
         <div class="mod-pick-check" id="ob-check-plan">✓</div>
       </div>
+      <div class="mod-pick" id="ob-mod-kai" onclick="toggleObMod('kaizen')">
+        <div class="mod-pick-info">
+          <div class="mod-pick-title">Kaizen Goals</div>
+          <div class="mod-pick-desc">Objetivos grandes convertidos en micro-pasos</div>
+        </div>
+        <div class="mod-pick-check" id="ob-check-kai">✓</div>
+      </div>
     </div>
 
     <!-- ════ SLIDE 4: Theme ════ -->
@@ -2819,8 +2826,7 @@ function signInWithApple(){
 
 function firebaseSignOut(){
   if(!confirm('¿Cerrar sesión? Tus datos seguirán guardados en Google y se eliminarán de este dispositivo.')) return;
-  _calendarAccessToken = null;
-  localStorage.removeItem('pt7_calendar_token');
+  _clearCalendarToken();
   try {
     firebase.auth().signOut().then(function(){
       localStorage.removeItem('pt7');
@@ -7417,12 +7423,14 @@ function resetData(){
   clearLocalDataAndReload();
 }
 function clearLocalDataAndReload(){
+  _clearCalendarToken();
   localStorage.removeItem('pt7');
   localStorage.removeItem('pt7_cloud_uid');
   localStorage.removeItem('pt7_token');
   localStorage.removeItem('pt7_gist');
   localStorage.removeItem('pt7_mode');
   localStorage.removeItem('pt7_aikey');
+  localStorage.removeItem('pt7_gemini_enabled');
   window.location.hash = '';
   location.reload();
 }
@@ -7977,7 +7985,7 @@ document.addEventListener('keydown',function(e){
 /* ═══ ONBOARDING WIZARD ═══ */
 var _obStep = 1;
 var _obTotalSteps = 5;
-var _obMods = { fitness:true, habits:true, planner:true };
+var _obMods = { fitness:true, habits:true, planner:true, kaizen:true };
 
 function _renderObDots(){
   var w = el('ob-dots');
@@ -8048,8 +8056,8 @@ function toggleObMod(name){
   haptic('light');
 }
 function _renderObMods(){
-  var keys = ['fit','hab','plan'];
-  var fullKeys = {'fit':'fitness','hab':'habits','plan':'planner'};
+  var keys = ['fit','hab','plan','kai'];
+  var fullKeys = {'fit':'fitness','hab':'habits','plan':'planner','kai':'kaizen'};
   for(var i=0;i<keys.length;i++){
     var k = keys[i];
     var on = _obMods[fullKeys[k]];
@@ -8067,7 +8075,7 @@ function skipOnboarding(){
     calOverride: '', protOverride: '', photo: null
   };
   S.weights = [{date: today(), kg: 70}];
-  S.modules = { fitness:true, habits:true, planner:true };
+  S.modules = { fitness:true, habits:true, planner:true, kaizen:true };
   S.onboarded = true;
   save();
   closeModal('m-onboard');
@@ -8088,7 +8096,7 @@ function completeOnboardingPartial(){
     calOverride: '', protOverride: '', photo: null
   };
   S.weights = [{date: today(), kg: weight}];
-  S.modules = { fitness:_obMods.fitness, habits:_obMods.habits, planner:_obMods.planner };
+  S.modules = { fitness:_obMods.fitness, habits:_obMods.habits, planner:_obMods.planner, kaizen:_obMods.kaizen };
   S.onboarded = true;
   save();
   if(CS==='s-home') renderHome();
@@ -8110,7 +8118,7 @@ function completeOnboarding(){
     calOverride: '', protOverride: '', photo: null
   };
   S.weights = [{date: today(), kg: weight}];
-  S.modules = { fitness:_obMods.fitness, habits:_obMods.habits, planner:_obMods.planner };
+  S.modules = { fitness:_obMods.fitness, habits:_obMods.habits, planner:_obMods.planner, kaizen:_obMods.kaizen };
   S.onboarded = true;
   save();
   closeModal('m-onboard');
@@ -8130,7 +8138,7 @@ function maybeShowOnboarding(){
   var hasData = (S.fitDays && Object.keys(S.fitDays).length > 0) || (S.library && S.library.length > 0);
   if(!S.onboarded && !S.profile && !hasData){
     _obStep = 1;
-    _obMods = { fitness:true, habits:true, planner:true };
+    _obMods = { fitness:true, habits:true, planner:true, kaizen:true };
     setTimeout(function(){
       openModal('m-onboard');
       _showObSlide(1);

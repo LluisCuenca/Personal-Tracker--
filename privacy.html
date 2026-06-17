@@ -18,7 +18,7 @@
 <main>
   <div class="brand">Personal Tracker</div>
   <h1>Política de privacidad</h1>
-  <div class="meta">Última actualización: 13 de junio de 2026 · Responsable: Lluis Cuenca</div>
+  <div class="meta">Última actualización: 17 de junio de 2026 · Responsable: Lluis Cuenca</div>
 
   <p>Esta política explica cómo Personal Tracker accede, utiliza, almacena y elimina información cuando utilizas la aplicación. Personal Tracker es una herramienta personal de seguimiento de nutrición, actividad, hábitos y planificación semanal.</p>
 
@@ -43,7 +43,7 @@
 
   <h2>Google Calendar</h2>
   <p>Personal Tracker solicita permiso para leer, crear, modificar y eliminar eventos del calendario principal con el único propósito de mantenerlo sincronizado con Weekly Planner. Los eventos importados pueden copiarse al estado de la aplicación y, si activas la sincronización en la nube, almacenarse en tu documento privado de Firestore.</p>
-  <p>El token de acceso de Google Calendar se conserva únicamente durante la sesión actual del navegador. Desconectar Calendar impide nuevas sincronizaciones, pero no elimina automáticamente eventos que ya existan en Google Calendar.</p>
+  <p>El token temporal de acceso de Google Calendar se guarda en el almacenamiento local del navegador junto con su caducidad para mantener la sincronización activa. Desconectar Calendar revoca el permiso cuando es posible y elimina ese token local. Desconectar Calendar impide nuevas sincronizaciones, pero no elimina automáticamente eventos que ya existan en Google Calendar.</p>
 
   <h2>Almacenamiento y proveedores</h2>
   <p>Sin iniciar sesión, los datos permanecen en el almacenamiento local de tu navegador. Si inicias sesión con Google, el estado de la aplicación se almacena en Firebase Firestore, protegido mediante autenticación y reglas que limitan cada documento a su usuario. Personal Tracker utiliza servicios de Google, incluidos Firebase Authentication, Firestore, Firebase AI Logic, Gemini y Google Calendar API.</p>
