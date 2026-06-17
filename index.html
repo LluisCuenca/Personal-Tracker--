@@ -187,6 +187,15 @@
     .hero{padding:68px 0 24px}
     .nav-r a.lnk{display:none}
     .privacy-card{padding:46px 24px}
+    /* Móvil: todo alineado a la izquierda */
+    .hero, .center, .finalcta, .privacy-card{text-align:left}
+    .hero .lead, .center .sec-sub, .privacy-card .sec-sub, .finalcta p{margin-left:0;margin-right:0}
+    .cta-row, .finalcta .cta-row{justify-content:flex-start}
+    .lock{margin-left:0;margin-right:0}
+    .hero-t{font-size:clamp(34px,10vw,52px);letter-spacing:-.04em}
+    h2.sec{font-size:clamp(26px,7.5vw,38px)}
+    .hero .lead{font-size:17px}
+    .badge{margin-bottom:24px}
   }
   @media(prefers-reduced-motion:reduce){.mtrack{animation:none}.reveal{transition:none;opacity:1;transform:none}}
 </style>
@@ -221,7 +230,7 @@
       Personal Tracker
     </a>
     <div class="nav-r">
-      <a class="lnk" href="about.html">Sobre el proyecto</a>
+      <a class="lnk" href="#proyecto">El proyecto</a>
       <a class="lnk" href="webapp.html">Entrar</a>
       <a class="btn btn-lime btn-sm" href="webapp.html">Abrir app</a>
     </div>
@@ -425,7 +434,7 @@
   <div class="wrap">
     <div class="privacy-card reveal">
       <div class="lock"><svg class="ic"><use href="#i-lock"/></svg></div>
-      <div class="eyebrow" style="text-align:center">Privacidad de serie</div>
+      <div class="eyebrow">Privacidad de serie</div>
       <h2 class="sec" style="margin-bottom:14px">Tus datos son tuyos</h2>
       <p class="sec-sub" style="margin:0 auto">Sin iniciar sesión, todo se guarda solo en tu dispositivo. Si decides sincronizar, tus datos viven en tu propia cuenta de Google, protegidos por reglas que limitan cada documento a su dueño. Sin anuncios, sin venta de datos, sin letra pequeña.</p>
     </div>
@@ -444,6 +453,16 @@
       <div class="pcard reveal"><div class="q">02</div><h4>Privada por defecto</h4><p>Tu información no es el producto. No hay anuncios ni se comparte con terceros para publicidad.</p></div>
       <div class="pcard reveal"><div class="q">03</div><h4>Tuya de verdad</h4><p>Funciona offline, se exporta entera y se sincroniza solo si tú quieres. Sin ataduras.</p></div>
     </div>
+  </div>
+</section>
+
+<section id="proyecto">
+  <div class="wrap" style="max-width:760px;">
+    <div class="eyebrow reveal">El proyecto</div>
+    <h2 class="sec reveal" style="margin-bottom:20px;">Sobre Personal Tracker</h2>
+    <p class="reveal" style="color:var(--muted);font-size:17px;line-height:1.7;margin-bottom:16px;">Personal Tracker es una aplicación personal de salud y productividad. Reúne en una sola pantalla lo que normalmente vive repartido entre varias apps: el balance nutricional, la actividad física, el progreso de hábitos, la planificación de la semana y tus objetivos a largo plazo. Usa estos datos <strong style="color:var(--txt);font-weight:500;">únicamente para mostrarte tus métricas, estimaciones y progreso</strong>.</p>
+    <p class="reveal" style="color:var(--muted);font-size:17px;line-height:1.7;margin-bottom:16px;">Es un proyecto personal, en evolución constante, creado por <strong style="color:var(--txt);font-weight:500;">Lluis Cuenca</strong> en Mallorca. Nace de querer una herramienta simple y honesta que ayude a cuidarse sin vender nada y sin convertir los datos en producto.</p>
+    <p class="reveal" style="color:var(--muted);font-size:17px;line-height:1.7;margin-bottom:0;">Sin iniciar sesión, todo se guarda solo en tu dispositivo y funciona sin conexión. El inicio de sesión con Google es opcional y sirve para sincronizar tus datos entre dispositivos. La integración con Google Calendar también es opcional: cuando la activas, la app usa el permiso <strong style="color:var(--txt);font-weight:500;">exclusivamente para leer, crear, editar y eliminar eventos de tu calendario principal</strong> y mantenerlos en sintonía con el planner. Nunca se usan tus datos para publicidad ni se venden a terceros. Más detalles en la <a href="privacy.html" style="color:var(--lime);">política de privacidad</a>.</p>
   </div>
 </section>
 
@@ -478,7 +497,7 @@
       </div>
       <div class="foot-col">
         <h5>Proyecto</h5>
-        <a href="about.html">Sobre el proyecto</a>
+        <a href="#proyecto">El proyecto</a>
         <a href="privacy.html">Privacidad</a>
         <a href="terms.html">Condiciones</a>
       </div>
