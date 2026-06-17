@@ -2106,28 +2106,28 @@ button:active,
     <div class="onboard-content">
     <!-- ════ SLIDE 1: Welcome ════ -->
     <div class="ob-slide" id="ob-s1">
-      <div style="text-align:center;padding:2px 0 6px;">
-        <div style="display:inline-flex;width:74px;height:74px;background:var(--lime-light);border-radius:18px;align-items:center;justify-content:center;margin-bottom:18px;">
+      <div class="ob-hero-card" style="text-align:left;">
+        <div style="display:inline-flex;width:72px;height:72px;background:var(--lime-light);border-radius:22px;align-items:center;justify-content:center;margin-bottom:18px;box-shadow:0 14px 34px rgba(186,255,57,.18);">
           <svg width="44" height="44" viewBox="0 0 64 64" fill="none">
             <path d="M11 32 L22 32 L27 21 L33 43 L39 32 L53 32" stroke="#0D0D0D" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
           </svg>
         </div>
-        <div style="font-size:30px;font-weight:900;letter-spacing:-1.2px;line-height:1.02;margin-bottom:9px;">Tu salud, hábitos y semana,<br><span style="color:var(--lime-light);">en un solo lugar.</span></div>
-        <div style="font-size:12px;color:var(--txt2);margin-bottom:18px;line-height:1.5;padding:0 12px;">Una aplicación personal para entender tu progreso, construir constancia y convertir tus planes en objetivos diarios.</div>
+        <div style="font-size:32px;font-weight:900;letter-spacing:-1.4px;line-height:.98;margin-bottom:10px;">Tu sistema personal de progreso.</div>
+        <div style="font-size:13px;color:var(--txt2);line-height:1.55;">Nutrición, hábitos, calendario y objetivos grandes en una experiencia privada, rápida y pensada para usar cada día.</div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
-        <div style="background:var(--surf);border-radius:14px;padding:13px;"><div style="font-size:11px;font-weight:800;color:var(--lime-light);margin-bottom:4px;">Nutrition + Fitness</div><div style="font-size:10px;color:var(--txt2);line-height:1.45;">Comidas, macros, peso y actividad con ayuda de Gemini.</div></div>
-        <div style="background:var(--surf);border-radius:14px;padding:13px;"><div style="font-size:11px;font-weight:800;color:var(--lime-light);margin-bottom:4px;">Daily Habits</div><div style="font-size:10px;color:var(--txt2);line-height:1.45;">Construye hábitos y observa tu constancia diaria.</div></div>
-        <div style="background:var(--surf);border-radius:14px;padding:13px;"><div style="font-size:11px;font-weight:800;color:var(--lime-light);margin-bottom:4px;">Weekly Planner</div><div style="font-size:10px;color:var(--txt2);line-height:1.45;">Convierte tu calendario y tus rutinas en objetivos.</div></div>
-        <div style="background:var(--surf);border-radius:14px;padding:13px;"><div style="font-size:11px;font-weight:800;color:var(--lime-light);margin-bottom:4px;">Tu espacio privado</div><div style="font-size:10px;color:var(--txt2);line-height:1.45;">Funciona en local o sincronizado entre dispositivos.</div></div>
+      <div class="ob-feature-grid">
+        <div class="ob-feature-card"><strong>Macros sin fricción</strong><span>Describe comidas o actividades y Gemini puede estimarlas.</span></div>
+        <div class="ob-feature-card"><strong>Hábitos visibles</strong><span>Puntos, rachas y señales claras para construir constancia.</span></div>
+        <div class="ob-feature-card"><strong>Semana conectada</strong><span>Planner y Calendar convierten eventos en objetivos diarios.</span></div>
+        <div class="ob-feature-card"><strong>Metas Kaizen</strong><span>Objetivos grandes, divididos en micro-pasos accionables.</span></div>
       </div>
     </div>
 
     <!-- ════ SLIDE 2: Personal data ════ -->
     <div class="ob-slide" id="ob-s2" style="display:none;">
-      <div style="text-align:center;margin-bottom:14px;">
-        <div style="font-size:24px;font-weight:900;letter-spacing:-.8px;line-height:1.1;margin-bottom:6px;">Cuéntanos sobre ti</div>
-        <div style="font-size:12px;color:var(--txt2);">Para calcular tu metabolismo y objetivos. Podrás cambiarlo más tarde.</div>
+      <div class="ob-hero-card">
+        <div style="font-size:24px;font-weight:900;letter-spacing:-.8px;line-height:1.05;margin-bottom:6px;">Configura tu base.</div>
+        <div style="font-size:12px;color:var(--txt2);line-height:1.5;">Con estos datos calculamos metabolismo, proteína y objetivos. Puedes cambiarlos cuando quieras.</div>
       </div>
       <div class="f2">
         <div class="field"><label>Sexo</label><select id="ob-sex"><option value="m">Hombre</option><option value="f">Mujer</option></select></div>
@@ -2149,9 +2149,9 @@ button:active,
 
     <!-- ════ SLIDE 3: Modules ════ -->
     <div class="ob-slide" id="ob-s3" style="display:none;">
-      <div style="text-align:center;margin-bottom:14px;">
-        <div style="font-size:24px;font-weight:900;letter-spacing:-.8px;line-height:1.1;margin-bottom:6px;">Tus módulos</div>
-        <div style="font-size:12px;color:var(--txt2);">Activa lo que quieras usar. Los puedes activar o desactivar luego en ajustes.</div>
+      <div class="ob-hero-card">
+        <div style="font-size:24px;font-weight:900;letter-spacing:-.8px;line-height:1.05;margin-bottom:6px;">Elige tu tablero.</div>
+        <div style="font-size:12px;color:var(--txt2);line-height:1.5;">Activa las piezas que quieres ver en la home. Luego podrás reordenarlas en Ajustes.</div>
       </div>
       <div class="mod-pick" id="ob-mod-fit" onclick="toggleObMod('fitness')">
         <div class="mod-pick-info">
@@ -2185,9 +2185,9 @@ button:active,
 
     <!-- ════ SLIDE 4: Theme ════ -->
     <div class="ob-slide" id="ob-s4" style="display:none;">
-      <div style="text-align:center;margin-bottom:18px;">
-        <div style="font-size:24px;font-weight:900;letter-spacing:-.8px;line-height:1.1;margin-bottom:6px;">Elige tu tema</div>
-        <div style="font-size:12px;color:var(--txt2);">Cambia entre claro y oscuro cuando quieras.</div>
+      <div class="ob-hero-card">
+        <div style="font-size:24px;font-weight:900;letter-spacing:-.8px;line-height:1.05;margin-bottom:6px;">Hazla tuya.</div>
+        <div style="font-size:12px;color:var(--txt2);line-height:1.5;">Escoge el ambiente visual que más te apetezca. La app recuerda tu preferencia.</div>
       </div>
       <div style="display:flex;gap:10px;margin-bottom:14px;">
         <button id="ob-th-dark" class="theme-tile on" onclick="setTheme('dark');document.getElementById('ob-th-dark').className='theme-tile on';document.getElementById('ob-th-light').className='theme-tile';">
@@ -2204,9 +2204,9 @@ button:active,
 
     <!-- ════ SLIDE 5: Sync ════ -->
     <div class="ob-slide" id="ob-s5" style="display:none;">
-      <div style="text-align:center;margin-bottom:14px;">
-        <div style="font-size:24px;font-weight:900;letter-spacing:-.8px;line-height:1.1;margin-bottom:6px;">Sincroniza tus datos</div>
-        <div style="font-size:12px;color:var(--txt2);line-height:1.5;">Inicia sesión para acceder a tus datos desde cualquier dispositivo. Opcional — puedes hacerlo más tarde desde Ajustes.</div>
+      <div class="ob-hero-card">
+        <div style="font-size:24px;font-weight:900;letter-spacing:-.8px;line-height:1.05;margin-bottom:6px;">Guárdala contigo.</div>
+        <div style="font-size:12px;color:var(--txt2);line-height:1.5;">Inicia sesión para sincronizar tus datos entre dispositivos. Si prefieres local, también funciona perfecto.</div>
       </div>
       <button class="btn btn-lime-full" style="margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:10px;font-size:14px;padding:14px;" onclick="signInWithGoogle()">
         <svg width="20" height="20" viewBox="0 0 24 24" style="flex-shrink:0;">
@@ -3495,9 +3495,10 @@ function renderHome(){
       var st = kgoals[ki].steps || [];
       var dn = 0; for(var si=0;si<st.length;si++) if(st[si].done) dn++;
       kStepsDone += dn; kStepsTotal += st.length;
-      var gp = st.length ? dn/st.length : 0;
+      var kgComplete = !!kgoals[ki].completed || (st.length && dn === st.length);
+      var gp = kgoals[ki].completed ? 1 : (st.length ? dn/st.length : 0);
       kPctSum += gp;
-      if(st.length && dn === st.length) kDoneGoals++; else kActive++;
+      if(kgComplete) kDoneGoals++; else kActive++;
     }
     var kAvgPct = kgoals.length ? Math.round(kPctSum/kgoals.length*100) : 0;
     h+='<div class="mcard" data-home-module="kaizen">';
@@ -6249,6 +6250,7 @@ function openNewHabit(){
   el('nh-existing-wrap').style.display = '';
   el('nh-divider').style.display = '';
   _recentSel.habs = {};
+  _recentOpen.habs = false;
   renderHabitChips();
   openModal('m-newhabit');
 }
@@ -8289,6 +8291,7 @@ var _editingKaizenStep = null;
 var _kaizenOpen = {}; // estado plegado/desplegado por objetivo (en memoria)
 var _kaizenReorder = false; // modo reordenar objetivos
 function _escK(s){ return String(s==null?'':s).replace(/[<>&]/g,function(c){return c==='<'?'&lt;':c==='>'?'&gt;':'&amp;';}); }
+function _attrK(s){ return _escK(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 function _kaizenGoal(id){ var g=S.kaizen.goals; for(var i=0;i<g.length;i++) if(g[i].id===id) return g[i]; return null; }
 function _kaizenProgress(g){
   var steps = g.steps || [];
@@ -8552,7 +8555,7 @@ function renderKaizenCategorySelect(selected){
   if(cats.indexOf(selected) < 0 && selected) cats.push(selected);
   var h = '';
   for(var i=0;i<cats.length;i++){
-    h += '<option value="'+_escK(cats[i])+'"'+(cats[i]===selected?' selected':'')+'>'+_escK(cats[i])+'</option>';
+    h += '<option value="'+_attrK(cats[i])+'"'+(cats[i]===selected?' selected':'')+'>'+_escK(cats[i])+'</option>';
   }
   sel.innerHTML = h;
 }
@@ -8612,8 +8615,13 @@ function toggleKaizenGoalComplete(id){
   renderKaizen();
 }
 function deleteKaizenGoalDirect(id){
-  _editingKaizenGoalId = id;
-  deleteKaizenGoal();
+  var g = _kaizenGoal(id); if(!g) return;
+  if(!confirm('¿Eliminar este objetivo y todos sus pasos?')) return;
+  S.kaizen.goals = S.kaizen.goals.filter(function(goal){ return goal.id !== id; });
+  save();
+  haptic('medium');
+  renderKaizen();
+  toast('Objetivo eliminado','info');
 }
 function deleteKaizenGoal(){
   if(!_editingKaizenGoalId) return;
@@ -8865,6 +8873,7 @@ document.addEventListener('click', function(e){
 loadTheme();
 loadState();
 loadAiKey();
+ensureSheetCloseButtons();
 // Init Firebase if config exists
 if(loadFirebaseConfig()) setTimeout(function(){ initFirebase(false); }, 200);
 // Abre siempre en el día de hoy si la fecha guardada es de un día pasado,

@@ -3,7 +3,7 @@
    LZ-String, fuentes). Nunca intercepta las llamadas de Firebase/Google para que
    la sincronización y el login sigan necesitando red. */
 
-var CACHE = 'pt-cache-v3';
+var CACHE = 'pt-cache-v4';
 var APP_SHELL = [
   './',
   './index.html',
