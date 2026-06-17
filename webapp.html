@@ -634,6 +634,7 @@ button:active,
 /* food/activity lists */
 .list-wrap{margin:0 16px 10px;}
 .list-section-lbl{font-size:14px;font-weight:700;letter-spacing:-.1px;margin-bottom:8px;padding-left:2px;}
+.list-section-lbl.emph{font-size:17px;font-weight:850;letter-spacing:-.25px;}
 .list-row{
   background:var(--card);border:1px solid var(--border);
   border-radius:var(--r);padding:14px 16px;
@@ -730,6 +731,28 @@ button:active,
 .hab-bdg.gn{color:var(--txt2);}
 .hab-bdg.ep{background:var(--lime-light);color:#000;}
 .hab-bdg.en{background:var(--surf2);color:var(--lime-light);}
+.hab-points{
+  min-width:58px;text-align:center;
+  background:var(--surf);border-radius:99px;
+  padding:6px 9px;font-size:11px;font-weight:800;flex-shrink:0;
+}
+.hab-points.pos{background:var(--lime-light);color:#000;}
+.hab-points.neg{background:var(--surf2);color:var(--lime-light);}
+.habit-remove{
+  width:30px;height:30px;border-radius:50%;
+  border:none;background:var(--surf2);color:var(--txt2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:17px;line-height:1;cursor:pointer;flex-shrink:0;
+  font-family:'Inter',sans-serif;transition:all .18s;
+}
+.habit-remove:hover{color:var(--red);background:rgba(255,90,82,.1);}
+.recents-more-btn{
+  margin-top:10px;width:100%;
+  border:1px dashed var(--surf3);background:var(--surf);
+  color:var(--txt2);border-radius:12px;padding:10px 12px;
+  font-size:12px;font-weight:800;font-family:'Inter',sans-serif;cursor:pointer;
+}
+.recents-more-btn:hover{border-color:var(--lime-light);color:var(--lime-light);}
 
 /* Hábitos library — editable row with edit/delete buttons */
 .hab-lib-row{
@@ -1978,6 +2001,16 @@ button:active,
     <div class="sh"></div>
     <div class="sheet-t" id="r-sheet-title">Nueva receta</div>
 
+    <!-- AI ingredient estimate first, mirroring add food/activity -->
+    <div style="background:var(--surf);border-radius:14px;padding:12px;margin-bottom:14px;">
+      <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--txt2);margin-bottom:8px;">Auto-rellenar ingrediente</div>
+      <input type="text" id="r-ai-desc" placeholder='Ej: "150g pollo plancha" o "1 huevo"' style="width:100%;background:var(--bg);border:1.5px solid var(--surf2);border-radius:10px;padding:10px 12px;color:var(--txt);font-family:Inter,sans-serif;font-size:13px;font-weight:500;outline:none;margin-bottom:8px;box-sizing:border-box;">
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-lime-sm" style="flex:1;" id="r-ai-btn" onclick="estimateAndAddIngredient()">✦ Estimar y añadir</button>
+        <button class="btn btn-ghost-sm" onclick="addEmptyIngredient()" title="Añadir manualmente">+ Manual</button>
+      </div>
+    </div>
+
     <div class="field"><label>Nombre de la receta</label><input type="text" id="r-name" placeholder="Ej: Bowl de pollo con arroz"></div>
 
     <!-- Totals card (lime gradient like coins-banner) -->
@@ -2001,16 +2034,6 @@ button:active,
       <span id="r-ingr-count" style="font-size:11px;color:var(--txt2);font-weight:600;"></span>
     </div>
     <div id="r-ingr-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;"></div>
-
-    <!-- Add ingredient form (inline mini-form) -->
-    <div style="background:var(--surf);border-radius:14px;padding:12px;margin-bottom:14px;">
-      <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--txt2);margin-bottom:8px;">+ Añadir ingrediente</div>
-      <input type="text" id="r-ai-desc" placeholder='Ej: "150g pollo plancha" o "1 huevo"' style="width:100%;background:var(--bg);border:1.5px solid var(--surf2);border-radius:10px;padding:10px 12px;color:var(--txt);font-family:Inter,sans-serif;font-size:13px;font-weight:500;outline:none;margin-bottom:8px;box-sizing:border-box;">
-      <div style="display:flex;gap:6px;">
-        <button class="btn btn-lime-sm" style="flex:1;" id="r-ai-btn" onclick="estimateAndAddIngredient()">✦ Estimar y añadir</button>
-        <button class="btn btn-ghost-sm" onclick="addEmptyIngredient()" title="Añadir manualmente">+ Manual</button>
-      </div>
-    </div>
 
     <div class="chk-row"><input type="checkbox" id="r-save"><label for="r-save">Guardar también en la biblioteca</label></div>
 
@@ -2056,7 +2079,7 @@ button:active,
       <button class="btn btn-lime-sm full ai-est-btn" id="f-ai-btn" onclick="estimateFoodAI()">✦ Estimar</button>
     </div>
 
-    <button class="btn btn-ghost full" id="f-recipe-btn" style="font-size:12.5px;margin-bottom:14px;" onclick="closeModal('m-food');setTimeout(openRecipeBuilder,220);">+ Crear receta (plato con varios ingredientes)</button>
+    <button class="btn btn-ghost full" id="f-recipe-btn" style="font-size:13.5px;font-weight:850;margin-bottom:14px;padding:13px 16px;border-color:rgba(186,255,57,.34);background:rgba(186,255,57,.055);box-shadow:inset 0 0 0 1px rgba(186,255,57,.05);" onclick="closeModal('m-food');setTimeout(openRecipeBuilder,220);">+ Crear receta (plato con varios ingredientes)</button>
 
     <div class="field"><label>Nombre</label><input type="text" id="f-name" placeholder="Ej: Pechuga plancha"></div>
     <div class="f2">
@@ -3420,8 +3443,8 @@ function renderHome(){
 
     var todayClass = (balToday !== null && balToday < 0) ? ' neg' : '';
 
-    h+='<div class="mcard" data-home-module="fitness">';
-    h+='<div class="mc-top"><div class="mc-title">Nutrition + Fitness <button class="home-info-btn" onclick="event.stopPropagation();showInfo(\'home-fitness\')" aria-label="Información sobre Nutrition + Fitness">?</button></div><button class="btn btn-lime-sm" onclick="goScreen(\'s-fitness\')">Track</button></div>';
+    h+='<div class="mcard" data-home-module="fitness" onclick="goScreen(\'s-fitness\')" style="cursor:pointer;">';
+    h+='<div class="mc-top"><div class="mc-title">Nutrition + Fitness <button class="home-info-btn" onclick="event.stopPropagation();showInfo(\'home-fitness\')" aria-label="Información sobre Nutrition + Fitness">?</button></div><div style="font-size:24px;color:var(--lime-light);font-weight:900;line-height:1;">›</div></div>';
     // Big balance today
     h+='<div style="margin-top:14px;display:flex;align-items:flex-end;gap:6px;">';
     h+='<div class="coins-big'+todayClass+'" style="font-size:54px;letter-spacing:-2.5px;">'+_fmtBal(balToday)+'</div>';
@@ -3460,8 +3483,8 @@ function renderHome(){
     }
     var avg7 = n7 > 0 ? Math.round(sum7/n7) : 0;
     var todayClass = ptsToday < 0 ? ' neg' : '';
-    h+='<div class="mcard" data-home-module="habits">';
-    h+='<div class="mc-top"><div class="mc-title">Daily Habits <button class="home-info-btn" onclick="event.stopPropagation();showInfo(\'home-habits\')" aria-label="Información sobre Daily Habits">?</button></div><button class="btn btn-lime-sm" onclick="goScreen(\'s-habits\')">Track</button></div>';
+    h+='<div class="mcard" data-home-module="habits" onclick="goScreen(\'s-habits\')" style="cursor:pointer;">';
+    h+='<div class="mc-top"><div class="mc-title">Daily Habits <button class="home-info-btn" onclick="event.stopPropagation();showInfo(\'home-habits\')" aria-label="Información sobre Daily Habits">?</button></div><div style="font-size:24px;color:var(--lime-light);font-weight:900;line-height:1;">›</div></div>';
     // Big today
     h+='<div style="margin-top:14px;display:flex;align-items:flex-end;gap:6px;">';
     h+='<div class="coins-big'+todayClass+'" style="font-size:54px;letter-spacing:-2.5px;">'+(ptsToday>0?'+':'')+ptsToday+'</div>';
@@ -3508,8 +3531,8 @@ function renderHome(){
     }
     var weekPct = weekTotal > 0 ? Math.round(weekDone / weekTotal * 100) : 0;
 
-    h+='<div class="mcard" data-home-module="planner">';
-    h+='<div class="mc-top"><div class="mc-title">Weekly Planner <button class="home-info-btn" onclick="event.stopPropagation();showInfo(\'home-planner\')" aria-label="Información sobre Weekly Planner">?</button></div><button class="btn btn-lime-sm" onclick="goScreen(\'s-planner\')">Plan</button></div>';
+    h+='<div class="mcard" data-home-module="planner" onclick="goScreen(\'s-planner\')" style="cursor:pointer;">';
+    h+='<div class="mc-top"><div class="mc-title">Weekly Planner <button class="home-info-btn" onclick="event.stopPropagation();showInfo(\'home-planner\')" aria-label="Información sobre Weekly Planner">?</button></div><div style="font-size:24px;color:var(--lime-light);font-weight:900;line-height:1;">›</div></div>';
     h+='<div style="margin-top:14px;display:flex;align-items:flex-end;gap:6px;">';
     h+='<div class="coins-big" style="font-size:54px;letter-spacing:-2.5px;">'+todayDone+'<span class="coins-unit">/'+todayActs.length+'</span></div>';
     h+='<div style="font-size:14px;color:var(--txt2);font-weight:600;margin-bottom:11px;">hoy</div>';
@@ -3540,8 +3563,8 @@ function renderHome(){
       if(kgComplete) kDoneGoals++; else kActive++;
     }
     var kAvgPct = kgoals.length ? Math.round(kPctSum/kgoals.length*100) : 0;
-    h+='<div class="mcard" data-home-module="kaizen">';
-    h+='<div class="mc-top"><div class="mc-title">Kaizen Goals <button class="home-info-btn" onclick="event.stopPropagation();showInfo(\'home-kaizen\')" aria-label="Información sobre Kaizen Goals">?</button></div><button class="btn btn-lime-sm" onclick="goScreen(\'s-kaizen\')">Abrir</button></div>';
+    h+='<div class="mcard" data-home-module="kaizen" onclick="goScreen(\'s-kaizen\')" style="cursor:pointer;">';
+    h+='<div class="mc-top"><div class="mc-title">Kaizen Goals <button class="home-info-btn" onclick="event.stopPropagation();showInfo(\'home-kaizen\')" aria-label="Información sobre Kaizen Goals">?</button></div><div style="font-size:24px;color:var(--lime-light);font-weight:900;line-height:1;">›</div></div>';
     h+='<div style="margin-top:14px;display:flex;align-items:flex-end;gap:6px;">';
     h+='<div class="coins-big" style="font-size:54px;letter-spacing:-2.5px;">'+kActive+'</div>';
     h+='<div style="font-size:14px;color:var(--txt2);font-weight:600;margin-bottom:11px;">objetivos en curso</div>';
