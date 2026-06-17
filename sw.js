@@ -3,7 +3,7 @@
    LZ-String, fuentes). Nunca intercepta las llamadas de Firebase/Google para que
    la sincronización y el login sigan necesitando red. */
 
-var CACHE = 'pt-cache-v10';
+var CACHE = 'pt-cache-v11';
 var APP_SHELL = [
   './',
   './index.html',
@@ -12,7 +12,11 @@ var APP_SHELL = [
   './icon-192.png',
   './icon-512.png',
   './icon-maskable-512.png',
-  './apple-touch-icon.png'
+  './apple-touch-icon.png',
+  './NeueHaasUnicaPro-Light.ttf',
+  './NeueHaasUnicaPro-Medium.ttf',
+  './NeueHaasUnicaPro-Bold.ttf',
+  './NeueHaasUnicaPro-Heavy.ttf'
 ];
 
 self.addEventListener('install', function(e){
