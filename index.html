@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Personal Tracker — Tu salud, hábitos y semana, en un solo lugar</title>
-<meta name="description" content="Personal Tracker es la app personal que reúne tu nutrición, actividad, hábitos y planificación semanal en una sola pantalla. Privada, funciona sin conexión y se sincroniza solo si tú quieres.">
+<meta name="description" content="Personal Tracker reúne tu nutrición, hábitos, planificación semanal y objetivos en una sola app. Privada, funciona sin conexión y se sincroniza solo si tú quieres.">
 <meta name="google-site-verification" content="-cmCsotvCmzEvfderdLVVCLmI1PQ1hlOMAkM_azoO48">
-<meta name="theme-color" content="#0A0A0A">
+<meta name="theme-color" content="#0D0D0D">
 <link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%23BAFF39'/><path d='M11 32 L22 32 L27 21 L33 43 L39 32 L53 32' stroke='%230A0A0A' stroke-width='4.2' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%23BAFF39'/><path d='M11 32 L22 32 L27 21 L33 43 L39 32 L53 32' stroke='%230D0D0D' stroke-width='4.2' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta property="og:title" content="Personal Tracker">
 <meta property="og:description" content="Tu salud, hábitos y semana, en un solo lugar. Privada y offline.">
 <meta property="og:type" content="website">
@@ -17,196 +17,219 @@
 <meta property="og:image" content="https://personaltracker.org/icon-512.png">
 <style>
   @font-face{font-family:'Neue Haas Unica Pro';src:url('NeueHaasUnicaPro-Light.ttf') format('truetype');font-weight:300;font-style:normal;font-display:swap}
+  @font-face{font-family:'Neue Haas Unica Pro';src:url('NeueHaasUnicaPro-Regular.ttf') format('truetype');font-weight:400;font-style:normal;font-display:swap}
   @font-face{font-family:'Neue Haas Unica Pro';src:url('NeueHaasUnicaPro-Medium.ttf') format('truetype');font-weight:500;font-style:normal;font-display:swap}
   @font-face{font-family:'Neue Haas Unica Pro';src:url('NeueHaasUnicaPro-Bold.ttf') format('truetype');font-weight:700;font-style:normal;font-display:swap}
   @font-face{font-family:'Neue Haas Unica Pro';src:url('NeueHaasUnicaPro-Heavy.ttf') format('truetype');font-weight:900;font-style:normal;font-display:swap}
 
   :root{
-    --bg:#0A0A0A;--bg2:#0E0E0E;--card:#131313;--card2:#181818;
-    --border:#242424;--border2:#323232;
-    --txt:#F4F4F0;--muted:#9E9E98;--muted2:#6E6E68;
-    --lime:#BAFF39;--lime-d:#A6EE22;--lime-soft:rgba(186,255,57,.10);
-    --c-work:#BAFF39;--c-sport:#FF6B4A;--c-social:#4AB8FF;--c-rest:#9B8CFF;--c-meal:#FF8FC7;
-    --font-family:'Neue Haas Unica Pro','Helvetica Neue',Arial,sans-serif;
-    --font-light:300;--font-medium:500;--font-bold:700;--font-heavy:900;
-    --font:var(--font-family);
+    --bg:#0D0D0D; --bg2:#101010; --card:#1A1A1A; --card2:#1F1F1F;
+    --surf:#282828; --surf2:#333; --surf3:#444;
+    --border:rgba(255,255,255,.08); --border2:rgba(255,255,255,.14);
+    --txt:#FFFFFF; --txt2:#8C8C8C; --txt3:#5A5A5A;
+    --lime:#8FD400; --lime-light:#BAFF39; --lime-d:#A6EE22;
+    --font:'Neue Haas Unica Pro','Helvetica Neue',Arial,sans-serif;
+    --max:1200px;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
-  body{background:var(--bg);color:var(--txt);font-family:var(--font);font-weight:var(--font-light);line-height:1.6;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow-x:hidden;letter-spacing:-.01em}
+  body{background:var(--bg);color:var(--txt);font-family:var(--font);font-weight:400;line-height:1.6;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow-x:hidden;letter-spacing:-.01em}
   a{color:inherit;text-decoration:none}
-  .wrap{max-width:1140px;margin:0 auto;padding:0 28px}
-  .lime{color:var(--lime)}
   svg{display:block}
-  .ic{width:22px;height:22px;stroke:currentColor;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+  .wrap{max-width:var(--max);margin:0 auto;padding:0 32px}
+  .lime{color:var(--lime-light)}
+  .ic{width:24px;height:24px;stroke:currentColor;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+  .grain{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.035;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 
-  .btn{display:inline-flex;align-items:center;gap:9px;justify-content:center;font-family:var(--font);font-weight:var(--font-medium);font-size:15px;letter-spacing:-.01em;border-radius:100px;padding:13px 26px;cursor:pointer;border:1px solid transparent;transition:transform .15s ease,background .2s ease,border-color .2s ease,box-shadow .2s ease;white-space:nowrap}
-  .btn:active{transform:scale(.98)}
-  .btn-lime{background:var(--lime);color:#0A0A0A;box-shadow:0 6px 26px -10px rgba(186,255,57,.55)}
+  .btn{display:inline-flex;align-items:center;gap:9px;justify-content:center;font-family:var(--font);font-weight:500;font-size:15px;letter-spacing:-.01em;border-radius:100px;padding:14px 26px;cursor:pointer;border:1px solid transparent;transition:transform .15s ease,background .2s ease,border-color .2s ease,box-shadow .2s ease;white-space:nowrap}
+  .btn:active{transform:scale(.97)}
+  .btn-lime{background:var(--lime-light);color:#0D0D0D;box-shadow:0 8px 32px -10px rgba(186,255,57,.55)}
   .btn-lime:hover{background:var(--lime-d)}
-  .btn-ghost{background:rgba(255,255,255,.03);color:var(--txt);border-color:var(--border2)}
-  .btn-ghost:hover{background:rgba(255,255,255,.07);border-color:#3f3f3f}
-  .btn-sm{padding:9px 18px;font-size:13.5px}
+  .btn-ghost{background:rgba(255,255,255,.04);color:var(--txt);border-color:var(--border2)}
+  .btn-ghost:hover{background:rgba(255,255,255,.09)}
+  .btn-sm{padding:10px 18px;font-size:13.5px}
   .btn .ic{width:17px;height:17px}
-  .btn[aria-disabled="true"]{opacity:.45;cursor:default}
-  .pill{display:inline-block;font-size:9px;font-weight:var(--font-bold);letter-spacing:.12em;text-transform:uppercase;background:var(--lime-soft);color:var(--lime);padding:3px 9px;border-radius:99px;margin-left:8px;vertical-align:middle}
+  .pill{display:inline-block;font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;background:rgba(186,255,57,.12);color:var(--lime-light);padding:3px 9px;border-radius:99px;margin-left:8px;vertical-align:middle}
 
-  header.nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);background:rgba(10,10,10,.55);border-bottom:1px solid rgba(255,255,255,.05)}
-  .nav-in{display:flex;align-items:center;justify-content:space-between;height:68px}
-  .brand{display:flex;align-items:center;gap:11px;font-weight:var(--font-bold);font-size:16px;letter-spacing:-.02em}
-  .brand svg{width:28px;height:28px;border-radius:8px;flex-shrink:0}
-  .nav-r{display:flex;align-items:center;gap:22px}
-  .nav-r a.lnk{font-size:14px;font-weight:var(--font-light);color:var(--muted)}
-  .nav-r a.lnk:hover{color:var(--txt)}
+  /* NAV */
+  header.nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);background:rgba(13,13,13,.6);border-bottom:1px solid var(--border)}
+  .nav-in{display:flex;align-items:center;justify-content:space-between;height:70px}
+  .brand{display:flex;align-items:center;gap:11px;font-weight:700;font-size:16px;letter-spacing:-.02em}
+  .brand svg{width:30px;height:30px;border-radius:9px;flex-shrink:0}
+  .nav-menu{display:flex;align-items:center;gap:30px}
+  .nav-menu a{font-size:14px;font-weight:400;color:var(--txt2);transition:color .2s}
+  .nav-menu a:hover{color:var(--txt)}
+  .nav-right{display:flex;align-items:center;gap:14px}
 
-  .hero{position:relative;z-index:1;padding:104px 0 44px;text-align:center;overflow:hidden}
-  .glow{position:absolute;border-radius:50%;filter:blur(80px);z-index:-1;pointer-events:none}
-  .hero .glow{top:-180px;left:50%;transform:translateX(-50%);width:820px;height:600px;max-width:130vw;background:radial-gradient(ellipse at center,rgba(186,255,57,.14),rgba(186,255,57,0) 60%)}
-  .badge{display:inline-flex;align-items:center;gap:9px;font-size:12.5px;font-weight:var(--font-light);color:var(--muted);background:rgba(255,255,255,.03);border:1px solid var(--border);padding:7px 16px;border-radius:100px;margin-bottom:30px;letter-spacing:0}
-  .badge .dot{width:6px;height:6px;border-radius:50%;background:var(--lime);box-shadow:0 0 10px var(--lime)}
-  h1.hero-t{font-size:clamp(40px,7vw,78px);line-height:1;font-weight:var(--font-heavy);letter-spacing:-.045em;margin-bottom:26px}
-  .hero p.lead{font-size:clamp(16px,2.3vw,20px);color:var(--muted);font-weight:var(--font-light);max-width:580px;margin:0 auto 36px;line-height:1.55}
-  .cta-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
-  .trust{margin-top:20px;font-size:13px;color:var(--muted2);font-weight:var(--font-light)}
-  .trust b{color:var(--muted);font-weight:var(--font-medium)}
+  /* HERO */
+  .hero{position:relative;z-index:1;text-align:center;padding:90px 0 60px;overflow:hidden}
+  .glow{position:absolute;border-radius:50%;filter:blur(90px);z-index:-1;pointer-events:none}
+  .hero .glow{top:-200px;left:50%;transform:translateX(-50%);width:1000px;height:680px;max-width:140vw;background:radial-gradient(ellipse at center,rgba(186,255,57,.16),rgba(186,255,57,0) 60%)}
+  .eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:12px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--lime-light)}
+  .badge{display:inline-flex;align-items:center;gap:9px;font-size:12.5px;font-weight:400;color:var(--txt2);background:rgba(255,255,255,.04);border:1px solid var(--border);padding:7px 16px;border-radius:100px;margin-bottom:30px}
+  .badge .dot{width:6px;height:6px;border-radius:50%;background:var(--lime-light);box-shadow:0 0 10px var(--lime-light)}
+  h1.hero-t{font-size:clamp(42px,8vw,104px);line-height:.98;font-weight:900;letter-spacing:-.05em;margin-bottom:26px}
+  .hero .lead{font-size:clamp(17px,2vw,22px);color:var(--txt2);font-weight:400;max-width:620px;margin:0 auto 36px;line-height:1.5}
+  .cta-row{display:flex;gap:13px;justify-content:center;flex-wrap:wrap}
+  .trust{margin-top:20px;font-size:13px;color:var(--txt3);font-weight:400}
+  .trust b{color:var(--txt2);font-weight:500}
 
-  .phone{width:286px;border-radius:44px;background:#161616;border:1px solid #2a2a2a;padding:10px;box-shadow:0 50px 110px -40px rgba(0,0,0,.95),0 0 0 1px rgba(255,255,255,.02) inset;position:relative}
-  .phone .screen{background:#0B0B0B;border-radius:34px;overflow:hidden;position:relative;height:582px;border:1px solid #1a1a1a}
-  .phone .notch{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:100px;height:24px;background:#0b0b0b;border-radius:0 0 16px 16px;z-index:5}
-  .sbar{display:flex;justify-content:space-between;align-items:center;padding:15px 22px 4px;font-size:12px;font-weight:var(--font-medium);color:var(--txt)}
+  /* Phone mockup */
+  .hero-stage{position:relative;margin-top:72px;display:flex;justify-content:center}
+  .phone{width:300px;border-radius:46px;background:#161616;border:1px solid #2c2c2c;padding:11px;box-shadow:0 60px 120px -40px rgba(0,0,0,.95),0 0 0 1px rgba(255,255,255,.03) inset;position:relative;z-index:2}
+  .phone .screen{background:#0B0B0B;border-radius:36px;overflow:hidden;position:relative;height:600px;border:1px solid #1a1a1a}
+  .phone .notch{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:104px;height:26px;background:#0b0b0b;border-radius:0 0 16px 16px;z-index:5}
+  .sbar{display:flex;justify-content:space-between;align-items:center;padding:15px 22px 4px;font-size:12px;font-weight:500}
   .sbar .r{display:flex;gap:5px;align-items:center;opacity:.8}
-  .scr-pad{padding:8px 17px 16px}
+  .scr-pad{padding:8px 17px}
   .scr-h{display:flex;align-items:center;justify-content:space-between;margin:6px 0 16px}
-  .scr-h .t{font-size:23px;font-weight:var(--font-heavy);letter-spacing:-.04em}
-  .av{width:32px;height:32px;border-radius:50%;background:var(--lime);color:#0A0A0A;display:flex;align-items:center;justify-content:center;font-weight:var(--font-bold);font-size:14px}
+  .scr-h .t{font-size:23px;font-weight:900;letter-spacing:-.04em}
+  .av{width:32px;height:32px;border-radius:50%;background:var(--lime-light);color:#0D0D0D;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
   .mk-card{background:var(--card2);border:1px solid var(--border);border-radius:18px;padding:16px;margin-bottom:11px}
-  .mk-lbl{font-size:10.5px;color:var(--muted);font-weight:var(--font-medium);text-transform:uppercase;letter-spacing:.1em;margin-bottom:7px}
-  .mk-kcal{font-size:38px;font-weight:var(--font-heavy);letter-spacing:-.05em;line-height:1}
-  .mk-kcal small{font-size:14px;color:var(--muted);font-weight:var(--font-light);letter-spacing:-.01em}
-  .mbar{height:6px;border-radius:99px;background:#242424;overflow:hidden;margin-top:7px}
-  .mbar i{display:block;height:100%;border-radius:99px;background:var(--lime)}
-  .mrow{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:11px;font-weight:var(--font-light)}
+  .mk-lbl{font-size:10.5px;color:var(--txt2);font-weight:500;text-transform:uppercase;letter-spacing:.1em;margin-bottom:7px}
+  .mk-kcal{font-size:38px;font-weight:900;letter-spacing:-.05em;line-height:1}
+  .mk-kcal small{font-size:14px;color:var(--txt2);font-weight:400;letter-spacing:-.01em}
+  .mbar{height:6px;border-radius:99px;background:#2a2a2a;overflow:hidden;margin-top:7px}
+  .mbar i{display:block;height:100%;border-radius:99px;background:var(--lime-light)}
+  .mrow{display:flex;justify-content:space-between;font-size:11px;color:var(--txt2);margin-top:11px;font-weight:400}
   .spark{display:flex;align-items:flex-end;gap:4px;height:46px;margin-top:8px}
-  .spark i{flex:1;background:linear-gradient(180deg,var(--lime),rgba(186,255,57,.2));border-radius:3px 3px 0 0}
-  .chip{display:flex;align-items:center;gap:11px;background:var(--card2);border:1px solid var(--border);border-radius:13px;padding:11px 13px;margin-bottom:8px;font-size:13px;font-weight:var(--font-medium)}
-  .chip .ci{width:30px;height:30px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#202020;color:var(--lime)}
-  .chip .ci .ic{width:16px;height:16px}
-  .chip .ck{width:22px;height:22px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center}
-  .chip .ck .ic{width:13px;height:13px;stroke-width:2.4}
-  .chip.on{background:rgba(186,255,57,.06);border-color:rgba(186,255,57,.22)}
-  .chip.on .ck{background:var(--lime);color:#0A0A0A}
-  .chip.off .ck{border:1.5px solid #333}
-  .streak{text-align:center;padding:10px 0 6px}
-  .streak .fl{display:flex;align-items:center;justify-content:center;gap:10px}
-  .streak .n{font-size:56px;font-weight:var(--font-heavy);letter-spacing:-.06em;line-height:1;color:var(--lime)}
-  .streak .fic{color:var(--lime)}.streak .fic .ic{width:28px;height:28px}
-  .streak .l{font-size:11px;color:var(--muted);font-weight:var(--font-medium);margin-top:7px;text-transform:uppercase;letter-spacing:.14em}
+  .spark i{flex:1;background:linear-gradient(180deg,var(--lime-light),rgba(186,255,57,.2));border-radius:3px 3px 0 0}
+  .float{position:absolute;background:rgba(26,26,26,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--border2);border-radius:16px;padding:13px 16px;box-shadow:0 24px 60px -20px rgba(0,0,0,.85);z-index:3}
+  .float .fl{font-size:9.5px;color:var(--txt2);font-weight:500;text-transform:uppercase;letter-spacing:.1em}
+  .float .fn{font-size:20px;font-weight:900;letter-spacing:-.03em;margin-top:3px;display:flex;align-items:center;gap:7px}
+  .float .fn .ic{width:16px;height:16px;color:var(--lime-light)}
+
+  /* SECTIONS */
+  section{position:relative;z-index:1;padding:100px 0}
+  .sec-head{max-width:680px}
+  .sec-head.center{margin:0 auto;text-align:center}
+  h2.sec{font-size:clamp(30px,5vw,56px);font-weight:900;letter-spacing:-.04em;line-height:1.02;margin:16px 0 18px}
+  .sec-sub{color:var(--txt2);font-size:18px;font-weight:400;line-height:1.55}
+
+  /* INTRO statement */
+  .statement{font-size:clamp(22px,3.4vw,38px);font-weight:500;line-height:1.32;letter-spacing:-.025em;max-width:920px}
+  .statement b{font-weight:900}
+  .statement .muted{color:var(--txt3)}
+
+  /* TRIO features */
+  .trio{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:56px}
+  .trio .ficon{width:54px;height:54px;border-radius:15px;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;color:var(--lime-light);margin-bottom:22px}
+  .trio h3{font-size:21px;font-weight:700;letter-spacing:-.02em;margin-bottom:10px}
+  .trio p{color:var(--txt2);font-size:15px;line-height:1.6}
+
+  /* SHOWCASE blocks */
+  .showcase{display:grid;grid-template-columns:1.05fr .95fr;gap:70px;align-items:center}
+  .showcase.rev .sc-text{order:2}
+  .sc-media{display:flex;justify-content:center;position:relative}
+  .ftext .ficon{width:50px;height:50px;border-radius:14px;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;color:var(--lime-light);margin-bottom:22px}
+  .ftext h3{font-size:clamp(26px,3.4vw,40px);font-weight:900;letter-spacing:-.035em;line-height:1.08;margin-bottom:16px}
+  .ftext p{color:var(--txt2);font-size:16.5px;line-height:1.6}
+  .flist{list-style:none;margin-top:24px;display:grid;gap:13px}
+  .flist li{display:flex;gap:13px;align-items:flex-start;font-size:15px;color:var(--txt)}
+  .flist .ck{flex-shrink:0;width:22px;height:22px;border-radius:7px;background:rgba(186,255,57,.12);color:var(--lime-light);display:flex;align-items:center;justify-content:center;margin-top:1px}
+  .flist .ck .ic{width:13px;height:13px;stroke-width:2.4}
+
+  /* planner mock */
   .pday{background:var(--card2);border:1px solid var(--border);border-radius:16px;padding:12px;margin-bottom:9px}
   .pday .dh{display:flex;align-items:center;gap:10px;margin-bottom:9px}
-  .pday .dnum{width:34px;height:34px;border-radius:10px;background:var(--lime);color:#0A0A0A;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:var(--font-heavy);font-size:14px;line-height:1}
-  .pday .dnum.alt{background:#202020;color:var(--txt)}
-  .pday .dnum small{font-size:7.5px;opacity:.7;font-weight:var(--font-medium);letter-spacing:.05em}
-  .pact{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:var(--font-light);padding:7px 10px;background:#151515;border-radius:9px;margin-bottom:5px}
-  .pact .cd{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-  .gsync{display:flex;align-items:center;gap:7px;justify-content:center;font-size:10.5px;font-weight:var(--font-medium);color:var(--lime);background:rgba(186,255,57,.07);border-radius:99px;padding:7px 12px;margin-top:4px}
-  .gsync .ic{width:13px;height:13px;stroke-width:2}
+  .pday .dnum{width:34px;height:34px;border-radius:10px;background:var(--lime-light);color:#0D0D0D;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:900;font-size:14px;line-height:1}
+  .pday .dnum.alt{background:#222;color:var(--txt)}
+  .pday .dnum small{font-size:7.5px;opacity:.7;font-weight:500;letter-spacing:.05em}
+  .pact{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:400;padding:7px 10px;background:#151515;border-radius:9px;margin-bottom:5px}
+  .pact .cd{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:var(--lime-light)}
+  .kgoal{background:var(--card2);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px}
+  .kgoal .kh{display:flex;align-items:center;gap:12px}
+  .kgoal .kpct{font-size:30px;font-weight:900;letter-spacing:-.05em;color:var(--lime-light);line-height:1}
+  .kstep{display:flex;align-items:center;gap:9px;font-size:12px;padding:7px 9px;background:#151515;border-radius:9px;margin-top:6px}
+  .kstep .kd{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--surf3);flex-shrink:0}
+  .kstep.on .kd{background:var(--lime-light);border-color:var(--lime-light)}
 
-  .float{position:absolute;background:rgba(19,19,19,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:12px 15px;box-shadow:0 24px 60px -20px rgba(0,0,0,.85);z-index:6}
-  .float .fl{font-size:9.5px;color:var(--muted);font-weight:var(--font-medium);text-transform:uppercase;letter-spacing:.1em}
-  .float .fn{font-size:19px;font-weight:var(--font-heavy);letter-spacing:-.03em;margin-top:3px;display:flex;align-items:center;gap:7px}
-  .float .fn .ic{width:16px;height:16px;color:var(--lime)}
+  /* SPEC table */
+  .spec{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:1px solid var(--border);margin-top:56px}
+  .spec-col{padding:28px 24px 28px 0;border-right:1px solid var(--border)}
+  .spec-col:last-child{border-right:none;padding-right:0}
+  .spec-col h4{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--lime-light);margin-bottom:18px}
+  .spec-row{padding:11px 0;border-bottom:1px solid var(--border);font-size:14px}
+  .spec-row:last-child{border-bottom:none}
+  .spec-row .k{color:var(--txt2);font-weight:400}
+  .spec-row .v{color:var(--txt);font-weight:500;margin-top:2px}
 
-  section{position:relative;z-index:1;padding:92px 0}
-  .eyebrow{font-size:11.5px;font-weight:var(--font-medium);letter-spacing:.18em;text-transform:uppercase;color:var(--lime);margin-bottom:16px}
-  h2.sec{font-size:clamp(28px,4.6vw,48px);font-weight:var(--font-heavy);letter-spacing:-.04em;line-height:1.04;margin-bottom:18px}
-  .sec-sub{color:var(--muted);max-width:560px;font-size:17px;font-weight:var(--font-light);line-height:1.55}
-  .center{text-align:center}
-  .center .sec-sub{margin-left:auto;margin-right:auto}
+  /* NUMBERED grid */
+  .nums{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:22px;overflow:hidden;margin-top:56px}
+  .num{background:var(--bg);padding:32px 28px;transition:background .25s}
+  .num:hover{background:var(--card)}
+  .num .ni{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+  .num .ni .ic{width:24px;height:24px;color:var(--lime-light)}
+  .num .nn{font-size:13px;font-weight:700;color:var(--txt3);letter-spacing:.05em}
+  .num h4{font-size:18px;font-weight:700;letter-spacing:-.02em;margin-bottom:8px}
+  .num p{font-size:14px;color:var(--txt2);line-height:1.55}
 
-  .marquee{overflow:hidden;position:relative;-webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
-  .mtrack{display:flex;gap:12px;width:max-content;animation:scrollx 38s linear infinite}
-  @keyframes scrollx{to{transform:translateX(-50%)}}
-  .logo-chip{display:flex;align-items:center;gap:11px;background:var(--card);border:1px solid var(--border);border-radius:13px;padding:14px 22px;font-size:14.5px;font-weight:var(--font-medium);color:var(--txt);white-space:nowrap}
-  .logo-chip .ic{width:20px;height:20px;color:var(--lime)}
+  /* INFO cards */
+  .info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:50px}
+  .info-card{background:var(--card);border:1px solid var(--border);border-radius:22px;padding:30px 26px}
+  .info-card .q{font-size:14px;font-weight:500;color:var(--lime-light);letter-spacing:.08em;margin-bottom:16px}
+  .info-card h4{font-size:19px;font-weight:700;margin-bottom:10px;letter-spacing:-.02em}
+  .info-card p{font-size:14.5px;color:var(--txt2);line-height:1.6}
 
-  .fblock{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:center}
-  .fblock.rev .ftext{order:2}
-  .fmedia{display:flex;justify-content:center;position:relative}
-  .ficon{width:52px;height:52px;border-radius:15px;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;color:var(--lime);margin-bottom:24px}
-  .ficon .ic{width:24px;height:24px}
-  .ftext h3{font-size:clamp(25px,3.3vw,35px);font-weight:var(--font-heavy);letter-spacing:-.035em;line-height:1.08;margin-bottom:16px}
-  .ftext p{color:var(--muted);font-size:16px;font-weight:var(--font-light);line-height:1.6}
-  .flist{list-style:none;margin-top:24px;display:grid;gap:13px}
-  .flist li{display:flex;gap:13px;align-items:flex-start;font-size:14.5px;font-weight:var(--font-light);color:var(--txt)}
-  .flist .ck{flex-shrink:0;width:20px;height:20px;border-radius:6px;background:var(--lime-soft);color:var(--lime);display:flex;align-items:center;justify-content:center;margin-top:1px}
-  .flist .ck .ic{width:12px;height:12px;stroke-width:2.4}
+  /* CTA + about */
+  .cta-final{text-align:center;position:relative;overflow:hidden;padding:120px 0}
+  .cta-final .glow{top:50%;left:50%;transform:translate(-50%,-50%);width:900px;height:560px;background:radial-gradient(ellipse at center,rgba(186,255,57,.14),transparent 60%)}
+  .cta-final h2{font-size:clamp(34px,6vw,72px);font-weight:900;letter-spacing:-.05em;line-height:1;margin-bottom:22px}
+  .cta-final p{color:var(--txt2);font-size:18px;max-width:520px;margin:0 auto 34px}
 
-  .fgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:48px}
-  .fcard{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px 24px;transition:border-color .25s,transform .25s,background .25s}
-  .fcard:hover{border-color:#363636;transform:translateY(-4px);background:var(--card2)}
-  .fcard .fic{width:44px;height:44px;border-radius:13px;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;color:var(--lime);margin-bottom:18px}
-  .fcard .fic .ic{width:21px;height:21px}
-  .fcard h4{font-size:17px;font-weight:var(--font-bold);margin-bottom:8px;letter-spacing:-.02em}
-  .fcard p{font-size:13.5px;color:var(--muted);font-weight:var(--font-light);line-height:1.55}
+  .about-prose{max-width:760px}
+  .about-prose p{color:var(--txt2);font-size:17px;line-height:1.75;margin-bottom:16px}
+  .about-prose p strong{color:var(--txt);font-weight:500}
+  .about-prose a{color:var(--lime-light)}
 
-  .privacy{position:relative;overflow:hidden}
-  .privacy .glow{bottom:-220px;left:50%;transform:translateX(-50%);width:740px;height:480px;background:radial-gradient(ellipse at center,rgba(186,255,57,.10),transparent 62%)}
-  .privacy-card{background:linear-gradient(180deg,var(--card),var(--bg2));border:1px solid var(--border);border-radius:28px;padding:66px 40px;text-align:center;position:relative;overflow:hidden}
-  .lock{width:62px;height:62px;border-radius:18px;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;color:var(--lime);margin:0 auto 24px}
-  .lock .ic{width:28px;height:28px}
+  /* FOOTER */
+  footer{border-top:1px solid var(--border);position:relative;z-index:1;overflow:hidden}
+  .foot-word{font-size:clamp(60px,20vw,260px);font-weight:900;letter-spacing:-.06em;line-height:.82;color:#171717;padding:40px 0 10px;text-align:center;user-select:none}
+  .foot-in{padding:0 0 50px}
+  .foot-cols{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:30px;padding-top:30px;border-top:1px solid var(--border)}
+  .foot-links{display:flex;gap:26px;flex-wrap:wrap;font-size:14px;font-weight:400}
+  .foot-links a{color:var(--txt2)}
+  .foot-links a:hover{color:var(--lime-light)}
+  .foot-meta{font-size:13px;color:var(--txt3)}
 
-  .prin{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:48px}
-  .pcard{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:32px 28px}
-  .pcard .q{font-size:15px;font-weight:var(--font-medium);color:var(--lime);letter-spacing:.1em;margin-bottom:18px}
-  .pcard h4{font-size:19px;font-weight:var(--font-bold);margin-bottom:11px;letter-spacing:-.02em}
-  .pcard p{font-size:14px;color:var(--muted);font-weight:var(--font-light);line-height:1.6}
-
-  .finalcta{text-align:center;position:relative;overflow:hidden;padding:124px 0}
-  .finalcta .glow{top:50%;left:50%;transform:translate(-50%,-50%);width:800px;height:560px;background:radial-gradient(ellipse at center,rgba(186,255,57,.13),transparent 60%)}
-  .finalcta h2{font-size:clamp(34px,5.8vw,62px);font-weight:var(--font-heavy);letter-spacing:-.045em;line-height:1.02;margin-bottom:22px}
-  .finalcta p{color:var(--muted);font-size:18px;font-weight:var(--font-light);max-width:460px;margin:0 auto 34px}
-
-  footer{border-top:1px solid var(--border);padding:64px 0 52px;position:relative;z-index:1}
-  .foot-grid{display:grid;grid-template-columns:1.7fr 1fr 1fr 1fr;gap:42px;margin-bottom:48px}
-  .foot-brand p{color:var(--muted);font-size:14px;font-weight:var(--font-light);margin-top:18px;max-width:280px;line-height:1.6}
-  .foot-col h5{font-size:11px;font-weight:var(--font-medium);text-transform:uppercase;letter-spacing:.14em;color:var(--muted2);margin-bottom:18px}
-  .foot-col a{display:block;font-size:14px;color:var(--muted);margin-bottom:12px;font-weight:var(--font-light)}
-  .foot-col a:hover{color:var(--lime)}
-  .foot-bot{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);padding-top:28px;flex-wrap:wrap;gap:12px}
-  .foot-bot .c{font-size:13px;color:var(--muted2);font-weight:var(--font-light)}
-
-  .reveal{opacity:0;transform:translateY(20px);transition:opacity .8s cubic-bezier(.22,1,.36,1),transform .8s cubic-bezier(.22,1,.36,1)}
+  /* reveal */
+  .reveal{opacity:0;transform:translateY(22px);transition:opacity .8s cubic-bezier(.22,1,.36,1),transform .8s cubic-bezier(.22,1,.36,1)}
   .reveal.in{opacity:1;transform:none}
 
-  @media(max-width:880px){
-    .fblock{grid-template-columns:1fr;gap:44px}
-    .fblock.rev .ftext{order:0}
-    .fgrid,.prin{grid-template-columns:1fr}
-    .foot-grid{grid-template-columns:1fr 1fr;gap:34px}
-    .foot-brand{grid-column:1 / -1}
-    section{padding:66px 0}
-    .hero{padding:68px 0 24px}
-    .nav-r a.lnk{display:none}
-    .privacy-card{padding:46px 24px}
-    /* Móvil: todo alineado a la izquierda */
-    .hero, .center, .finalcta, .privacy-card{text-align:left}
-    .hero .lead, .center .sec-sub, .privacy-card .sec-sub, .finalcta p{margin-left:0;margin-right:0}
-    .cta-row, .finalcta .cta-row{justify-content:flex-start}
-    .lock{margin-left:0;margin-right:0}
-    .hero-t{font-size:clamp(34px,10vw,52px);letter-spacing:-.04em}
-    h2.sec{font-size:clamp(26px,7.5vw,38px)}
-    .hero .lead{font-size:17px}
-    .badge{margin-bottom:24px}
+  @media(max-width:980px){
+    .showcase{grid-template-columns:1fr;gap:44px}
+    .showcase.rev .sc-text{order:0}
+    .trio{grid-template-columns:1fr}
+    .spec{grid-template-columns:1fr 1fr}
+    .spec-col{border-right:none;border-bottom:1px solid var(--border);padding:24px 0}
+    .nums{grid-template-columns:1fr 1fr}
+    .info-grid{grid-template-columns:1fr}
   }
-  @media(prefers-reduced-motion:reduce){.mtrack{animation:none}.reveal{transition:none;opacity:1;transform:none}}
+  @media(max-width:640px){
+    .wrap{padding:0 20px}
+    .nav-menu{display:none}
+    section{padding:64px 0}
+    .hero{padding:54px 0 30px;text-align:left}
+    .hero .glow{width:680px}
+    .badge{margin-bottom:22px}
+    .hero .lead{margin-left:0}
+    .cta-row{justify-content:flex-start}
+    .sec-head.center{text-align:left}
+    .spec,.nums{grid-template-columns:1fr}
+    .hero-stage{margin-top:50px}
+    .eyebrow{letter-spacing:.1em}
+  }
+  @media(prefers-reduced-motion:reduce){.reveal{transition:none;opacity:1;transform:none}}
 </style>
 </head>
 <body>
+<div class="grain"></div>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
   <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M5 21c0-9 6-15 15-15 0 9-6 15-15 15z"/><path d="M5 21c4-6 8-9 12-11"/></symbol>
   <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 3c.5 3 2.5 4.5 4 6.5 1 1.4 1.5 2.8 1.5 4.5a5.5 5.5 0 11-11 0c0-1.3.4-2.4 1.2-3.4.3 1.2 1 1.7 1.6 1.9-.2-3 .7-6.2 1.7-9.5z"/></symbol>
   <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2.5"/><path d="M4 9.5h16M8.5 3v4M15.5 3v4"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></symbol>
   <symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 4v16M6 20h12M7 7h10M7 7l-3 7a4 4 0 008 0M17 7l3 7a4 4 0 01-8 0"/></symbol>
   <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.8 5L19 9.8l-5 1.7L12 17l-1.9-5.5L5 9.8 10.2 8z"/><path d="M18.5 14.5l.7 2 2 .7-2 .8-.7 2-.8-2-2-.8 2-.7z"/></symbol>
   <symbol id="i-wifi" viewBox="0 0 24 24"><path d="M5 12.5a9 9 0 0114 0M8 15.5a5 5 0 018 0"/><path d="M12 19h.01"/></symbol>
@@ -218,41 +241,45 @@
   <symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></symbol>
   <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 6.5"/></symbol>
-  <symbol id="i-utensils" viewBox="0 0 24 24"><path d="M7 3v8M5 3v4a2 2 0 004 0V3M7 11v10M16 3c-1.6 0-2.5 2-2.5 4.5S15 12 16.5 12V21"/></symbol>
-  <symbol id="i-activity" viewBox="0 0 24 24"><path d="M3 12h4l2.5-7 4 14 2.5-7H21"/></symbol>
-  <symbol id="i-account" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5l3 2"/></symbol>
-  <symbol id="i-export" viewBox="0 0 24 24"><path d="M4 17l5-5 4 3 7-8"/></symbol>
+  <symbol id="i-android" viewBox="0 0 24 24"><path d="M5 16V11a7 7 0 0114 0v5zM5 16h14v2a2 2 0 01-2 2H7a2 2 0 01-2-2zM8 8L6.5 6M16 8l1.5-2M9 4.5h6"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
 </defs></svg>
 
+<!-- NAV -->
 <header class="nav">
   <div class="wrap nav-in">
     <a class="brand" href="/">
-      <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect width="64" height="64" rx="14" fill="#BAFF39"/><path d="M11 32 L22 32 L27 21 L33 43 L39 32 L53 32" stroke="#0A0A0A" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+      <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect width="64" height="64" rx="14" fill="#BAFF39"/><path d="M11 32 L22 32 L27 21 L33 43 L39 32 L53 32" stroke="#0D0D0D" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
       Personal Tracker
     </a>
-    <div class="nav-r">
-      <a class="lnk" href="#proyecto">El proyecto</a>
-      <a class="lnk" href="apk/">Android APK</a>
-      <a class="lnk" href="webapp.html">Entrar</a>
+    <nav class="nav-menu">
+      <a href="#features">La app</a>
+      <a href="#detalles">Detalles</a>
+      <a href="#proyecto">Proyecto</a>
+      <a href="#descargar">Descargar</a>
+    </nav>
+    <div class="nav-right">
       <a class="btn btn-lime btn-sm" href="webapp.html">Abrir app</a>
     </div>
   </div>
 </header>
 
+<!-- HERO -->
 <section class="hero">
   <div class="glow"></div>
   <div class="wrap">
-    <div class="badge reveal"><span class="dot"></span> Salud · Hábitos · Planificación semanal</div>
-    <h1 class="hero-t reveal">Tu salud, hábitos<br>y semana, <span class="lime">en un solo lugar.</span></h1>
-    <p class="lead reveal">Registra tu nutrición y actividad, construye hábitos y convierte tu rutina en objetivos diarios. Privada, funciona sin conexión y se sincroniza solo si tú quieres.</p>
+    <div class="badge reveal"><span class="dot"></span> Salud · Hábitos · Planificación · Objetivos</div>
+    <h1 class="hero-t reveal">Tu vida,<br>en <span class="lime">un solo lugar.</span></h1>
+    <p class="lead reveal">Personal Tracker reúne tu nutrición, tus hábitos, tu semana y tus grandes objetivos en una sola app. Privada, rápida y pensada para usar cada día.</p>
     <div class="cta-row reveal">
       <a class="btn btn-lime" href="webapp.html">Abrir la web app</a>
-      <a class="btn btn-ghost" href="apk/">Descargar para Android <span class="pill">APK</span></a>
+      <a class="btn btn-ghost" href="#descargar"><svg class="ic"><use href="#i-android"/></svg> Descargar para Android</a>
     </div>
     <div class="trust reveal"><b>Gratis</b> · Sin anuncios · Tus datos son tuyos</div>
   </div>
 
-  <div class="wrap reveal" style="display:flex;justify-content:center;margin-top:70px;position:relative">
+  <div class="wrap hero-stage reveal">
+    <div class="float" style="left:calc(50% - 250px);top:120px"><div class="fl">Racha de hábitos</div><div class="fn">14 días <svg class="ic"><use href="#i-flame"/></svg></div></div>
     <div class="phone">
       <div class="notch"></div>
       <div class="screen">
@@ -262,129 +289,92 @@
           <div class="mk-card">
             <div class="mk-lbl">Balance del día</div>
             <div class="mk-kcal">−312 <small>kcal</small></div>
-            <div style="font-size:12px;color:var(--lime);font-weight:var(--font-medium);margin-top:7px">Déficit · vas por buen camino</div>
+            <div style="font-size:12px;color:var(--lime-light);font-weight:500;margin-top:7px">Déficit · vas por buen camino</div>
           </div>
           <div class="mk-card">
             <div class="mrow" style="margin-top:0"><span>Proteína</span><span>118 / 146 g</span></div>
             <div class="mbar"><i style="width:80%"></i></div>
             <div class="mrow"><span>Carbohidratos</span><span>184 g</span></div>
-            <div class="mbar"><i style="width:62%;background:var(--c-social)"></i></div>
+            <div class="mbar"><i style="width:62%;background:#4AB8FF"></i></div>
             <div class="mrow"><span>Grasa</span><span>54 g</span></div>
-            <div class="mbar"><i style="width:48%;background:var(--c-meal)"></i></div>
+            <div class="mbar"><i style="width:48%;background:#FF8FC7"></i></div>
           </div>
           <div class="mk-card" style="margin-bottom:0">
-            <div class="mrow" style="margin-top:0"><span>Peso · últimos 14 días</span><span style="color:var(--lime)">−0,6 kg</span></div>
+            <div class="mrow" style="margin-top:0"><span>Peso · 14 días</span><span style="color:var(--lime-light)">−0,6 kg</span></div>
             <div class="spark"><i style="height:90%"></i><i style="height:84%"></i><i style="height:88%"></i><i style="height:78%"></i><i style="height:80%"></i><i style="height:72%"></i><i style="height:74%"></i><i style="height:66%"></i><i style="height:70%"></i><i style="height:60%"></i><i style="height:64%"></i><i style="height:56%"></i></div>
           </div>
         </div>
       </div>
     </div>
-    <div class="float" style="right:calc(50% - 238px);top:150px"><div class="fl">Racha de hábitos</div><div class="fn">14 días <svg class="ic"><use href="#i-flame"/></svg></div></div>
-    <div class="float" style="left:calc(50% - 248px);bottom:64px"><div class="fl">Hoy</div><div class="fn">1.848 kcal</div></div>
+    <div class="float" style="right:calc(50% - 250px);bottom:80px"><div class="fl">Objetivo Kaizen</div><div class="fn">43%</div></div>
   </div>
 </section>
 
-<section style="padding-top:36px">
-  <div class="wrap center" style="margin-bottom:38px">
-    <div class="eyebrow reveal">Funciona con lo que ya usas</div>
-  </div>
-  <div class="marquee reveal">
-    <div class="mtrack">
-      <span class="logo-chip"><svg class="ic"><use href="#i-calendar"/></svg> Google Calendar</span>
-      <span class="logo-chip"><svg class="ic"><use href="#i-account"/></svg> Cuenta de Google</span>
-      <span class="logo-chip"><svg class="ic"><use href="#i-spark"/></svg> IA Gemini</span>
-      <span class="logo-chip"><svg class="ic"><use href="#i-wifi"/></svg> Offline · PWA</span>
-      <span class="logo-chip"><svg class="ic"><use href="#i-device"/></svg> iOS &amp; Android</span>
-      <span class="logo-chip"><svg class="ic"><use href="#i-export"/></svg> Exporta tus datos</span>
-      <span class="logo-chip"><svg class="ic"><use href="#i-calendar"/></svg> Google Calendar</span>
-      <span class="logo-chip"><svg class="ic"><use href="#i-account"/></svg> Cuenta de Google</span>
-      <span class="logo-chip"><svg class="ic"><use href="#i-spark"/></svg> IA Gemini</span>
-      <span class="logo-chip"><svg class="ic"><use href="#i-wifi"/></svg> Offline · PWA</span>
-      <span class="logo-chip"><svg class="ic"><use href="#i-device"/></svg> iOS &amp; Android</span>
-      <span class="logo-chip"><svg class="ic"><use href="#i-export"/></svg> Exporta tus datos</span>
+<!-- INTRO STATEMENT -->
+<section id="features">
+  <div class="wrap">
+    <div class="eyebrow reveal">Tu sistema personal de progreso</div>
+    <p class="statement reveal" style="margin-top:18px;"><b>Información que normalmente vive repartida entre cinco apps,</b> reunida en una sola pantalla. <span class="muted">Ves tu día completo de un vistazo y conviertes tus planes en pequeñas acciones diarias.</span></p>
+    <div class="trio">
+      <div class="reveal"><div class="ficon"><svg class="ic"><use href="#i-leaf"/></svg></div><h3>Nutrition + Fitness</h3><p>Comidas, macros, peso y actividad con cálculo de metabolismo y balance calórico. Estimación por IA o base local offline.</p></div>
+      <div class="reveal"><div class="ficon"><svg class="ic"><use href="#i-flame"/></svg></div><h3>Daily Habits</h3><p>Construye hábitos con un sistema de puntos y rachas. Marca lo que haces y observa tu constancia crecer.</p></div>
+      <div class="reveal"><div class="ficon"><svg class="ic"><use href="#i-calendar"/></svg></div><h3>Weekly Planner</h3><p>Tu rutina semanal convertida en objetivos diarios, con sincronización bidireccional con Google Calendar.</p></div>
     </div>
   </div>
 </section>
 
-<section>
-  <div class="wrap fblock">
-    <div class="ftext reveal">
-      <div class="ficon"><svg class="ic"><use href="#i-leaf"/></svg></div>
-      <h3>Nutrición y fitness, sin complicarte</h3>
-      <p>Apunta lo que comes y entrenas. La app calcula tu metabolismo, tus macros y tu balance calórico del día, y te ayuda a estimar todo describiéndolo en lenguaje natural.</p>
+<!-- SHOWCASE 1 — Kaizen -->
+<section style="padding-top:30px">
+  <div class="wrap showcase">
+    <div class="ftext sc-text reveal">
+      <div class="ficon"><svg class="ic"><use href="#i-target"/></svg></div>
+      <h3>Convierte tus metas en micro-pasos</h3>
+      <p>Kaizen Goals toma un objetivo grande de tu vida y lo desglosa en pequeñas acciones realizables —tú a mano o con ayuda de la IA, eligiendo en cuántos pasos dividirlo.</p>
       <ul class="flist">
-        <li><span class="ck"><svg class="ic"><use href="#i-check"/></svg></span> Calorías, proteínas, carbohidratos y grasa al instante</li>
-        <li><span class="ck"><svg class="ic"><use href="#i-check"/></svg></span> Base local de ~250 alimentos y ~60 actividades, también offline</li>
-        <li><span class="ck"><svg class="ic"><use href="#i-check"/></svg></span> Seguimiento de peso con tendencia real a 90 días</li>
-        <li><span class="ck"><svg class="ic"><use href="#i-check"/></svg></span> Estimación con IA (Gemini) opcional</li>
+        <li><span class="ck"><svg class="ic"><use href="#i-check"/></svg></span> Objetivos agrupados por categorías plegables</li>
+        <li><span class="ck"><svg class="ic"><use href="#i-check"/></svg></span> Plan generado por IA con el nº de pasos que elijas</li>
+        <li><span class="ck"><svg class="ic"><use href="#i-check"/></svg></span> Progreso en % por objetivo y global</li>
       </ul>
     </div>
-    <div class="fmedia reveal">
+    <div class="sc-media reveal">
       <div class="phone">
         <div class="notch"></div>
         <div class="screen">
           <div class="sbar"><span>9:41</span><span class="r">●●● ▮</span></div>
           <div class="scr-pad">
-            <div class="scr-h"><div class="t">Nutrición</div><div class="av">L</div></div>
-            <div class="mk-card"><div class="mk-lbl">Consumido hoy</div><div class="mk-kcal">1.848 <small>/ 2.160 kcal</small></div><div class="mbar" style="margin-top:13px"><i style="width:85%"></i></div></div>
-            <div class="chip on"><span class="ci"><svg class="ic"><use href="#i-utensils"/></svg></span><div style="flex:1">Desayuno · Tortilla y avena<div style="font-size:11px;color:var(--muted);font-weight:var(--font-light)">486 kcal · 32 g prot</div></div></div>
-            <div class="chip on"><span class="ci"><svg class="ic"><use href="#i-utensils"/></svg></span><div style="flex:1">Comida · Pollo con arroz<div style="font-size:11px;color:var(--muted);font-weight:var(--font-light)">642 kcal · 48 g prot</div></div></div>
-            <div class="chip on"><span class="ci"><svg class="ic"><use href="#i-activity"/></svg></span><div style="flex:1">Escalada · 90 min<div style="font-size:11px;color:var(--muted);font-weight:var(--font-light)">−540 kcal</div></div></div>
+            <div class="scr-h"><div class="t">Kaizen</div><div class="av">L</div></div>
+            <div class="kgoal">
+              <div class="kh"><div style="flex:1"><div style="font-size:15px;font-weight:800;">Aprender a escalar</div><div style="font-size:10px;color:var(--txt3);margin-top:4px;text-transform:uppercase;letter-spacing:.06em;">3/7 pasos</div></div><div class="kpct">43<span style="font-size:14px">%</span></div></div>
+              <div class="mbar" style="margin-top:10px"><i style="width:43%"></i></div>
+              <div class="kstep on"><span class="kd"></span><span style="flex:1;color:var(--lime-light)">Buscar un rocódromo cerca</span></div>
+              <div class="kstep on"><span class="kd"></span><span style="flex:1;color:var(--lime-light)">Comprar pies de gato</span></div>
+              <div class="kstep"><span class="kd"></span><span style="flex:1">Apuntarme a clase de iniciación</span></div>
+            </div>
+            <div class="kgoal" style="margin-bottom:0">
+              <div class="kh"><div style="flex:1"><div style="font-size:15px;font-weight:800;">Leer 12 libros</div><div style="font-size:10px;color:var(--txt3);margin-top:4px;text-transform:uppercase;letter-spacing:.06em;">5/12</div></div><div class="kpct">42<span style="font-size:14px">%</span></div></div>
+              <div class="mbar" style="margin-top:10px"><i style="width:42%"></i></div>
+            </div>
           </div>
         </div>
       </div>
-      <div class="float" style="right:-8px;top:124px"><div class="fl">Proteína</div><div class="fn">118 g</div></div>
     </div>
   </div>
 </section>
 
-<section style="padding-top:24px">
-  <div class="wrap fblock rev">
-    <div class="ftext reveal">
-      <div class="ficon"><svg class="ic"><use href="#i-flame"/></svg></div>
-      <h3>Construye hábitos que se quedan</h3>
-      <p>Marca lo que haces cada día y observa tu constancia crecer. Un sistema de puntos y rachas convierte la rutina en algo que apetece mantener.</p>
-      <ul class="flist">
-        <li><span class="ck"><svg class="ic"><use href="#i-check"/></svg></span> Hábitos positivos y negativos con puntos</li>
-        <li><span class="ck"><svg class="ic"><use href="#i-check"/></svg></span> Racha diaria que premia la constancia</li>
-        <li><span class="ck"><svg class="ic"><use href="#i-check"/></svg></span> Vista por día, semana y mes</li>
-        <li><span class="ck"><svg class="ic"><use href="#i-check"/></svg></span> Biblioteca de hábitos reutilizables</li>
-      </ul>
-    </div>
-    <div class="fmedia reveal">
-      <div class="phone">
-        <div class="notch"></div>
-        <div class="screen">
-          <div class="sbar"><span>9:41</span><span class="r">●●● ▮</span></div>
-          <div class="scr-pad">
-            <div class="scr-h"><div class="t">Hábitos</div><div class="av">L</div></div>
-            <div class="mk-card"><div class="streak"><div class="fl"><div class="n">14</div><div class="fic"><svg class="ic"><use href="#i-flame"/></svg></div></div><div class="l">días de racha</div></div></div>
-            <div class="chip on"><span class="ck"><svg class="ic"><use href="#i-check"/></svg></span><div style="flex:1">Meditar</div><span style="color:var(--lime);font-weight:var(--font-bold);font-size:12px">+5</span></div>
-            <div class="chip on"><span class="ck"><svg class="ic"><use href="#i-check"/></svg></span><div style="flex:1">Beber 2 L de agua</div><span style="color:var(--lime);font-weight:var(--font-bold);font-size:12px">+3</span></div>
-            <div class="chip on"><span class="ck"><svg class="ic"><use href="#i-check"/></svg></span><div style="flex:1">Leer 20 min</div><span style="color:var(--lime);font-weight:var(--font-bold);font-size:12px">+4</span></div>
-            <div class="chip off"><span class="ck"></span><div style="flex:1;color:var(--muted)">Sin pantallas tras cenar</div><span style="color:var(--muted2);font-weight:var(--font-bold);font-size:12px">+3</span></div>
-          </div>
-        </div>
-      </div>
-      <div class="float" style="left:-8px;bottom:100px"><div class="fl">Esta semana</div><div class="fn">92%</div></div>
-    </div>
-  </div>
-</section>
-
-<section style="padding-top:24px">
-  <div class="wrap fblock">
-    <div class="ftext reveal">
+<!-- SHOWCASE 2 — Planner / Calendar -->
+<section style="padding-top:30px">
+  <div class="wrap showcase rev">
+    <div class="ftext sc-text reveal">
       <div class="ficon"><svg class="ic"><use href="#i-calendar"/></svg></div>
-      <h3>Tu semana, convertida en objetivos</h3>
-      <p>Organiza tu rutina semanal y conéctala con Google Calendar en ambos sentidos. Cada actividad se convierte en un objetivo del día, con su categoría y color.</p>
+      <h3>Tu semana, conectada con Google Calendar</h3>
+      <p>Organiza rutinas y actividades —de un día, de todo el día o de varios— y mantenlas en sintonía con tu calendario en ambos sentidos. Cada actividad es un objetivo del día.</p>
       <ul class="flist">
-        <li><span class="ck"><svg class="ic"><use href="#i-check"/></svg></span> Rutinas recurrentes y actividades puntuales</li>
+        <li><span class="ck"><svg class="ic"><use href="#i-check"/></svg></span> Rutinas recurrentes y eventos puntuales</li>
         <li><span class="ck"><svg class="ic"><use href="#i-check"/></svg></span> Sincronización bidireccional con Google Calendar</li>
-        <li><span class="ck"><svg class="ic"><use href="#i-check"/></svg></span> Categorías con color para leer la semana de un vistazo</li>
-        <li><span class="ck"><svg class="ic"><use href="#i-check"/></svg></span> Sincronización opcional y por actividad</li>
+        <li><span class="ck"><svg class="ic"><use href="#i-check"/></svg></span> Categorías para leer tu semana de un vistazo</li>
       </ul>
     </div>
-    <div class="fmedia reveal">
+    <div class="sc-media reveal">
       <div class="phone">
         <div class="notch"></div>
         <div class="screen">
@@ -392,126 +382,134 @@
           <div class="scr-pad">
             <div class="scr-h"><div class="t">Semana</div><div class="av">L</div></div>
             <div class="pday">
-              <div class="dh"><div class="dnum">16<small>MAR</small></div><div style="font-weight:var(--font-bold);font-size:14px">Martes</div></div>
-              <div class="pact"><span class="cd" style="background:var(--c-work)"></span>Trabajo · 10:00–16:00</div>
-              <div class="pact"><span class="cd" style="background:var(--c-sport)"></span>Escalada · 18:00–21:00</div>
+              <div class="dh"><div class="dnum">16<small>MAR</small></div><div style="font-weight:700;font-size:14px">Martes</div></div>
+              <div class="pact"><span class="cd"></span>Trabajo · 10:00–16:00</div>
+              <div class="pact"><span class="cd" style="background:#FF6B4A"></span>Escalada · 18:00–21:00</div>
             </div>
-            <div class="pday">
-              <div class="dh"><div class="dnum alt">17<small>MIÉ</small></div><div style="font-weight:var(--font-bold);font-size:14px">Miércoles</div></div>
-              <div class="pact"><span class="cd" style="background:var(--c-work)"></span>Trabajo · 10:00–16:00</div>
-              <div class="pact"><span class="cd" style="background:var(--c-meal)"></span>Cena con amigos · 21:00</div>
+            <div class="pday" style="margin-bottom:0">
+              <div class="dh"><div class="dnum alt">17<small>MIÉ</small></div><div style="font-weight:700;font-size:14px">Miércoles</div></div>
+              <div class="pact"><span class="cd"></span>Trabajo · 10:00–16:00</div>
+              <div class="pact"><span class="cd" style="background:#FF8FC7"></span>Cena con amigos · 21:00</div>
             </div>
-            <div class="gsync"><svg class="ic"><use href="#i-check"/></svg> Sincronizado con Google Calendar</div>
           </div>
         </div>
       </div>
-      <div class="float" style="right:-8px;top:132px"><div class="fl">Esta semana</div><div class="fn">11 objetivos</div></div>
     </div>
   </div>
 </section>
 
-<section>
-  <div class="wrap center" style="margin-bottom:8px">
-    <div class="eyebrow reveal">Y mucho más</div>
-    <h2 class="sec reveal">Todo lo que necesitas, nada que no</h2>
-    <p class="sec-sub reveal">Reúne en una sola pantalla lo que normalmente vive repartido entre varias apps.</p>
-  </div>
+<!-- SPEC / DETAILS -->
+<section id="detalles">
   <div class="wrap">
-    <div class="fgrid">
-      <div class="fcard reveal"><div class="fic"><svg class="ic"><use href="#i-scale"/></svg></div><h4>Seguimiento de peso</h4><p>Registra tu peso y observa la tendencia real para validar tu déficit o superávit.</p></div>
-      <div class="fcard reveal"><div class="fic"><svg class="ic"><use href="#i-spark"/></svg></div><h4>Estimación con IA</h4><p>Describe una comida o actividad y deja que Gemini rellene los datos por ti.</p></div>
-      <div class="fcard reveal"><div class="fic"><svg class="ic"><use href="#i-wifi"/></svg></div><h4>Funciona offline</h4><p>Base de datos local: úsala sin conexión, en el metro o en la montaña.</p></div>
-      <div class="fcard reveal"><div class="fic"><svg class="ic"><use href="#i-cloud"/></svg></div><h4>Sync con Google</h4><p>Vincula tu cuenta y accede a tus datos desde cualquier dispositivo.</p></div>
-      <div class="fcard reveal"><div class="fic"><svg class="ic"><use href="#i-download"/></svg></div><h4>Exporta tus datos</h4><p>Descarga todo en JSON o CSV cuando quieras. Tus datos no quedan atrapados.</p></div>
-      <div class="fcard reveal"><div class="fic"><svg class="ic"><use href="#i-contrast"/></svg></div><h4>Tema claro y oscuro</h4><p>Una interfaz cuidada que se adapta a la hora del día y a tu gusto.</p></div>
-      <div class="fcard reveal"><div class="fic"><svg class="ic"><use href="#i-award"/></svg></div><h4>Puntos y rachas</h4><p>Gamificación sutil que premia la constancia sin agobiar.</p></div>
-      <div class="fcard reveal"><div class="fic"><svg class="ic"><use href="#i-device"/></svg></div><h4>Instalable como app</h4><p>Añádela a tu pantalla de inicio y úsala a pantalla completa como una app nativa.</p></div>
-      <div class="fcard reveal"><div class="fic"><svg class="ic"><use href="#i-grid"/></svg></div><h4>Módulos a tu medida</h4><p>Activa solo lo que uses: nutrición, hábitos o planner. Tú decides.</p></div>
+    <div class="sec-head reveal">
+      <div class="eyebrow">Ficha</div>
+      <h2 class="sec">Lo que hay debajo</h2>
+      <p class="sec-sub">Privada de serie, rápida y tuya. Sin anuncios y sin convertir tus datos en producto.</p>
+    </div>
+    <div class="spec reveal">
+      <div class="spec-col">
+        <h4>Privacidad</h4>
+        <div class="spec-row"><div class="k">Datos</div><div class="v">En tu dispositivo</div></div>
+        <div class="spec-row"><div class="k">Sincronización</div><div class="v">Opcional (Google)</div></div>
+        <div class="spec-row"><div class="k">Anuncios</div><div class="v">Ninguno</div></div>
+        <div class="spec-row"><div class="k">Acceso</div><div class="v">Reglas por usuario</div></div>
+      </div>
+      <div class="spec-col">
+        <h4>Inteligencia</h4>
+        <div class="spec-row"><div class="k">Estimación</div><div class="v">IA Gemini</div></div>
+        <div class="spec-row"><div class="k">Base local</div><div class="v">~250 alimentos</div></div>
+        <div class="spec-row"><div class="k">Actividades</div><div class="v">~60 con MET</div></div>
+        <div class="spec-row"><div class="k">Planes Kaizen</div><div class="v">Generados por IA</div></div>
+      </div>
+      <div class="spec-col">
+        <h4>Plataformas</h4>
+        <div class="spec-row"><div class="k">Web</div><div class="v">Cualquier navegador</div></div>
+        <div class="spec-row"><div class="k">Android</div><div class="v">APK · PWA</div></div>
+        <div class="spec-row"><div class="k">iOS</div><div class="v">Añadir a inicio</div></div>
+        <div class="spec-row"><div class="k">Offline</div><div class="v">Sí</div></div>
+      </div>
+      <div class="spec-col">
+        <h4>Tus datos</h4>
+        <div class="spec-row"><div class="k">Exportar</div><div class="v">JSON · CSV</div></div>
+        <div class="spec-row"><div class="k">Importar</div><div class="v">JSON</div></div>
+        <div class="spec-row"><div class="k">Propiedad</div><div class="v">100% tuya</div></div>
+        <div class="spec-row"><div class="k">Coste</div><div class="v">Gratis</div></div>
+      </div>
     </div>
   </div>
 </section>
 
-<section class="privacy">
-  <div class="glow"></div>
+<!-- NUMBERED FEATURES -->
+<section style="padding-top:40px">
   <div class="wrap">
-    <div class="privacy-card reveal">
-      <div class="lock"><svg class="ic"><use href="#i-lock"/></svg></div>
-      <div class="eyebrow">Privacidad de serie</div>
-      <h2 class="sec" style="margin-bottom:14px">Tus datos son tuyos</h2>
-      <p class="sec-sub" style="margin:0 auto">Sin iniciar sesión, todo se guarda solo en tu dispositivo. Si decides sincronizar, tus datos viven en tu propia cuenta de Google, protegidos por reglas que limitan cada documento a su dueño. Sin anuncios, sin venta de datos, sin letra pequeña.</p>
+    <div class="sec-head reveal">
+      <div class="eyebrow">Y mucho más</div>
+      <h2 class="sec">Todo lo que necesitas, nada que no</h2>
+    </div>
+    <div class="nums">
+      <div class="num reveal"><div class="ni"><svg class="ic"><use href="#i-scale"/></svg><span class="nn">01</span></div><h4>Seguimiento de peso</h4><p>Registra tu peso y observa la tendencia real para validar tu déficit o superávit.</p></div>
+      <div class="num reveal"><div class="ni"><svg class="ic"><use href="#i-spark"/></svg><span class="nn">02</span></div><h4>Estimación con IA</h4><p>Describe una comida o actividad y deja que Gemini rellene los datos por ti.</p></div>
+      <div class="num reveal"><div class="ni"><svg class="ic"><use href="#i-wifi"/></svg><span class="nn">03</span></div><h4>Funciona offline</h4><p>Base de datos local: úsala sin conexión, en el metro o en la montaña.</p></div>
+      <div class="num reveal"><div class="ni"><svg class="ic"><use href="#i-cloud"/></svg><span class="nn">04</span></div><h4>Sync con Google</h4><p>Vincula tu cuenta y accede a tus datos desde cualquier dispositivo.</p></div>
+      <div class="num reveal"><div class="ni"><svg class="ic"><use href="#i-calendar"/></svg><span class="nn">05</span></div><h4>Google Calendar</h4><p>Sincronización bidireccional de tu planner con tu calendario principal.</p></div>
+      <div class="num reveal"><div class="ni"><svg class="ic"><use href="#i-download"/></svg><span class="nn">06</span></div><h4>Exporta tus datos</h4><p>Descarga todo en JSON o CSV cuando quieras. Nada queda atrapado.</p></div>
+      <div class="num reveal"><div class="ni"><svg class="ic"><use href="#i-award"/></svg><span class="nn">07</span></div><h4>Puntos y rachas</h4><p>Gamificación sutil que premia la constancia sin agobiar.</p></div>
+      <div class="num reveal"><div class="ni"><svg class="ic"><use href="#i-device"/></svg><span class="nn">08</span></div><h4>App instalable</h4><p>En la pantalla de inicio, a pantalla completa, como una app nativa.</p></div>
+      <div class="num reveal"><div class="ni"><svg class="ic"><use href="#i-target"/></svg><span class="nn">09</span></div><h4>Objetivos Kaizen</h4><p>Metas grandes divididas en micro-pasos, con planes que genera la IA.</p></div>
     </div>
   </div>
 </section>
 
-<section>
-  <div class="wrap center" style="margin-bottom:8px">
-    <div class="eyebrow reveal">La filosofía</div>
-    <h2 class="sec reveal">Hecha para una persona,<br>no para una multinacional</h2>
-    <p class="sec-sub reveal">Un proyecto personal, en evolución constante, construido sobre tres ideas simples.</p>
-  </div>
-  <div class="wrap">
-    <div class="prin">
-      <div class="pcard reveal"><div class="q">01</div><h4>Simple y honesta</h4><p>Lo mínimo necesario para que funcione bien y rápido. Sin trucos para retenerte ni métricas vanidosas.</p></div>
-      <div class="pcard reveal"><div class="q">02</div><h4>Privada por defecto</h4><p>Tu información no es el producto. No hay anuncios ni se comparte con terceros para publicidad.</p></div>
-      <div class="pcard reveal"><div class="q">03</div><h4>Tuya de verdad</h4><p>Funciona offline, se exporta entera y se sincroniza solo si tú quieres. Sin ataduras.</p></div>
-    </div>
-  </div>
-</section>
-
+<!-- PROYECTO / ABOUT -->
 <section id="proyecto">
-  <div class="wrap" style="max-width:760px;">
-    <div class="eyebrow reveal">El proyecto</div>
-    <h2 class="sec reveal" style="margin-bottom:20px;">Sobre Personal Tracker</h2>
-    <p class="reveal" style="color:var(--muted);font-size:17px;line-height:1.7;margin-bottom:16px;">Personal Tracker es una aplicación personal de salud y productividad. Reúne en una sola pantalla lo que normalmente vive repartido entre varias apps: el balance nutricional, la actividad física, el progreso de hábitos, la planificación de la semana y tus objetivos a largo plazo. Usa estos datos <strong style="color:var(--txt);font-weight:var(--font-medium);">únicamente para mostrarte tus métricas, estimaciones y progreso</strong>.</p>
-    <p class="reveal" style="color:var(--muted);font-size:17px;line-height:1.7;margin-bottom:16px;">Es un proyecto personal, en evolución constante, creado por <strong style="color:var(--txt);font-weight:var(--font-medium);">Lluis Cuenca</strong> en Mallorca. Nace de querer una herramienta simple y honesta que ayude a cuidarse sin vender nada y sin convertir los datos en producto.</p>
-    <p class="reveal" style="color:var(--muted);font-size:17px;line-height:1.7;margin-bottom:0;">Sin iniciar sesión, todo se guarda solo en tu dispositivo y funciona sin conexión. El inicio de sesión con Google es opcional y sirve para sincronizar tus datos entre dispositivos. La integración con Google Calendar también es opcional: cuando la activas, la app usa el permiso <strong style="color:var(--txt);font-weight:var(--font-medium);">exclusivamente para leer, crear, editar y eliminar eventos de tu calendario principal</strong> y mantenerlos en sintonía con el planner. Nunca se usan tus datos para publicidad ni se venden a terceros. Más detalles en la <a href="privacy.html" style="color:var(--lime);">política de privacidad</a>.</p>
+  <div class="wrap about-prose reveal">
+    <div class="eyebrow">El proyecto</div>
+    <h2 class="sec" style="margin-bottom:22px;">Sobre Personal Tracker</h2>
+    <p>Personal Tracker es una aplicación personal de salud y productividad. Reúne en una sola pantalla el balance nutricional, la actividad física, el progreso de hábitos, la planificación de la semana y tus objetivos a largo plazo, y usa estos datos <strong>únicamente para mostrarte tus métricas, estimaciones y progreso</strong>.</p>
+    <p>Es un proyecto personal, en evolución constante, creado por <strong>Lluis Cuenca</strong> en Mallorca. Nace de querer una herramienta simple y honesta que ayude a cuidarse sin vender nada y sin convertir los datos en producto.</p>
+    <p>Sin iniciar sesión, todo se guarda solo en tu dispositivo y funciona sin conexión. El inicio de sesión con Google es opcional y sirve para sincronizar entre dispositivos. La integración con Google Calendar también es opcional: cuando la activas, la app usa el permiso <strong>exclusivamente para leer, crear, editar y eliminar eventos de tu calendario principal</strong>. Nunca se usan tus datos para publicidad ni se venden a terceros. Más detalles en la <a href="privacy.html">política de privacidad</a>.</p>
   </div>
 </section>
 
-<section class="finalcta" id="descargas">
+<!-- INFO CARDS -->
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="info-grid">
+      <div class="info-card reveal"><div class="q">01</div><h4>Privada por defecto</h4><p>Tu información no es el producto. Sin anuncios, sin venta de datos, sin letra pequeña.</p></div>
+      <div class="info-card reveal"><div class="q">02</div><h4>Hecha para una persona</h4><p>No para una multinacional. Lo mínimo necesario para funcionar bien y rápido.</p></div>
+      <div class="info-card reveal"><div class="q">03</div><h4>Tuya de verdad</h4><p>Funciona offline, se exporta entera y se sincroniza solo si tú quieres.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA + DOWNLOAD -->
+<section class="cta-final" id="descargar">
   <div class="glow"></div>
   <div class="wrap">
-    <h2 class="reveal">Empieza cuando quieras.<br>Un registro a la vez.</h2>
-    <p class="reveal">Abre la web app al instante o descarga la APK de Android para probarla como app instalada.</p>
+    <h2 class="reveal">Empieza hoy.</h2>
+    <p class="reveal">Ábrela en el navegador o instálala en tu móvil. Un registro a la vez.</p>
     <div class="cta-row reveal">
       <a class="btn btn-lime" href="webapp.html">Abrir la web app</a>
-      <a class="btn btn-ghost" href="apk/">Descargar Android APK</a>
+      <a class="btn btn-ghost" href="apk/"><svg class="ic"><use href="#i-android"/></svg> Descargar para Android</a>
     </div>
-    <div class="trust reveal" style="margin-top:22px">En iPhone: ábrela en Safari → Compartir → “Añadir a pantalla de inicio”.</div>
+    <div class="trust reveal" style="margin-top:20px">En iPhone: ábrela en Safari → Compartir → “Añadir a pantalla de inicio”.</div>
   </div>
 </section>
 
+<!-- FOOTER -->
 <footer>
-  <div class="wrap">
-    <div class="foot-grid">
-      <div class="foot-brand">
-        <a class="brand" href="/">
-          <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect width="64" height="64" rx="14" fill="#BAFF39"/><path d="M11 32 L22 32 L27 21 L33 43 L39 32 L53 32" stroke="#0A0A0A" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-          Personal Tracker
-        </a>
-        <p>Tu salud, hábitos y semana, en un solo lugar. Privada, offline y tuya.</p>
-      </div>
-      <div class="foot-col">
-        <h5>Producto</h5>
-        <a href="webapp.html">Abrir la web app</a>
-        <a href="apk/">Descargar Android APK</a>
-        <a href="#descargas">iOS · Pronto</a>
-      </div>
-      <div class="foot-col">
-        <h5>Proyecto</h5>
-        <a href="#proyecto">El proyecto</a>
+  <div class="wrap foot-in">
+    <div class="foot-word">Tracker</div>
+    <div class="foot-cols">
+      <div class="foot-links">
+        <a href="webapp.html">Abrir app</a>
+        <a href="apk/">Android</a>
+        <a href="#proyecto">Proyecto</a>
         <a href="privacy.html">Privacidad</a>
         <a href="terms.html">Condiciones</a>
+        <a href="#top">Arriba ↑</a>
       </div>
-      <div class="foot-col">
-        <h5>Contacto</h5>
-        <a href="mailto:cuenca.lluis@gmail.com">Escríbenos</a>
-        <a href="webapp.html">Entrar</a>
-      </div>
-    </div>
-    <div class="foot-bot">
-      <div class="c">© 2026 Personal Tracker · Creado por Lluis Cuenca</div>
-      <div class="c">Hecho con cuidado en Mallorca</div>
+      <div class="foot-meta">© 2026 Personal Tracker · Creado por Lluis Cuenca · Mallorca</div>
     </div>
   </div>
 </footer>
@@ -522,7 +520,7 @@
     if(!('IntersectionObserver' in window)){ els.forEach(function(e){e.classList.add('in')}); return; }
     var io = new IntersectionObserver(function(entries){
       entries.forEach(function(en){ if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); } });
-    }, { threshold:.12, rootMargin:'0px 0px -40px 0px' });
+    }, { threshold:.1, rootMargin:'0px 0px -40px 0px' });
     els.forEach(function(e){ io.observe(e); });
   })();
 </script>
