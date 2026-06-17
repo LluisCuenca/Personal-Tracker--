@@ -1652,6 +1652,101 @@ body{letter-spacing:-.01em;}
 [data-theme="light"] .home-card{border-color:rgba(25,28,23,.08);}
 [data-theme="light"] .home-card::after{background:linear-gradient(90deg,transparent,rgba(63,111,0,.18),transparent);}
 
+/* ─── PLAYFUL MOTION PASS ─── */
+:root,[data-theme="dark"]{
+  --ease-spring:cubic-bezier(.18,1.28,.32,1);
+  --ease-pop:cubic-bezier(.25,1.55,.35,1);
+  --ease-smooth:cubic-bezier(.22,1,.36,1);
+}
+@keyframes screenIn{
+  0%{opacity:0;transform:translateY(16px) scale(.975);}
+  62%{opacity:1;transform:translateY(-2px) scale(1.006);}
+  100%{opacity:1;transform:translateY(0) scale(1);}
+}
+@keyframes screenInRight{
+  0%{opacity:.38;transform:translateX(72px) scale(.985);}
+  70%{opacity:1;transform:translateX(-4px) scale(1.004);}
+  100%{opacity:1;transform:translateX(0) scale(1);}
+}
+@keyframes screenInLeft{
+  0%{opacity:.38;transform:translateX(-72px) scale(.985);}
+  70%{opacity:1;transform:translateX(4px) scale(1.004);}
+  100%{opacity:1;transform:translateX(0) scale(1);}
+}
+@keyframes listItemIn{
+  0%{opacity:0;transform:translateY(12px) scale(.975);}
+  72%{opacity:1;transform:translateY(-2px) scale(1.006);}
+  100%{opacity:1;transform:translateY(0) scale(1);}
+}
+@keyframes popIn{
+  0%{opacity:0;transform:scale(.72);}
+  58%{opacity:1;transform:scale(1.08);}
+  100%{opacity:1;transform:scale(1);}
+}
+@keyframes sheetUp{
+  0%{transform:translateY(108%) scale(.98);opacity:.25;}
+  72%{transform:translateY(-10px) scale(1.006);opacity:1;}
+  100%{transform:translateY(0) scale(1);opacity:1;}
+}
+@keyframes sheetDown{
+  from{transform:translateY(0) scale(1);opacity:1;}
+  to{transform:translateY(105%) scale(.985);opacity:.35;}
+}
+@keyframes cardBounceIn{
+  0%{opacity:0;transform:translateY(18px) scale(.965);}
+  68%{opacity:1;transform:translateY(-3px) scale(1.008);}
+  100%{opacity:1;transform:translateY(0) scale(1);}
+}
+@keyframes pillPop{
+  0%{transform:scale(.92);}
+  62%{transform:scale(1.055);}
+  100%{transform:scale(1);}
+}
+@keyframes microWiggle{
+  0%,100%{transform:translateX(0);}
+  45%{transform:translateX(3px);}
+}
+@keyframes glowPulse{
+  0%,100%{box-shadow:0 0 0 rgba(186,255,57,0);}
+  50%{box-shadow:0 0 0 4px rgba(186,255,57,.08);}
+}
+.screen.active{animation-duration:.42s;animation-timing-function:var(--ease-spring);}
+.screen.nav-fwd,.screen.nav-back{animation-duration:.44s;animation-timing-function:var(--ease-spring);}
+.sheet{animation:sheetUp .44s var(--ease-spring);}
+.sheet-closing{animation:sheetDown .28s cubic-bezier(.5,0,.2,1) forwards !important;}
+button,.tap,[role="button"],
+.mcard,.list-row,.hab-row,.planner-event-row,.kai-goal-card,.kai-category-head,.type-choice,.mod-pick,.theme-tile,.quick-toggle,.hab-chip{
+  transition-timing-function:var(--ease-spring) !important;
+}
+.btn:active,.day-nav-btn:active,.water-btn:active,.habit-remove:active,.kai-mini-btn:active,.sheet-x:active{
+  transform:scale(.9);
+}
+.mcard:active,.list-row:active,.hab-row:active,.planner-event-row:active,.kai-goal-card:active,.type-choice:active,.mod-pick:active,.hab-chip:active{
+  transform:scale(.975);
+}
+.vt-btn.on,.freq-btn.on,.fp.on,.mod-pick.on .mod-pick-check,.theme-tile.on{
+  animation:pillPop .34s var(--ease-pop);
+}
+.thin-fill,.pb-fill,.hp-fill{
+  transition-duration:.82s !important;
+  transition-timing-function:var(--ease-spring) !important;
+}
+.home-arrow{transition:transform .28s var(--ease-pop), color .2s;}
+.home-card:active .home-arrow{animation:microWiggle .28s var(--ease-pop);}
+.coins-big,.macro-val,.stat-n{
+  transition:color .28s var(--ease-smooth), transform .28s var(--ease-pop);
+}
+.goal-met-badge{animation:popIn .48s var(--ease-pop), glowPulse 2.4s ease-in-out 1s infinite;}
+@media(hover:hover){
+  .mcard:hover,.list-row:hover,.hab-row:hover,.planner-event-row:hover,.kai-goal-card:hover,.type-choice:hover,.mod-pick:hover,.theme-tile:hover{
+    transform:translateY(-2px);
+  }
+  .btn:hover,.day-nav-btn:hover,.water-btn:hover,.sheet-x:hover,.kai-mini-btn:hover{
+    transform:translateY(-1px);
+  }
+  .home-card:hover .home-arrow{transform:translateX(4px);}
+}
+
 /* ─── UTIL ─── */
 .px{padding:0 16px;}
 .divider{height:1px;background:var(--border);}
