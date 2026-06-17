@@ -3,7 +3,7 @@
    LZ-String, fuentes). Nunca intercepta las llamadas de Firebase/Google para que
    la sincronización y el login sigan necesitando red. */
 
-var CACHE = 'pt-cache-v11';
+var CACHE = 'pt-cache-v12';
 var APP_SHELL = [
   './',
   './index.html',
@@ -11,6 +11,7 @@ var APP_SHELL = [
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
+  './icon-1024.png',
   './icon-maskable-512.png',
   './apple-touch-icon.png',
   './NeueHaasUnicaPro-Light.ttf',
