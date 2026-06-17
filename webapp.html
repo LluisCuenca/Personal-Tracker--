@@ -1498,6 +1498,49 @@ button:active,
   <div id="planner-content"></div>
 </div>
 
+<!-- ══════════════ KAIZEN GOALS ══════════════ -->
+<div id="s-kaizen" class="screen">
+  <div class="hdr">
+    <div class="logo" style="font-size:30px;">Kaizen<br>Goals</div>
+    <div style="display:flex;gap:8px;align-items:flex-start;">
+      <div class="av av-icon" onclick="goScreen('s-home')" title="Inicio">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h4v-6h6v6h4V10"/></svg>
+      </div>
+      <div class="av" onclick="openModal('m-profile')"><span>L</span></div>
+    </div>
+  </div>
+  <div id="kaizen-content"></div>
+</div>
+
+<!-- KAIZEN: NUEVO/EDITAR OBJETIVO -->
+<div class="overlay" id="m-kaizengoal" onclick="oClose(event,'m-kaizengoal')">
+  <div class="sheet">
+    <div class="sh"></div>
+    <div class="sheet-t" id="kg-sheet-title">Nuevo objetivo</div>
+    <div style="font-size:11px;color:var(--txt2);line-height:1.5;margin-bottom:14px;">Define una meta grande de tu vida. Luego la desglosamos en micro-pasos —tú a mano o con ayuda de la IA.</div>
+    <div class="field"><label>Objetivo</label><input type="text" id="kg-title" placeholder="Ej: Aprender a escalar en roca" maxlength="120"></div>
+    <div class="field"><label>Por qué te importa (opcional)</label><input type="text" id="kg-why" placeholder="Ej: Quiero un reto físico al aire libre" maxlength="180"></div>
+    <div class="modal-btns">
+      <button class="btn btn-ghost" onclick="closeModal('m-kaizengoal')">Cancelar</button>
+      <button class="btn btn-lime full" id="kg-save-btn" onclick="saveKaizenGoal()">Crear objetivo</button>
+    </div>
+    <button id="kg-delete-btn" class="btn btn-ghost full" style="margin-top:8px;display:none;font-size:13px;color:var(--txt2);" onclick="deleteKaizenGoal()">Eliminar objetivo</button>
+  </div>
+</div>
+
+<!-- KAIZEN: NUEVO/EDITAR PASO -->
+<div class="overlay" id="m-kaizenstep" onclick="oClose(event,'m-kaizenstep')">
+  <div class="sheet">
+    <div class="sh"></div>
+    <div class="sheet-t" id="ks-sheet-title">Nuevo paso</div>
+    <div class="field"><label>Micro-paso</label><input type="text" id="ks-text" placeholder="Ej: Buscar un rocódromo cerca" maxlength="160"></div>
+    <div class="modal-btns">
+      <button class="btn btn-ghost" onclick="closeModal('m-kaizenstep')">Cancelar</button>
+      <button class="btn btn-lime full" id="ks-save-btn" onclick="saveKaizenStep()">Añadir paso</button>
+    </div>
+  </div>
+</div>
+
 <!-- PLANNER ADD CHOOSER -->
 <div class="overlay" id="m-planchoose" onclick="oClose(event,'m-planchoose')">
   <div class="sheet">
@@ -2562,10 +2605,11 @@ function sanitizeStateText(){
 }
 
 function applyDefaults(){
-  if(!S.modules)   S.modules   = {fitness:true,habits:true,planner:true};
+  if(!S.modules)   S.modules   = {fitness:true,habits:true,planner:true,kaizen:true};
   if(S.modules.planner == null) S.modules.planner = true;
-  if(!S.homeOrder || !Array.isArray(S.homeOrder)) S.homeOrder = ['fitness','habits','planner'];
-  var validHomeOrder = ['fitness','habits','planner'];
+  if(S.modules.kaizen == null) S.modules.kaizen = true;
+  if(!S.homeOrder || !Array.isArray(S.homeOrder)) S.homeOrder = ['fitness','habits','planner','kaizen'];
+  var validHomeOrder = ['fitness','habits','planner','kaizen'];
   S.homeOrder = S.homeOrder.filter(function(k){ return validHomeOrder.indexOf(k) >= 0; });
   for(var ho=0;ho<validHomeOrder.length;ho++) if(S.homeOrder.indexOf(validHomeOrder[ho]) < 0) S.homeOrder.push(validHomeOrder[ho]);
   if(!S.fitDate)   S.fitDate   = today();
@@ -2582,6 +2626,11 @@ function applyDefaults(){
   if(!Array.isArray(S.planner.activities)) S.planner.activities = [];
   if(!S.planner.weeks || typeof S.planner.weeks !== 'object') S.planner.weeks = {};
   if(!S.calendar)  S.calendar  = { enabled:false, lastSync:null };
+  if(!S.kaizen)    S.kaizen    = { goals:[] };
+  if(!Array.isArray(S.kaizen.goals)) S.kaizen.goals = [];
+  for(var kg=0;kg<S.kaizen.goals.length;kg++){
+    if(!Array.isArray(S.kaizen.goals[kg].steps)) S.kaizen.goals[kg].steps = [];
+  }
   if(!S.hiddenRecents) S.hiddenRecents = { foods:[], activities:[] };
   S.hiddenRecents.foods = Array.isArray(S.hiddenRecents.foods) ? S.hiddenRecents.foods.slice(-100) : [];
   S.hiddenRecents.activities = Array.isArray(S.hiddenRecents.activities) ? S.hiddenRecents.activities.slice(-100) : [];
@@ -2953,6 +3002,7 @@ function renderCurrentScreen(){
   else if(CS==='s-habits') renderHabits();
   else if(CS==='s-hablib') renderHabLib();
   else if(CS==='s-planner') renderPlanner();
+  else if(CS==='s-kaizen') renderKaizen();
   else if(CS==='s-fitlib') renderLib();
   else if(CS==='s-settings') renderSettings();
 }
@@ -3106,6 +3156,7 @@ function goScreen(name){
       if(Date.now() - lastCalendarSync > 5 * 60 * 1000) syncGoogleCalendar(false);
     }
   }
+  if(name==='s-kaizen'){ renderKaizen(); updateAvatars(); }
   if(name==='s-settings')renderSettings();
 }
 
@@ -3306,6 +3357,35 @@ function renderHome(){
       +'<div style="font-size:18px;font-weight:800;color:var(--lime-light);">'+weekDone+'<span style="font-size:10px;color:var(--txt3);font-weight:500;margin-left:3px;">/'+weekTotal+'</span></div></div>';
     h+='<div><div style="font-size:9px;font-weight:800;color:var(--txt2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px;">Progreso</div>'
       +'<div style="font-size:18px;font-weight:800;color:var(--lime-light);">'+weekPct+'<span style="font-size:10px;color:var(--txt3);font-weight:500;margin-left:3px;">%</span></div></div>';
+    h+='</div>';
+    h+='</div>';
+  }
+
+  // KAIZEN GOALS
+  if(S.modules.kaizen){
+    var kgoals = (S.kaizen.goals || []).filter(function(g){ return !g.archived; });
+    var kActive = 0, kDoneGoals = 0, kStepsDone = 0, kStepsTotal = 0, kPctSum = 0;
+    for(var ki=0;ki<kgoals.length;ki++){
+      var st = kgoals[ki].steps || [];
+      var dn = 0; for(var si=0;si<st.length;si++) if(st[si].done) dn++;
+      kStepsDone += dn; kStepsTotal += st.length;
+      var gp = st.length ? dn/st.length : 0;
+      kPctSum += gp;
+      if(st.length && dn === st.length) kDoneGoals++; else kActive++;
+    }
+    var kAvgPct = kgoals.length ? Math.round(kPctSum/kgoals.length*100) : 0;
+    h+='<div class="mcard" data-home-module="kaizen">';
+    h+='<div class="mc-top"><div class="mc-title">Kaizen Goals</div><button class="btn btn-lime-sm" onclick="goScreen(\'s-kaizen\')">Abrir</button></div>';
+    h+='<div style="margin-top:14px;display:flex;align-items:flex-end;gap:6px;">';
+    h+='<div class="coins-big" style="font-size:54px;letter-spacing:-2.5px;">'+kActive+'</div>';
+    h+='<div style="font-size:14px;color:var(--txt2);font-weight:600;margin-bottom:11px;">objetivos en curso</div>';
+    h+='</div>';
+    h+='<div class="thin-bar" style="margin-top:10px;height:6px;"><div class="thin-fill" style="background:var(--lime-light);width:'+kAvgPct+'%"></div></div>';
+    h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">';
+    h+='<div><div style="font-size:9px;font-weight:800;color:var(--txt2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px;">Micro-pasos</div>'
+      +'<div style="font-size:18px;font-weight:800;color:var(--lime-light);">'+kStepsDone+'<span style="font-size:10px;color:var(--txt3);font-weight:500;margin-left:3px;">/'+kStepsTotal+'</span></div></div>';
+    h+='<div><div style="font-size:9px;font-weight:800;color:var(--txt2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px;">Logrados</div>'
+      +'<div style="font-size:18px;font-weight:800;color:var(--lime-light);">'+kDoneGoals+'</div></div>';
     h+='</div>';
     h+='</div>';
   }
@@ -7216,8 +7296,8 @@ function renderSettings(){
 function renderModuleSettingsEditor(){
   var wrap = el('module-settings-editor');
   if(!wrap) return;
-  var labels = {fitness:'Nutrition + Fitness',habits:'Daily Habits',planner:'Weekly Planner'};
-  var descriptions = {fitness:'Calorías, macros y actividad',habits:'Sistema de coins y hábitos',planner:'Rutina semanal y progreso'};
+  var labels = {fitness:'Nutrition + Fitness',habits:'Daily Habits',planner:'Weekly Planner',kaizen:'Kaizen Goals'};
+  var descriptions = {fitness:'Calorías, macros y actividad',habits:'Sistema de coins y hábitos',planner:'Rutina semanal y progreso',kaizen:'Objetivos en micro-pasos'};
   var h = '';
   for(var i=0;i<S.homeOrder.length;i++){
     var key = S.homeOrder[i];
@@ -8021,6 +8101,184 @@ function maybeShowOnboarding(){
       _showObSlide(1);
     }, 600);
   }
+}
+
+/* ═══ KAIZEN GOALS ═══ */
+var _editingKaizenGoalId = null;
+var _editingKaizenStep = null;
+function _escK(s){ return String(s==null?'':s).replace(/[<>&]/g,function(c){return c==='<'?'&lt;':c==='>'?'&gt;':'&amp;';}); }
+function _kaizenGoal(id){ var g=S.kaizen.goals; for(var i=0;i<g.length;i++) if(g[i].id===id) return g[i]; return null; }
+
+function renderKaizen(){
+  var wrap = el('kaizen-content');
+  if(!wrap) return;
+  var goals = S.kaizen.goals || [];
+  var h = '<div style="padding:14px 16px 0;">';
+  h += '<button class="btn btn-lime full" style="font-size:14px;padding:14px;" onclick="openKaizenGoal()">+ Nuevo objetivo</button>';
+  h += '</div>';
+  if(!goals.length){
+    h += '<div style="padding:46px 24px;text-align:center;">'
+       + '<div style="font-size:15px;font-weight:800;margin-bottom:8px;">Empieza con una meta grande</div>'
+       + '<div style="font-size:12px;color:var(--txt2);line-height:1.65;max-width:300px;margin:0 auto;">Propón un objetivo de tu vida y desglósalo en micro-pasos. Pequeñas acciones, cada día, te acercan a lo grande. Eso es Kaizen.</div>'
+       + '</div>';
+    wrap.innerHTML = h;
+    return;
+  }
+  h += '<div style="padding:14px 16px 28px;">';
+  for(var i=0;i<goals.length;i++){
+    var g = goals[i];
+    var steps = g.steps || [];
+    var done = 0; for(var s=0;s<steps.length;s++) if(steps[s].done) done++;
+    var pct = steps.length ? Math.round(done/steps.length*100) : 0;
+    var complete = steps.length>0 && done===steps.length;
+    h += '<div class="mcard" style="margin-bottom:12px;'+(complete?'border-color:var(--lime-light);':'')+'">';
+    h += '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">';
+    h += '<div style="flex:1;min-width:0;">';
+    h += '<div style="font-size:16px;font-weight:800;letter-spacing:-.3px;line-height:1.2;">'+_escK(g.title)+'</div>';
+    if(g.why) h += '<div style="font-size:11px;color:var(--txt2);margin-top:3px;line-height:1.5;">'+_escK(g.why)+'</div>';
+    h += '</div>';
+    h += '<button onclick="openKaizenGoal(\''+g.id+'\')" style="width:30px;height:30px;border:none;background:var(--surf2);color:var(--txt2);border-radius:50%;cursor:pointer;font-size:13px;flex-shrink:0;">✎</button>';
+    h += '</div>';
+    h += '<div style="display:flex;align-items:center;gap:10px;margin-top:12px;">';
+    h += '<div class="thin-bar" style="flex:1;height:6px;"><div class="thin-fill" style="background:var(--lime-light);width:'+pct+'%"></div></div>';
+    h += '<div style="font-size:11px;font-weight:800;color:'+(complete?'var(--lime-light)':'var(--txt2)')+';white-space:nowrap;">'+done+'/'+steps.length+(complete?' ✓':'')+'</div>';
+    h += '</div>';
+    if(steps.length){
+      h += '<div style="margin-top:12px;">';
+      for(var s2=0;s2<steps.length;s2++){
+        var st = steps[s2];
+        h += '<div onclick="toggleKaizenStep(\''+g.id+'\',\''+st.id+'\')" style="display:flex;align-items:center;gap:10px;padding:9px 10px;background:'+(st.done?'rgba(186,255,57,.07)':'var(--surf)')+';border:1px solid '+(st.done?'rgba(186,255,57,.2)':'var(--surf2)')+';border-radius:10px;margin-bottom:6px;cursor:pointer;">';
+        h += '<div style="width:20px;height:20px;border-radius:50%;border:1.5px solid '+(st.done?'var(--lime-light)':'var(--surf3)')+';background:'+(st.done?'var(--lime-light)':'transparent')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+(st.done?'<span style="color:#0D0D0D;font-size:10px;font-weight:900;">✓</span>':'')+'</div>';
+        h += '<div style="flex:1;font-size:13px;font-weight:500;'+(st.done?'opacity:.55;text-decoration:line-through;':'')+'">'+_escK(st.text)+'</div>';
+        h += '<button onclick="event.stopPropagation();editKaizenStep(\''+g.id+'\',\''+st.id+'\')" style="width:24px;height:24px;border:none;background:transparent;color:var(--txt3);border-radius:50%;cursor:pointer;font-size:11px;flex-shrink:0;">✎</button>';
+        h += '<button onclick="event.stopPropagation();deleteKaizenStep(\''+g.id+'\',\''+st.id+'\')" style="width:24px;height:24px;border:none;background:transparent;color:var(--txt3);border-radius:50%;cursor:pointer;font-size:14px;flex-shrink:0;">×</button>';
+        h += '</div>';
+      }
+      h += '</div>';
+    } else {
+      h += '<div style="font-size:11px;color:var(--txt3);text-align:center;padding:14px 0;font-style:italic;">Sin pasos todavía. Añádelos a mano o pide un plan a la IA.</div>';
+    }
+    h += '<div style="display:flex;gap:8px;margin-top:10px;">';
+    h += '<button class="btn btn-ghost full" style="font-size:12px;" onclick="addKaizenStep(\''+g.id+'\')">+ Añadir paso</button>';
+    h += '<button class="btn btn-lime full" id="kai-ai-'+g.id+'" style="font-size:12px;" onclick="generateKaizenPlan(\''+g.id+'\')">✦ Crear plan con IA</button>';
+    h += '</div>';
+    h += '</div>';
+  }
+  h += '</div>';
+  wrap.innerHTML = h;
+  if(typeof attachRipplesToLimeButtons === 'function') attachRipplesToLimeButtons();
+}
+
+function openKaizenGoal(id){
+  _editingKaizenGoalId = id || null;
+  var g = id ? _kaizenGoal(id) : null;
+  el('kg-sheet-title').textContent = g ? 'Editar objetivo' : 'Nuevo objetivo';
+  el('kg-save-btn').textContent = g ? 'Guardar' : 'Crear objetivo';
+  el('kg-title').value = g ? g.title : '';
+  el('kg-why').value = g ? (g.why||'') : '';
+  el('kg-delete-btn').style.display = g ? '' : 'none';
+  openModal('m-kaizengoal');
+}
+function saveKaizenGoal(){
+  var title = cleanUserText(el('kg-title').value, 120);
+  if(!title){ toast('Escribe el objetivo', 'error'); return; }
+  var why = cleanUserText(el('kg-why').value, 180);
+  if(_editingKaizenGoalId){
+    var g = _kaizenGoal(_editingKaizenGoalId);
+    if(g){ g.title = title; g.why = why; }
+    toast('Objetivo actualizado','success');
+  } else {
+    S.kaizen.goals.unshift({ id:uid(), title:title, why:why, createdAt:Date.now(), steps:[], archived:false });
+    toast('Objetivo creado','success');
+  }
+  _editingKaizenGoalId = null;
+  save();
+  closeModal('m-kaizengoal');
+  renderKaizen();
+}
+function deleteKaizenGoal(){
+  if(!_editingKaizenGoalId) return;
+  if(!confirm('¿Eliminar este objetivo y todos sus pasos?')){ return; }
+  S.kaizen.goals = S.kaizen.goals.filter(function(g){ return g.id !== _editingKaizenGoalId; });
+  _editingKaizenGoalId = null;
+  save();
+  closeModal('m-kaizengoal');
+  renderKaizen();
+  toast('Objetivo eliminado','info');
+}
+function addKaizenStep(goalId){
+  _editingKaizenStep = { goalId:goalId, stepId:null };
+  el('ks-sheet-title').textContent = 'Nuevo paso';
+  el('ks-save-btn').textContent = 'Añadir paso';
+  el('ks-text').value = '';
+  openModal('m-kaizenstep');
+}
+function editKaizenStep(goalId, stepId){
+  var g = _kaizenGoal(goalId); if(!g) return;
+  var st = null; for(var i=0;i<g.steps.length;i++) if(g.steps[i].id===stepId){ st=g.steps[i]; break; }
+  if(!st) return;
+  _editingKaizenStep = { goalId:goalId, stepId:stepId };
+  el('ks-sheet-title').textContent = 'Editar paso';
+  el('ks-save-btn').textContent = 'Guardar';
+  el('ks-text').value = st.text;
+  openModal('m-kaizenstep');
+}
+function saveKaizenStep(){
+  if(!_editingKaizenStep) return;
+  var text = cleanUserText(el('ks-text').value, 160);
+  if(!text){ toast('Escribe el paso', 'error'); return; }
+  var g = _kaizenGoal(_editingKaizenStep.goalId); if(!g){ closeModal('m-kaizenstep'); return; }
+  if(_editingKaizenStep.stepId){
+    for(var i=0;i<g.steps.length;i++) if(g.steps[i].id===_editingKaizenStep.stepId){ g.steps[i].text = text; break; }
+  } else {
+    g.steps.push({ id:uid(), text:text, done:false });
+  }
+  _editingKaizenStep = null;
+  save();
+  closeModal('m-kaizenstep');
+  renderKaizen();
+}
+function toggleKaizenStep(goalId, stepId){
+  var g = _kaizenGoal(goalId); if(!g) return;
+  var nowDone = false;
+  for(var i=0;i<g.steps.length;i++) if(g.steps[i].id===stepId){ g.steps[i].done = !g.steps[i].done; nowDone = g.steps[i].done; break; }
+  haptic(nowDone ? 'success' : 'light');
+  save();
+  renderKaizen();
+}
+function deleteKaizenStep(goalId, stepId){
+  var g = _kaizenGoal(goalId); if(!g) return;
+  g.steps = g.steps.filter(function(s){ return s.id !== stepId; });
+  save();
+  renderKaizen();
+  haptic('light');
+}
+function generateKaizenPlan(goalId){
+  var g = _kaizenGoal(goalId); if(!g) return;
+  if(!GEMINI_ENABLED){
+    toast('Activa la IA (Gemini) en Ajustes para generar planes', 'info');
+    return;
+  }
+  var prompt = 'Eres un coach que aplica el método Kaizen (mejora a base de micro-pasos pequeños y accionables).\n'
+    + 'Objetivo del usuario: "' + g.title + '".'
+    + (g.why ? ' Motivación: "' + g.why + '".' : '') + '\n\n'
+    + 'Genera entre 5 y 8 micro-pasos concretos, en orden lógico, que lleven del punto cero al objetivo. '
+    + 'Cada paso debe ser una acción pequeña, clara y realizable (máx 12 palabras), empezando por un verbo.\n'
+    + 'Responde SÓLO con JSON válido sin markdown: {"steps": ["paso 1", "paso 2", ...]}';
+  callGeminiAPI(prompt, 'kai-ai-'+goalId, function(r){
+    var steps = r && r.steps;
+    if(!steps || !steps.length){ toast('La IA no devolvió pasos', 'error'); return; }
+    var added = 0;
+    for(var i=0;i<steps.length && i<12;i++){
+      var t = cleanUserText(String(steps[i]), 160);
+      if(t){ g.steps.push({ id:uid(), text:t, done:false }); added++; }
+    }
+    save();
+    renderKaizen();
+    toast('✓ '+added+' pasos generados por IA', 'success');
+  }, function(){
+    toast('IA no disponible. Revisa Firebase AI Logic o añade los pasos a mano.', 'error');
+  });
 }
 
 /* ═══ MOTION HELPERS ═══ */
