@@ -3338,10 +3338,6 @@ function goScreen(name){
     plannerVisibleWeeks = 1;
     renderPlanner();
     updateAvatars();
-    if(S.calendar && S.calendar.enabled && _calendarAccessToken){
-      var lastCalendarSync = S.calendar.lastSync ? new Date(S.calendar.lastSync).getTime() : 0;
-      if(Date.now() - lastCalendarSync > 5 * 60 * 1000) syncGoogleCalendar(false);
-    }
   }
   if(name==='s-kaizen'){ renderKaizen(); updateAvatars(); }
   if(name==='s-settings')renderSettings();
@@ -5286,9 +5282,9 @@ function syncGoogleCalendar(showToast){
   });
 }
 function syncCalendarAfterPlannerChange(){
-  // Con refresco silencioso, syncGoogleCalendar renueva el token solo si caducó.
-  // El cambio queda marcado (calendarDirty) y sube en la siguiente sync válida.
-  if(S.calendar && S.calendar.enabled) syncGoogleCalendar(false);
+  // Evita popups externos en mitad del Planner; los cambios quedan marcados
+  // y se suben automáticamente si hay token válido, o desde Ajustes al reconectar.
+  if(S.calendar && S.calendar.enabled && calendarTokenAvailable()) syncGoogleCalendar(false);
 }
 function deleteCalendarEventForActivity(act){
   if(!act || !act.googleEventId || !_calendarAccessToken) return;
@@ -5412,9 +5408,8 @@ function renderPlanner(){
 
   // Section header
   h += '<div style="padding:18px 16px 8px;display:flex;align-items:center;justify-content:space-between;">';
-  h += '<div class="list-section-lbl" style="margin:0;">Tu semana</div>';
+  h += '<div class="list-section-lbl emph" style="margin:0;">Tu semana</div>';
   h += '<div style="display:flex;gap:6px;">';
-  if(S.calendar && S.calendar.enabled) h += '<button class="btn btn-ghost" style="padding:8px 12px;font-size:12px;" onclick="syncGoogleCalendar(true)">↻ Calendar</button>';
   h += '<button class="btn btn-lime-sm" onclick="openModal(\'m-planchoose\')">+ Añadir actividad</button></div>';
   h += '</div>';
 
@@ -5442,12 +5437,9 @@ function renderPlanner(){
          + '">';
       // Day header
       h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:'+(ds_.acts.length>0?'10px':'0')+';">';
-      h += '<div style="display:flex;align-items:center;gap:8px;">';
-      h += '<div style="min-width:42px;height:42px;border-radius:12px;background:'+(isTodayD?'var(--lime-light)':'var(--surf)')+';color:'+(isTodayD?'#0D0D0D':'var(--txt)')+';display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;box-shadow:'+(isTodayD?'0 4px 12px rgba(186,255,57,.18)':'inset 0 0 0 1px var(--border)')+';">'
-        + '<span style="font-size:18px;font-weight:900;letter-spacing:-.5px;">'+ds_.date.getDate()+'</span>'
-        + '<span style="font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-top:3px;opacity:.68;">'+MS[ds_.date.getMonth()].slice(0,3)+'</span></div>';
-      h += '<div><div style="font-size:14px;font-weight:800;color:'+(isTodayD?'var(--lime-light)':'var(--txt)')+';">'+dayName+'</div>'
-        + '<div style="font-size:10px;color:'+(isTodayD?'var(--lime-light)':'var(--txt3)')+';font-weight:700;margin-top:2px;">'+(isTodayD?'Hoy':'Semana '+getWeekKey(ds_.date).split('-W')[1])+'</div></div>';
+      h += '<div style="display:flex;align-items:baseline;gap:7px;min-width:0;">';
+      h += '<div style="font-size:18px;font-weight:900;letter-spacing:-.45px;color:'+(isTodayD?'var(--lime-light)':'var(--txt)')+';text-transform:capitalize;">'+dayName+' '+ds_.date.getDate()+'</div>';
+      h += '<div style="font-size:10px;color:'+(isTodayD?'var(--lime-light)':'var(--txt3)')+';font-weight:800;text-transform:uppercase;letter-spacing:.07em;">'+(isTodayD?'Hoy':MS[ds_.date.getMonth()].slice(0,3))+'</div>';
       h += '</div>';
       if(ds_.total > 0){
         h += '<div style="font-size:11px;font-weight:700;color:var(--lime-light);">'+ds_.done+'/'+ds_.total+'</div>';
@@ -5464,19 +5456,18 @@ function renderPlanner(){
           var catLbl = act.calendarImported ? 'Google Calendar' : (PLAN_CATS[act.category] || PLAN_CATS.other).label;
           var catColor = act.calendarImported ? '#4AB8FF' : (PLAN_CATS[act.category] || PLAN_CATS.other).color;
           var catDot = '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:'+catColor+';margin-right:5px;vertical-align:middle;"></span>';
-          h += '<div onclick="togglePlanCompleted(\''+act.id+'\',\''+ds_.dStr+'\')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:'+(doneA?'rgba(186,255,57,.08)':'var(--surf)')+';border:1px solid '+(doneA?'rgba(186,255,57,.25)':'var(--surf2)')+';border-radius:11px;margin-bottom:6px;cursor:pointer;transition:all .18s;">';
+          h += '<div onclick="editPlanActivity(\''+act.id+'\',\''+ds_.dStr+'\')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:'+(doneA?'rgba(186,255,57,.08)':'var(--surf)')+';border:1px solid '+(doneA?'rgba(186,255,57,.25)':'var(--surf2)')+';border-radius:11px;margin-bottom:6px;cursor:pointer;transition:all .18s;">';
           // Checkbox
-          h += '<div style="width:20px;height:20px;border-radius:50%;border:1.5px solid '+(doneA?'var(--lime-light)':'var(--surf3)')+';background:'+(doneA?'var(--lime-light)':'transparent')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .22s cubic-bezier(.34,1.56,.64,1);'+(doneA?'transform:scale(1.05);':'')+'">'
+          h += '<div onclick="event.stopPropagation();togglePlanCompleted(\''+act.id+'\',\''+ds_.dStr+'\')" style="width:20px;height:20px;border-radius:50%;border:1.5px solid '+(doneA?'var(--lime-light)':'var(--surf3)')+';background:'+(doneA?'var(--lime-light)':'transparent')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .22s cubic-bezier(.34,1.56,.64,1);'+(doneA?'transform:scale(1.05);':'')+'">'
               + (doneA?'<span style="color:#0D0D0D;font-size:10px;font-weight:900;">✓</span>':'')
               + '</div>';
           h += '<div style="flex:1;">';
-          h += '<div style="font-size:13px;font-weight:700;'+(doneA?'opacity:.6;text-decoration:line-through;':'')+'">'+act.name+'</div>';
+          h += '<div style="font-size:14px;font-weight:800;letter-spacing:-.15px;">'+act.name+'</div>';
           var timeLbl = act.allDay ? 'Todo el día' : (act.start+' – '+act.end);
           if(act.endDate && act.endDate !== act.oneOffDate) timeLbl += ' · varios días';
           h += '<div style="font-size:11px;color:var(--txt2);margin-top:1px;">'+catDot+timeLbl+' · '+catLbl+'</div>';
           h += '</div>';
-          // Edit button
-          h += '<button onclick="event.stopPropagation();editPlanActivity(\''+act.id+'\',\''+ds_.dStr+'\')" style="width:28px;height:28px;border:none;background:var(--surf2);color:var(--txt2);border-radius:50%;cursor:pointer;font-size:12px;font-family:Inter;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✎</button>';
+          h += '<div style="font-size:18px;color:var(--txt3);font-weight:900;line-height:1;flex-shrink:0;">›</div>';
           h += '</div>';
         }
       }
@@ -6152,11 +6143,21 @@ function renderHabWeek(){
   var avgColor = avg > 0 ? 'var(--lime-light)' : avg < 0 ? 'var(--txt2)' : 'var(--txt2)';
   var streak = calcStreak();
 
+  h+='<div class="coins-banner" style="margin-top:14px;">';
+  h+='<div class="coins-row"><div>';
+  h+='<div class="coins-big'+(avg<0?' neg':'')+'">'+(daysWithData>0?(avg>0?'+':'')+avg:'—')+'<span class="coins-unit"> pts/día</span></div>';
+  h+='<div class="coins-meta">media semanal</div>';
+  h+='</div><div class="coins-side" style="text-align:right;">';
+  h+='<div class="ce" style="color:var(--lime-light);">'+daysWithData+'/7 días activos</div>';
+  h+='<div class="ce neg" style="margin-top:4px;">Total '+(totPts>0?'+':'')+totPts+' pts</div>';
+  h+='</div></div>';
+  h+='</div>';
+
   h+='<div class="stat-strip">';
-  h+='<div class="stat-box"><div class="stat-n" style="color:'+avgColor+';">'+(daysWithData>0?(avg>0?'+':'')+avg:'—')+'<span class="stat-u"> pts</span></div><div class="stat-l">Media diaria</div></div>';
   h+=sBox(daysWithData>0?(best>0?'+'+best:best):'—','pts','Mejor día');
   h+=sBox(daysWithData,'/ 7','Días activos');
   h+=sBox(streak,'día'+(streak!==1?'s':''),'Racha');
+  h+=sBox(daysWithData>0?(totPts>0?'+'+totPts:totPts):'—','pts','Total');
   h+='</div>';
 
   // Summary card
@@ -6232,11 +6233,21 @@ function renderHabMonth(){
   var avgColor = avg > 0 ? 'var(--lime-light)' : avg < 0 ? 'var(--txt2)' : 'var(--txt2)';
   var streak = calcStreak();
 
+  h+='<div class="coins-banner" style="margin-top:14px;">';
+  h+='<div class="coins-row"><div>';
+  h+='<div class="coins-big'+(avg<0?' neg':'')+'">'+(daysWithData>0?(avg>0?'+':'')+avg:'—')+'<span class="coins-unit"> pts/día</span></div>';
+  h+='<div class="coins-meta">media mensual</div>';
+  h+='</div><div class="coins-side" style="text-align:right;">';
+  h+='<div class="ce" style="color:var(--lime-light);">'+daysWithData+'/'+dim+' días activos</div>';
+  h+='<div class="ce neg" style="margin-top:4px;">Total '+(totPts>0?'+':'')+totPts+' pts</div>';
+  h+='</div></div>';
+  h+='</div>';
+
   h+='<div class="stat-strip" style="margin-top:10px;">';
-  h+='<div class="stat-box"><div class="stat-n" style="color:'+avgColor+';">'+(daysWithData>0?(avg>0?'+':'')+avg:'—')+'<span class="stat-u"> pts</span></div><div class="stat-l">Media diaria</div></div>';
   h+=sBox(daysWithData>0?(best>0?'+'+best:best):'—','pts','Mejor día');
   h+=sBox(daysWithData,'/ '+dim,'Días activos');
   h+=sBox(streak,'día'+(streak!==1?'s':''),'Racha');
+  h+=sBox(daysWithData>0?(totPts>0?'+'+totPts:totPts):'—','pts','Total');
   h+='</div>';
 
   // Summary
@@ -6568,7 +6579,7 @@ function saveHabit(){
     });
     if(!S.habDays[day]) S.habDays[day] = {done:[]};
     if(S.habDays[day].done.indexOf(habitId) < 0) S.habDays[day].done.push(habitId);
-    toast(saveToLibrary ? 'Hábito añadido y guardado' : 'Hábito añadido a hoy','success');
+    toast('Hábito añadido a hoy','success');
   }
   save();
   closeModal('m-newhabit');
@@ -8441,10 +8452,13 @@ function renderKaizen(){
   h += '</div></div>';
   h += '<div class="coins-streak" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">'+gStepsDone+' de '+gStepsTotal+' micro-pasos completados</div>';
   h += '</div>';
-  // Botones bajo el panel
-  h += '<div style="display:flex;gap:8px;padding:12px 16px 0;">';
-  h += '<button class="btn btn-ghost" style="font-size:12.5px;padding:13px 14px;white-space:nowrap;" onclick="openKaizenCats()">Gestionar categorías</button>';
-  h += '<button class="btn btn-lime full" style="font-size:13px;padding:13px;" onclick="openKaizenGoal()">+ Nuevo objetivo</button>';
+  // Header bajo el panel
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px 16px 0;">';
+  h += '<div class="list-section-lbl emph" style="margin:0;">Goals</div>';
+  h += '<div style="display:flex;gap:8px;align-items:center;">';
+  h += '<button class="btn btn-ghost" style="font-size:11.5px;padding:10px 12px;white-space:nowrap;" onclick="openKaizenCats()">Categorías</button>';
+  h += '<button class="btn btn-lime" style="font-size:12px;padding:10px 13px;white-space:nowrap;" onclick="openKaizenGoal()">+ Objetivo</button>';
+  h += '</div>';
   h += '</div>';
 
   if(!goals.length){
@@ -9035,11 +9049,7 @@ if(!S.habDate || S.habDate < today()) S.habDate=today();
 goScreen('s-home');
 updateAvatars();
 maybeShowOnboarding();
-// Si la sincronización de Calendar está activada, sincroniza al arrancar.
-// ensureCalendarToken renovará el token en silencio si hiciera falta.
-if(S.calendar && S.calendar.enabled){
-  setTimeout(function(){ syncGoogleCalendar(false); }, 1800);
-}
+// Calendar se sincroniza desde Ajustes o tras cambios del Planner; evitamos ventanas externas al abrir la app.
 // Service worker (soporte offline) — sólo sobre http(s), no en file://
 if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   window.addEventListener('load', function(){
