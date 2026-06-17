@@ -1519,7 +1519,7 @@ button:active,
     <div class="sheet-t" id="kg-sheet-title">Nuevo objetivo</div>
     <div style="font-size:11px;color:var(--txt2);line-height:1.5;margin-bottom:14px;">Define una meta grande de tu vida. Luego la desglosamos en micro-pasos —tú a mano o con ayuda de la IA.</div>
     <div class="field"><label>Objetivo</label><input type="text" id="kg-title" placeholder="Ej: Aprender a escalar en roca" maxlength="120"></div>
-    <div class="field"><label>Por qué te importa (opcional)</label><input type="text" id="kg-why" placeholder="Ej: Quiero un reto físico al aire libre" maxlength="180"></div>
+    <div class="field"><label>Descripción (opcional)</label><input type="text" id="kg-why" placeholder="Ej: Quiero un reto físico al aire libre" maxlength="180"></div>
     <div class="modal-btns">
       <button class="btn btn-ghost" onclick="closeModal('m-kaizengoal')">Cancelar</button>
       <button class="btn btn-lime full" id="kg-save-btn" onclick="saveKaizenGoal()">Crear objetivo</button>
@@ -8107,6 +8107,7 @@ function maybeShowOnboarding(){
 var _editingKaizenGoalId = null;
 var _editingKaizenStep = null;
 var _kaizenOpen = {}; // estado plegado/desplegado por objetivo (en memoria)
+var _kaizenReorder = false; // modo reordenar objetivos
 function _escK(s){ return String(s==null?'':s).replace(/[<>&]/g,function(c){return c==='<'?'&lt;':c==='>'?'&gt;':'&amp;';}); }
 function _kaizenGoal(id){ var g=S.kaizen.goals; for(var i=0;i<g.length;i++) if(g[i].id===id) return g[i]; return null; }
 
@@ -8114,11 +8115,34 @@ function renderKaizen(){
   var wrap = el('kaizen-content');
   if(!wrap) return;
   var goals = S.kaizen.goals || [];
-  var h = '<div style="padding:14px 16px 0;">';
-  h += '<button class="btn btn-lime full" style="font-size:14px;padding:14px;" onclick="openKaizenGoal()">+ Nuevo objetivo</button>';
+  var h = '';
+  // ── Panel resumen (gradiente verde) ──
+  var gStepsDone=0, gStepsTotal=0, gActive=0, gDone=0;
+  for(var gi=0;gi<goals.length;gi++){
+    var stp = goals[gi].steps || [];
+    var dd=0; for(var di=0;di<stp.length;di++) if(stp[di].done) dd++;
+    gStepsDone+=dd; gStepsTotal+=stp.length;
+    if(stp.length && dd===stp.length) gDone++; else gActive++;
+  }
+  var gPct = gStepsTotal ? Math.round(gStepsDone/gStepsTotal*100) : 0;
+  h += '<div class="coins-banner">';
+  h += '<div class="coins-row"><div>';
+  h += '<div class="coins-big">'+gPct+'<span class="coins-unit">%</span></div>';
+  h += '<div class="coins-meta">progreso global</div>';
+  h += '</div><div class="coins-side" style="text-align:right;">';
+  h += '<div class="ce" style="color:var(--lime-light);">'+gActive+' en marcha</div>';
+  h += '<div class="ce" style="margin-top:5px;color:var(--txt);">'+gDone+' logrados</div>';
+  h += '</div></div>';
+  h += '<div class="coins-streak" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">'+gStepsDone+' de '+gStepsTotal+' micro-pasos completados</div>';
   h += '</div>';
+  // Botones bajo el panel
+  h += '<div style="display:flex;gap:8px;padding:12px 16px 0;">';
+  h += '<button class="btn btn-lime full" style="font-size:13px;padding:13px;" onclick="openKaizenGoal()">+ Nuevo objetivo</button>';
+  if(goals.length>1) h += '<button class="btn btn-ghost" style="font-size:13px;padding:13px 16px;'+(_kaizenReorder?'border-color:var(--lime-light);color:var(--lime-light);':'')+'" onclick="toggleKaizenReorder()">'+(_kaizenReorder?'✓ Hecho':'⇅ Orden')+'</button>';
+  h += '</div>';
+
   if(!goals.length){
-    h += '<div style="padding:46px 24px;text-align:center;">'
+    h += '<div style="padding:36px 24px;text-align:center;">'
        + '<div style="font-size:15px;font-weight:800;margin-bottom:8px;">Empieza con una meta grande</div>'
        + '<div style="font-size:12px;color:var(--txt2);line-height:1.65;max-width:300px;margin:0 auto;">Propón un objetivo de tu vida y desglósalo en micro-pasos. Pequeñas acciones, cada día, te acercan a lo grande. Eso es Kaizen.</div>'
        + '</div>';
@@ -8132,24 +8156,30 @@ function renderKaizen(){
     var done = 0; for(var s=0;s<steps.length;s++) if(steps[s].done) done++;
     var pct = steps.length ? Math.round(done/steps.length*100) : 0;
     var complete = steps.length>0 && done===steps.length;
-    var open = !!_kaizenOpen[g.id];
-    var pctColor = complete ? 'var(--lime-light)' : (pct>0 ? 'var(--lime-light)' : 'var(--txt3)');
+    var open = !_kaizenReorder && !!_kaizenOpen[g.id];
+    var pctColor = pct>0 ? 'var(--lime-light)' : 'var(--txt3)';
     h += '<div class="mcard" style="margin-bottom:12px;'+(complete?'border-color:var(--lime-light);':'')+'">';
-    // Cabecera (clic para plegar/desplegar)
-    h += '<div onclick="toggleKaizenOpen(\''+g.id+'\')" style="display:flex;align-items:center;gap:12px;cursor:pointer;">';
+    // Cabecera: % grande a la izquierda + chevron debajo · título/descripción a la derecha
+    var hdrClick = _kaizenReorder ? '' : 'onclick="toggleKaizenOpen(\''+g.id+'\')"';
+    h += '<div '+hdrClick+' style="display:flex;align-items:center;gap:14px;'+(_kaizenReorder?'':'cursor:pointer;')+'">';
+    h += '<div style="flex-shrink:0;width:62px;text-align:center;line-height:1;">';
+    h += '<div style="font-size:34px;font-weight:900;letter-spacing:-2px;color:'+pctColor+';">'+pct+'<span style="font-size:15px;font-weight:800;">%</span></div>';
+    if(_kaizenReorder){
+      h += '<div style="display:flex;gap:4px;justify-content:center;margin-top:8px;">'
+         + '<button onclick="event.stopPropagation();moveKaizenGoal(\''+g.id+'\',-1)" '+(i===0?'disabled':'')+' style="width:26px;height:26px;border:none;background:var(--surf2);color:var(--txt);border-radius:7px;cursor:pointer;font-size:13px;'+(i===0?'opacity:.35;':'')+'">↑</button>'
+         + '<button onclick="event.stopPropagation();moveKaizenGoal(\''+g.id+'\',1)" '+(i===goals.length-1?'disabled':'')+' style="width:26px;height:26px;border:none;background:var(--surf2);color:var(--txt);border-radius:7px;cursor:pointer;font-size:13px;'+(i===goals.length-1?'opacity:.35;':'')+'">↓</button>'
+         + '</div>';
+    } else {
+      h += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--txt3)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="margin-top:7px;transition:transform .2s;transform:rotate('+(open?'180deg':'0deg')+');"><path d="M6 9l6 6 6-6"/></svg>';
+    }
+    h += '</div>';
     h += '<div style="flex:1;min-width:0;">';
-    h += '<div style="font-size:16px;font-weight:800;letter-spacing:-.3px;line-height:1.2;">'+_escK(g.title)+'</div>';
-    if(g.why) h += '<div style="font-size:11px;color:var(--txt2);margin-top:3px;line-height:1.5;">'+_escK(g.why)+'</div>';
+    h += '<div style="font-size:16px;font-weight:800;letter-spacing:-.3px;line-height:1.25;">'+_escK(g.title)+'</div>';
+    if(g.why) h += '<div style="font-size:12px;color:var(--txt2);margin-top:4px;line-height:1.5;">'+_escK(g.why)+'</div>';
+    h += '<div style="font-size:10px;font-weight:700;color:var(--txt3);margin-top:6px;text-transform:uppercase;letter-spacing:.06em;">'+done+'/'+steps.length+' pasos'+(complete?' · logrado':'')+'</div>';
     h += '</div>';
-    // Número grande de progreso (%)
-    h += '<div style="text-align:right;flex-shrink:0;line-height:1;">';
-    h += '<div style="font-size:30px;font-weight:900;letter-spacing:-1.5px;color:'+pctColor+';">'+pct+'<span style="font-size:14px;font-weight:800;">%</span></div>';
-    h += '<div style="font-size:10px;font-weight:700;color:var(--txt3);margin-top:2px;">'+done+'/'+steps.length+' pasos</div>';
     h += '</div>';
-    // Chevron
-    h += '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--txt3)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;transition:transform .2s;transform:rotate('+(open?'180deg':'0deg')+');"><path d="M6 9l6 6 6-6"/></svg>';
-    h += '</div>';
-    // Barra de progreso (siempre visible)
+    // Barra de progreso
     h += '<div class="thin-bar" style="height:6px;margin-top:12px;"><div class="thin-fill" style="background:var(--lime-light);width:'+pct+'%"></div></div>';
     // Contenido desplegable
     if(open){
@@ -8157,11 +8187,16 @@ function renderKaizen(){
         h += '<div style="margin-top:14px;">';
         for(var s2=0;s2<steps.length;s2++){
           var st = steps[s2];
-          h += '<div onclick="toggleKaizenStep(\''+g.id+'\',\''+st.id+'\')" style="display:flex;align-items:center;gap:10px;padding:9px 10px;background:'+(st.done?'rgba(186,255,57,.07)':'var(--surf)')+';border:1px solid '+(st.done?'rgba(186,255,57,.2)':'var(--surf2)')+';border-radius:10px;margin-bottom:6px;cursor:pointer;">';
-          h += '<div style="width:20px;height:20px;border-radius:50%;border:1.5px solid '+(st.done?'var(--lime-light)':'var(--surf3)')+';background:'+(st.done?'var(--lime-light)':'transparent')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+(st.done?'<span style="color:#0D0D0D;font-size:10px;font-weight:900;">✓</span>':'')+'</div>';
-          h += '<div style="flex:1;font-size:13px;font-weight:500;'+(st.done?'opacity:.55;text-decoration:line-through;':'')+'">'+_escK(st.text)+'</div>';
-          h += '<button onclick="event.stopPropagation();editKaizenStep(\''+g.id+'\',\''+st.id+'\')" style="width:24px;height:24px;border:none;background:transparent;color:var(--txt3);border-radius:50%;cursor:pointer;font-size:11px;flex-shrink:0;">✎</button>';
-          h += '<button onclick="event.stopPropagation();deleteKaizenStep(\''+g.id+'\',\''+st.id+'\')" style="width:24px;height:24px;border:none;background:transparent;color:var(--txt3);border-radius:50%;cursor:pointer;font-size:14px;flex-shrink:0;">×</button>';
+          var txtColor = st.done ? 'var(--lime-light)' : 'var(--txt)';
+          h += '<div style="display:flex;align-items:center;gap:8px;padding:9px 10px;background:'+(st.done?'rgba(186,255,57,.07)':'var(--surf)')+';border:1px solid '+(st.done?'rgba(186,255,57,.25)':'var(--surf2)')+';border-radius:10px;margin-bottom:6px;">';
+          h += '<div onclick="toggleKaizenStep(\''+g.id+'\',\''+st.id+'\')" style="width:20px;height:20px;border-radius:50%;border:1.5px solid '+(st.done?'var(--lime-light)':'var(--surf3)')+';background:'+(st.done?'var(--lime-light)':'transparent')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;">'+(st.done?'<span style="color:#0D0D0D;font-size:10px;font-weight:900;">✓</span>':'')+'</div>';
+          h += '<div onclick="toggleKaizenStep(\''+g.id+'\',\''+st.id+'\')" style="flex:1;font-size:13px;font-weight:500;color:'+txtColor+';cursor:pointer;">'+_escK(st.text)+'</div>';
+          if(steps.length>1){
+            h += '<button onclick="event.stopPropagation();moveKaizenStep(\''+g.id+'\',\''+st.id+'\',-1)" '+(s2===0?'disabled':'')+' style="width:20px;height:24px;border:none;background:transparent;color:var(--txt3);cursor:pointer;font-size:11px;flex-shrink:0;'+(s2===0?'opacity:.3;':'')+'">↑</button>';
+            h += '<button onclick="event.stopPropagation();moveKaizenStep(\''+g.id+'\',\''+st.id+'\',1)" '+(s2===steps.length-1?'disabled':'')+' style="width:20px;height:24px;border:none;background:transparent;color:var(--txt3);cursor:pointer;font-size:11px;flex-shrink:0;'+(s2===steps.length-1?'opacity:.3;':'')+'">↓</button>';
+          }
+          h += '<button onclick="event.stopPropagation();editKaizenStep(\''+g.id+'\',\''+st.id+'\')" style="width:22px;height:24px;border:none;background:transparent;color:var(--txt3);cursor:pointer;font-size:11px;flex-shrink:0;">✎</button>';
+          h += '<button onclick="event.stopPropagation();deleteKaizenStep(\''+g.id+'\',\''+st.id+'\')" style="width:22px;height:24px;border:none;background:transparent;color:var(--txt3);cursor:pointer;font-size:14px;flex-shrink:0;">×</button>';
           h += '</div>';
         }
         h += '</div>';
@@ -8170,7 +8205,7 @@ function renderKaizen(){
       }
       h += '<div style="display:flex;gap:8px;margin-top:10px;">';
       h += '<button class="btn btn-ghost full" style="font-size:12px;" onclick="addKaizenStep(\''+g.id+'\')">+ Añadir paso</button>';
-      h += '<button class="btn btn-lime full" id="kai-ai-'+g.id+'" style="font-size:12px;" onclick="generateKaizenPlan(\''+g.id+'\')">✦ Crear plan con IA</button>';
+      h += '<button class="btn btn-lime full" id="kai-ai-'+g.id+'" style="font-size:12px;" onclick="generateKaizenPlan(\''+g.id+'\')">'+(steps.length?'✦ Repensar plan':'✦ Crear plan con IA')+'</button>';
       h += '</div>';
       h += '<button class="btn btn-ghost full" style="font-size:12px;margin-top:8px;color:var(--txt2);" onclick="openKaizenGoal(\''+g.id+'\')">Editar objetivo</button>';
     }
@@ -8183,6 +8218,31 @@ function renderKaizen(){
 function toggleKaizenOpen(id){
   _kaizenOpen[id] = !_kaizenOpen[id];
   haptic('light');
+  renderKaizen();
+}
+function toggleKaizenReorder(){
+  _kaizenReorder = !_kaizenReorder;
+  haptic('light');
+  renderKaizen();
+}
+function moveKaizenGoal(id, dir){
+  var arr = S.kaizen.goals;
+  var idx = -1; for(var i=0;i<arr.length;i++) if(arr[i].id===id){ idx=i; break; }
+  var ni = idx + dir;
+  if(idx<0 || ni<0 || ni>=arr.length) return;
+  var tmp = arr[idx]; arr[idx]=arr[ni]; arr[ni]=tmp;
+  haptic('light');
+  save();
+  renderKaizen();
+}
+function moveKaizenStep(goalId, stepId, dir){
+  var g = _kaizenGoal(goalId); if(!g) return;
+  var idx = -1; for(var i=0;i<g.steps.length;i++) if(g.steps[i].id===stepId){ idx=i; break; }
+  var ni = idx + dir;
+  if(idx<0 || ni<0 || ni>=g.steps.length) return;
+  var tmp = g.steps[idx]; g.steps[idx]=g.steps[ni]; g.steps[ni]=tmp;
+  haptic('light');
+  save();
   renderKaizen();
 }
 
@@ -8278,23 +8338,27 @@ function generateKaizenPlan(goalId){
     toast('Activa la IA (Gemini) en Ajustes para generar planes', 'info');
     return;
   }
+  var hadSteps = (g.steps && g.steps.length > 0);
+  if(hadSteps && !confirm('¿Reemplazar los pasos actuales por un plan nuevo de la IA? Se perderán los que tengas.')) return;
   var prompt = 'Eres un coach que aplica el método Kaizen (mejora a base de micro-pasos pequeños y accionables).\n'
     + 'Objetivo del usuario: "' + g.title + '".'
-    + (g.why ? ' Motivación: "' + g.why + '".' : '') + '\n\n'
+    + (g.why ? ' Descripción: "' + g.why + '".' : '') + '\n\n'
     + 'Genera entre 5 y 8 micro-pasos concretos, en orden lógico, que lleven del punto cero al objetivo. '
     + 'Cada paso debe ser una acción pequeña, clara y realizable (máx 12 palabras), empezando por un verbo.\n'
     + 'Responde SÓLO con JSON válido sin markdown: {"steps": ["paso 1", "paso 2", ...]}';
   callGeminiAPI(prompt, 'kai-ai-'+goalId, function(r){
     var steps = r && r.steps;
     if(!steps || !steps.length){ toast('La IA no devolvió pasos', 'error'); return; }
-    var added = 0;
+    var fresh = [];
     for(var i=0;i<steps.length && i<12;i++){
       var t = cleanUserText(String(steps[i]), 160);
-      if(t){ g.steps.push({ id:uid(), text:t, done:false }); added++; }
+      if(t) fresh.push({ id:uid(), text:t, done:false });
     }
+    g.steps = fresh; // "repensar" = sustituye el plan
+    _kaizenOpen[g.id] = true;
     save();
     renderKaizen();
-    toast('✓ '+added+' pasos generados por IA', 'success');
+    toast(hadSteps ? '✓ Plan replanteado por IA' : '✓ '+fresh.length+' pasos generados por IA', 'success');
   }, function(){
     toast('IA no disponible. Revisa Firebase AI Logic o añade los pasos a mano.', 'error');
   });
