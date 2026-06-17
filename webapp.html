@@ -1298,6 +1298,9 @@ button:active,
 .kai-cat-count{font-size:10px;font-weight:800;color:var(--txt2);}
 .kai-cat-actions{display:flex;gap:5px;}
 .kai-category-body{padding:10px;}
+.kp-slider{-webkit-appearance:none;appearance:none;width:100%;height:8px;border-radius:99px;background:var(--surf2);outline:none;margin:0;}
+.kp-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:30px;height:30px;border-radius:50%;background:var(--lime-light);cursor:pointer;box-shadow:0 3px 12px rgba(186,255,57,.45);border:3px solid var(--bg2,#0F0F0F);}
+.kp-slider::-moz-range-thumb{width:28px;height:28px;border:none;border-radius:50%;background:var(--lime-light);cursor:pointer;box-shadow:0 3px 12px rgba(186,255,57,.45);}
 
 /* Frequency buttons */
 .freq-btn{
@@ -1668,9 +1671,12 @@ button:active,
     <div class="sh"></div>
     <div class="sheet-t">Plan con IA</div>
     <div style="font-size:12px;color:var(--txt2);line-height:1.55;margin-bottom:16px;" id="kp-intro">¿En cuántos micro-pasos quieres dividir el objetivo? La IA los generará en orden, del primer paso al objetivo final.</div>
-    <div class="field"><label>Número de micro-pasos</label>
-      <input type="number" id="kp-count" min="2" max="12" value="5" inputmode="numeric" placeholder="Ej: 5">
+    <div style="text-align:center;margin:8px 0 6px;">
+      <div id="kp-num" style="font-size:66px;font-weight:900;letter-spacing:-3px;color:var(--lime-light);line-height:1;">5</div>
+      <div style="font-size:11px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:.14em;margin-top:2px;">micro-pasos</div>
     </div>
+    <input type="range" id="kp-count" class="kp-slider" min="2" max="12" value="5" step="1" oninput="var n=el('kp-num');if(n)n.textContent=this.value;">
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--txt3);font-weight:700;margin:6px 2px 4px;"><span>2</span><span>12</span></div>
     <div class="modal-btns">
       <button class="btn btn-ghost" onclick="closeModal('m-kaizenplan')">Cancelar</button>
       <button class="btn btn-lime full" id="kp-go" onclick="runKaizenPlan()">✦ Generar plan</button>
@@ -8608,6 +8614,39 @@ function editKaizenCategory(oldName){
   save();
   renderKaizen();
 }
+function openKaizenCats(){ renderKaizenCats(); openModal('m-kaizencats'); }
+function renderKaizenCats(){
+  var wrap = el('kc-list'); if(!wrap) return;
+  var cats = (S.kaizen.categories || []).slice();
+  var h = '';
+  for(var i=0;i<cats.length;i++){
+    var c = cats[i]; var cJs = _jsK(c); var n = _goalsForCategory(c).length;
+    h += '<div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--surf);border-radius:11px;margin-bottom:6px;">';
+    h += '<div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:700;">'+_escK(c)+'</div><div style="font-size:10px;color:var(--txt3);margin-top:2px;">'+n+' objetivos</div></div>';
+    h += '<button class="kai-mini-btn" onclick="renameKaizenCat(\''+cJs+'\')" title="Renombrar">✎</button>';
+    h += '<button class="kai-mini-btn" onclick="removeKaizenCat(\''+cJs+'\')" title="Eliminar">×</button>';
+    h += '</div>';
+  }
+  if(!cats.length) h += '<div style="font-size:12px;color:var(--txt3);text-align:center;padding:10px 0;">Sin categorías todavía.</div>';
+  wrap.innerHTML = h;
+}
+function addKaizenCatFromInput(){
+  var inp = el('kc-new'); if(!inp) return;
+  var name = cleanUserText(inp.value, 60);
+  if(!name){ toast('Escribe un nombre','error'); return; }
+  if(!S.kaizen.categories) S.kaizen.categories = [];
+  if(S.kaizen.categories.indexOf(name) >= 0){ toast('Ya existe esa categoría','error'); return; }
+  S.kaizen.categories.push(name);
+  if(!S.kaizen.openCats) S.kaizen.openCats = {};
+  S.kaizen.openCats[name] = true;
+  inp.value = '';
+  save();
+  renderKaizenCats();
+  renderKaizen();
+  toast('Categoría creada','success');
+}
+function renameKaizenCat(oldName){ editKaizenCategory(oldName); renderKaizenCats(); }
+function removeKaizenCat(name){ deleteKaizenCategory(name); renderKaizenCats(); }
 function deleteKaizenCategory(name){
   var linked = _goalsForCategory(name).length;
   if(linked){
@@ -8746,6 +8785,7 @@ function openKaizenPlanModal(goalId){
     : '¿En cuántos micro-pasos quieres dividir el objetivo? La IA los generará en orden, del primer paso al objetivo final.';
   el('kp-go').textContent = hadSteps ? '✦ Replantear plan' : '✦ Generar plan';
   el('kp-count').value = 5;
+  if(el('kp-num')) el('kp-num').textContent = '5';
   openModal('m-kaizenplan');
 }
 function runKaizenPlan(){
