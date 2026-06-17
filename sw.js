@@ -3,7 +3,7 @@
    LZ-String, fuentes). Nunca intercepta las llamadas de Firebase/Google para que
    la sincronización y el login sigan necesitando red. */
 
-var CACHE = 'pt-cache-v5';
+var CACHE = 'pt-cache-v6';
 var APP_SHELL = [
   './',
   './index.html',
@@ -40,11 +40,17 @@ self.addEventListener('fetch', function(e){
     return;
   }
 
-  // Navegación: red primero; offline, devuelve la página pedida cacheada
-  // (landing o web app) y, si no, la web app como respaldo principal.
+  // Navegación: SIEMPRE la última versión cuando hay red ('reload' salta la
+  // caché HTTP del navegador y revalida con el servidor). Offline: copia cacheada.
   if(req.mode === 'navigate'){
     e.respondWith(
-      fetch(req).catch(function(){
+      fetch(req, { cache:'reload' }).then(function(res){
+        if(res && res.status === 200){
+          var copy = res.clone();
+          caches.open(CACHE).then(function(c){ c.put(req, copy); });
+        }
+        return res;
+      }).catch(function(){
         return caches.match(req).then(function(r){
           return r || caches.match('./webapp.html') || caches.match('./index.html');
         });
