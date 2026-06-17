@@ -6,6 +6,8 @@ deploy/
 android-twa/
 *.apk
 *.aab
+!apk/
+!apk/PersonalTracker.apk
 
 # Sistema
 .DS_Store
