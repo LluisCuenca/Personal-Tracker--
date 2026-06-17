@@ -2497,11 +2497,10 @@ button:active,
     <div class="field"><label>Nombre</label><input type="text" id="nh-name" placeholder="Ej: Leer 30 min"></div>
     <div class="field"><label>Descripción</label><input type="text" id="nh-desc" placeholder="Breve descripción..."></div>
     <div class="field"><label>Puntos</label><input type="number" id="nh-coins" placeholder="10"></div>
-    <div class="chk-row" id="nh-save-lib-row"><input type="checkbox" id="nh-save-lib" checked><label for="nh-save-lib">Guardar en biblioteca</label></div>
+    <div class="chk-row" id="nh-save-lib-row" style="display:none;"><input type="checkbox" id="nh-save-lib" checked><label for="nh-save-lib">Guardar en biblioteca</label></div>
     <!-- TUS HÁBITOS — quick toggle for today (only visible when not editing) -->
     <div id="nh-existing-wrap">
       <div id="nh-existing-chips"></div>
-      <button class="btn btn-lime-full" style="margin-top:10px;" onclick="closeModal('m-newhabit');setTimeout(function(){goScreen('s-hablib');},220);">Ver biblioteca completa</button>
     </div>
 
     <!-- Divider -->
@@ -3614,13 +3613,36 @@ function progBar(label,p){
     +'</div>';
 }
 
+function animateViewSwap(containerId, renderFn, direction){
+  var content = el(containerId);
+  if(!content){ renderFn(); return; }
+  var dir = direction || -28;
+  content.style.transition = 'opacity .14s ease, transform .14s ease';
+  content.style.opacity = '0';
+  content.style.transform = 'translateX(' + dir + 'px)';
+  setTimeout(function(){
+    renderFn();
+    var next = el(containerId);
+    if(!next) return;
+    next.style.transition = 'none';
+    next.style.transform = 'translateX(' + (-dir) + 'px)';
+    next.style.opacity = '0';
+    next.offsetHeight;
+    next.style.transition = 'opacity .30s cubic-bezier(.22,1,.36,1), transform .34s cubic-bezier(.22,1,.36,1)';
+    next.style.opacity = '1';
+    next.style.transform = 'translateX(0)';
+  }, 140);
+}
+
 /* ═══ FITNESS VIEWS ═══ */
 function setFitView(v){
+  var prev = fitView;
   fitView=v;
   var views=['day','week','month'];
   var ids=['vt-day','vt-week','vt-month'];
   for(var i=0;i<views.length;i++){var e=el(ids[i]);if(e)e.className='vt-btn'+(views[i]===v?' on':'');}
-  renderFitness();
+  if(prev && prev !== v) animateViewSwap('fit-view-content', renderFitness, views.indexOf(v) > views.indexOf(prev) ? -28 : 28);
+  else renderFitness();
 }
 
 function renderFitness(){
@@ -3718,7 +3740,7 @@ function renderFitDay(){
 
   // === SECTION HEADER: Recuento diario + + Añadir ===
   h+='<div style="padding:18px 16px 8px;display:flex;align-items:center;justify-content:space-between;">';
-  h+='<div class="list-section-lbl" style="margin:0;">Recuento diario</div>';
+  h+='<div class="list-section-lbl emph" style="margin:0;">Recuento diario</div>';
   h+='<button class="btn btn-lime-sm" onclick="openModal(\'m-addchoose\')">+ Añadir</button>';
   h+='</div>';
 
@@ -3742,7 +3764,7 @@ function renderFitDay(){
 
   // Lists — grouped by meal time
   if(tot.foods.length>0){
-    h+='<div class="list-wrap"><div class="list-section-lbl">Food</div>';
+    h+='<div class="list-wrap"><div class="list-section-lbl emph">Food</div>';
     var byMeal = {desayuno:[], comida:[], cena:[], snack:[], '':[]};
     for(var i=0;i<tot.foods.length;i++){
       var mt = tot.foods[i].mealTime || '';
@@ -3777,7 +3799,7 @@ function renderFitDay(){
     h+='</div>';
   }
   if(tot.activities.length>0){
-    h+='<div class="list-wrap"><div class="list-section-lbl">Activity</div>';
+    h+='<div class="list-wrap"><div class="list-section-lbl emph">Activity</div>';
     for(var i=0;i<tot.activities.length;i++){
       var a=tot.activities[i];
       h+='<div class="list-row" onclick="editActivity(\''+a.id+'\')" style="cursor:pointer;">'
@@ -4130,6 +4152,7 @@ function editFood(id){
   if(el('f-recipe-btn')) el('f-recipe-btn').style.display='none';
   _recentSel.foods={};
   _recentOpen.foods=false;
+  _recentLimit.foods=10;
   el('m-food').classList.add('open');
   ensureSheetCloseButtons();
   document.body.style.overflow='hidden';
@@ -4180,6 +4203,7 @@ function editActivity(id){
   el('a-save').checked=false;
   _recentSel.acts={};
   _recentOpen.acts=false;
+  _recentLimit.acts=10;
   el('m-activity').classList.add('open');
   ensureSheetCloseButtons();
   document.body.style.overflow='hidden';
@@ -5935,6 +5959,7 @@ function deletePlanActivity(){
 /* ═══ HABITS: VIEWS (mirroring fitness day/week/month) ═══ */
 var habView = 'day';
 function setHabView(v){
+  var prev = habView;
   habView = v;
   var ids=['ht-day','ht-week','ht-month'];
   var views=['day','week','month'];
@@ -5942,7 +5967,8 @@ function setHabView(v){
     var e=el(ids[i]);
     if(e) e.className='vt-btn'+(views[i]===v?' on':'');
   }
-  renderHabits();
+  if(prev && prev !== v) animateViewSwap('hab-view-content', renderHabits, views.indexOf(v) > views.indexOf(prev) ? -28 : 28);
+  else renderHabits();
 }
 
 function renderHabits(){
@@ -6027,7 +6053,7 @@ function renderHabDay(){
 
   // Section header
   h+='<div style="padding:18px 16px 8px;display:flex;align-items:center;justify-content:space-between;">';
-  h+='<div class="list-section-lbl" style="margin:0;">Recuento diario</div>';
+  h+='<div class="list-section-lbl emph" style="margin:0;">Recuento diario</div>';
   h+='<button class="btn btn-lime-sm" onclick="openNewHabit()">+ Añadir hábito</button>';
   h+='</div>';
 
@@ -6036,10 +6062,10 @@ function renderHabDay(){
     h+='<div class="hsec" style="margin-top:6px;"><div class="hsec-hdr"><div class="hsec-title">Positivos</div><div class="hsec-coins" style="color:var(--lime-light);">+'+posC+' pts</div></div>';
     for(var i=0;i<donePos.length;i++){
       var hb=donePos[i];
-      h+='<div class="hab-row dp" onclick="toggleHab(\''+hb.id+'\')">'
-        +'<div class="hck cp">✓</div>'
-        +'<div style="flex:1;"><div class="hab-name">'+hb.name+'</div><div class="hab-desc">'+(hb.desc||'')+'</div></div>'
-        +'<div class="hab-bdg gp ep">+'+hb.coins+' pts</div></div>';
+      h+='<div class="hab-row dp" onclick="editHabit(\''+hb.id+'\')">'
+        +'<div class="hab-points pos">+'+hb.coins+'</div>'
+        +'<div style="flex:1;min-width:0;"><div class="hab-name">'+hb.name+'</div><div class="hab-desc">'+(hb.desc||'')+'</div></div>'
+        +'<button class="habit-remove" onclick="event.stopPropagation();toggleHab(\''+hb.id+'\')" title="Quitar de hoy">×</button></div>';
     }
     h+='</div>';
   }
@@ -6047,21 +6073,18 @@ function renderHabDay(){
     h+='<div class="hsec"><div class="hsec-hdr"><div class="hsec-title">Negativos</div><div class="hsec-coins" style="color:var(--txt2);">'+negC+' pts</div></div>';
     for(var i=0;i<doneNeg.length;i++){
       var hb=doneNeg[i];
-      h+='<div class="hab-row dn" onclick="toggleHab(\''+hb.id+'\')">'
-        +'<div class="hck cn">✓</div>'
-        +'<div style="flex:1;"><div class="hab-name">'+hb.name+'</div><div class="hab-desc">'+(hb.desc||'')+'</div></div>'
-        +'<div class="hab-bdg gn en">'+hb.coins+' pts</div></div>';
+      h+='<div class="hab-row dn" onclick="editHabit(\''+hb.id+'\')">'
+        +'<div class="hab-points neg">'+hb.coins+'</div>'
+        +'<div style="flex:1;min-width:0;"><div class="hab-name">'+hb.name+'</div><div class="hab-desc">'+(hb.desc||'')+'</div></div>'
+        +'<button class="habit-remove" onclick="event.stopPropagation();toggleHab(\''+hb.id+'\')" title="Quitar de hoy">×</button></div>';
     }
     h+='</div>';
   }
   // Empty state
   if(!donePos.length && !doneNeg.length){
-    var libCount = 0;
-    for(var lc=0;lc<S.habits.length;lc++) if(!S.habits[lc].oneOffDate) libCount++;
     h+='<div class="empty" style="margin-top:18px;"><div class="empty-t" style="margin-bottom:14px;">'
       + (isToday ? 'Día limpio.' : 'Sin registros este día.')
       + '<br>Pulsa <strong style="color:var(--lime-light);">+ Añadir hábito</strong> para empezar.'
-      + (libCount > 0 ? '<br><br><span style="font-size:11px;color:var(--txt3);">Tienes '+libCount+' hábito'+(libCount!==1?'s':'')+' en tu biblioteca.</span>' : '')
       + '</div></div>';
   }
 
@@ -6307,12 +6330,13 @@ function openNewHabit(){
   var saveLib = el('nh-save-lib');
   if(saveLib) saveLib.checked = true;
   var saveRow = el('nh-save-lib-row');
-  if(saveRow) saveRow.style.display = '';
+  if(saveRow) saveRow.style.display = 'none';
   // Show existing chips section
   el('nh-existing-wrap').style.display = '';
   el('nh-divider').style.display = '';
   _recentSel.habs = {};
   _recentOpen.habs = false;
+  _recentLimit.habs = 10;
   renderHabitChips();
   openModal('m-newhabit');
 }
@@ -6330,20 +6354,21 @@ function renderHabitChips(){
     if(a.type !== b.type) return a.type === 'pos' ? -1 : 1;
     return 0;
   });
-  var base = '<div class="quick-collapsible"><button class="quick-toggle" onclick="toggleRecentPanel(\'habs\')">'+(_recentOpen.habs?'Ocultar recientes':'Ver recientes')+' <span>'+allH.length+' hábitos</span></button>';
+  var base = '<div class="quick-collapsible"><button class="quick-toggle" onclick="toggleRecentPanel(\'habs\')">'+(_recentOpen.habs?'Ocultar recientes':'Ver recientes')+' <span>'+(_recentOpen.habs?'⌃':'⌄')+'</span></button>';
   if(!_recentOpen.habs){
     wrap.innerHTML = base + '</div>';
     return;
   }
   base += '<div class="quick-panel"><span class="quick-chips-label">Recientes · toca para marcar</span>';
   if(!allH.length){
-    wrap.innerHTML = base + '<div style="font-size:12px;color:var(--txt2);padding:14px;text-align:center;background:var(--surf);border-radius:12px;">Sin hábitos recientes todavía. Crea uno abajo o abre la biblioteca completa.</div></div></div>';
+    wrap.innerHTML = base + '<div style="font-size:12px;color:var(--txt2);padding:14px;text-align:center;background:var(--surf);border-radius:12px;">Sin hábitos recientes todavía. Crea uno abajo y aparecerá aquí.</div></div></div>';
     return;
   }
   var h = '';
   var selN = 0;
-  for(var i=0;i<allH.length;i++){
-    var hb = allH[i];
+  var visibleH = allH.slice(0, _recentLimit.habs || 10);
+  for(var i=0;i<visibleH.length;i++){
+    var hb = visibleH[i];
     var done = hd.done.indexOf(hb.id) >= 0;
     var sel = !done && !!_recentSel.habs[hb.id];
     if(sel) selN++;
@@ -6362,6 +6387,7 @@ function renderHabitChips(){
   }
   wrap.style.display = 'block';
   var inner = base + '<div class="quick-chips" style="gap:8px;">' + h + '</div>';
+  if(visibleH.length < allH.length) inner += '<button class="recents-more-btn" onclick="showMoreRecents(\'habs\')">Ver más</button>';
   if(selN > 0) inner += '<button class="btn btn-lime full" style="margin-top:10px;font-size:13px;" onclick="markSelectedHabits()">Añadir '+selN+' a hoy</button>';
   inner += '</div></div>';
   wrap.innerHTML = inner;
@@ -7878,9 +7904,16 @@ function quickAddActivity(name, dur, kcal){
 /* ═══ SELECCIÓN MÚLTIPLE DE RECIENTES ═══ */
 var _recentSel = { foods:{}, acts:{}, habs:{} };
 var _recentOpen = { foods:false, acts:false, habs:false };
+var _recentLimit = { foods:10, acts:10, habs:10 };
 function _fkey(n){ return String(n||'').toLowerCase(); }
 function toggleRecentPanel(kind){
   _recentOpen[kind] = !_recentOpen[kind];
+  haptic('light');
+  if(kind === 'habs') renderHabitChips();
+  else renderQuickChips();
+}
+function showMoreRecents(kind){
+  _recentLimit[kind] = (_recentLimit[kind] || 10) + 10;
   haptic('light');
   if(kind === 'habs') renderHabitChips();
   else renderQuickChips();
@@ -7936,9 +7969,10 @@ function renderQuickChips(){
   // Food
   var fwrap = el('f-quick-chips');
   if(fwrap){
-    var recents = getRecentFoods(8);
+    var allFoods = getRecentFoods(999);
+    var recents = allFoods.slice(0, _recentLimit.foods || 10);
     var selN = Object.keys(_recentSel.foods).length;
-    var h = '<div class="quick-collapsible"><button class="quick-toggle" onclick="toggleRecentPanel(\'foods\')">'+(_recentOpen.foods?'Ocultar recientes':'Ver recientes')+' <span>'+recents.length+' alimentos</span></button>';
+    var h = '<div class="quick-collapsible"><button class="quick-toggle" onclick="toggleRecentPanel(\'foods\')">'+(_recentOpen.foods?'Ocultar recientes':'Ver recientes')+' <span>'+(_recentOpen.foods?'⌃':'⌄')+'</span></button>';
     h += _recentOpen.foods ? '<div class="quick-panel"><span class="quick-chips-label">Recientes · toca para seleccionar</span>' : '';
     if(recents.length){
       if(!_recentOpen.foods){ fwrap.innerHTML = h + '</div>'; fwrap.style.display = ''; }
@@ -7957,6 +7991,7 @@ function renderQuickChips(){
            + '</button>';
       }
       h += '</div>';
+      if(recents.length < allFoods.length) h += '<button class="recents-more-btn" onclick="showMoreRecents(\'foods\')">Ver más</button>';
       if(selN>0) h += '<button class="btn btn-lime full" style="margin-top:10px;font-size:13px;" onclick="addSelectedRecentFoods()">Añadir '+selN+(selN===1?' a hoy':' a hoy')+'</button>';
     } else {
       h += '<div style="font-size:12px;color:var(--txt2);padding:14px;text-align:center;background:var(--surf);border-radius:12px;">Aún no tienes alimentos recientes.<br><span style="font-size:11px;">Los que añadas aparecerán aquí para acceso rápido.</span></div>';
@@ -7969,9 +8004,10 @@ function renderQuickChips(){
   // Activity
   var awrap = el('a-quick-chips');
   if(awrap){
-    var recA = getRecentActivities(8);
+    var allActs = getRecentActivities(999);
+    var recA = allActs.slice(0, _recentLimit.acts || 10);
     var selA = Object.keys(_recentSel.acts).length;
-    var h2 = '<div class="quick-collapsible"><button class="quick-toggle" onclick="toggleRecentPanel(\'acts\')">'+(_recentOpen.acts?'Ocultar recientes':'Ver recientes')+' <span>'+recA.length+' actividades</span></button>';
+    var h2 = '<div class="quick-collapsible"><button class="quick-toggle" onclick="toggleRecentPanel(\'acts\')">'+(_recentOpen.acts?'Ocultar recientes':'Ver recientes')+' <span>'+(_recentOpen.acts?'⌃':'⌄')+'</span></button>';
     h2 += _recentOpen.acts ? '<div class="quick-panel"><span class="quick-chips-label">Recientes · toca para seleccionar</span>' : '';
     if(recA.length){
       if(!_recentOpen.acts){ awrap.innerHTML = h2 + '</div>'; awrap.style.display = ''; }
@@ -7990,6 +8026,7 @@ function renderQuickChips(){
             + '</button>';
       }
       h2 += '</div>';
+      if(recA.length < allActs.length) h2 += '<button class="recents-more-btn" onclick="showMoreRecents(\'acts\')">Ver más</button>';
       if(selA>0) h2 += '<button class="btn btn-lime full" style="margin-top:10px;font-size:13px;" onclick="addSelectedRecentActivities()">Añadir '+selA+' a hoy</button>';
     } else {
       h2 += '<div style="font-size:12px;color:var(--txt2);padding:14px;text-align:center;background:var(--surf);border-radius:12px;">Aún no tienes actividades recientes.<br><span style="font-size:11px;">Las que añadas aparecerán aquí para acceso rápido.</span></div>';
@@ -8128,6 +8165,7 @@ function openModal(id){
     if(el('a-ai-desc')) el('a-ai-desc').value='';
     _recentSel.acts = {};
     _recentOpen.acts = false;
+    _recentLimit.acts = 10;
     renderQuickChips();
   }
   if(id==='m-food'){
@@ -8142,6 +8180,7 @@ function openModal(id){
     if(el('f-ai-desc')) el('f-ai-desc').value='';
     _recentSel.foods = {};
     _recentOpen.foods = false;
+    _recentLimit.foods = 10;
     renderQuickChips();
   }
   if(id==='m-calendar')openCal();
