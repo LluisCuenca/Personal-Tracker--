@@ -2693,6 +2693,10 @@ function sanitizeStateText(){
       var item = items[i];
       if(!item) continue;
       if(item.name != null) item.name = cleanUserText(item.name, 120);
+      if(item.title != null) item.title = cleanUserText(item.title, 120);
+      if(item.why != null) item.why = cleanUserText(item.why, 180);
+      if(item.text != null) item.text = cleanUserText(item.text, 160);
+      if(item.category != null) item.category = cleanUserText(item.category, 60);
       if(item.notes != null) item.notes = cleanUserText(item.notes, 240);
       if(item.desc != null) item.desc = cleanUserText(item.desc, 180);
       if(item.ico != null) item.ico = cleanUserText(item.ico, 4);
@@ -2706,6 +2710,13 @@ function sanitizeStateText(){
   cleanItems(S.library);
   cleanItems(S.habits);
   cleanItems(S.planner && S.planner.activities);
+  if(S.kaizen){
+    if(Array.isArray(S.kaizen.categories)){
+      for(var kc=0;kc<S.kaizen.categories.length;kc++) S.kaizen.categories[kc] = cleanUserText(S.kaizen.categories[kc], 60);
+      S.kaizen.categories = S.kaizen.categories.filter(function(c,idx,arr){ return c && arr.indexOf(c) === idx; });
+    }
+    cleanItems(S.kaizen.goals);
+  }
 }
 
 function applyDefaults(){
@@ -2731,9 +2742,17 @@ function applyDefaults(){
   if(!S.planner.weeks || typeof S.planner.weeks !== 'object') S.planner.weeks = {};
   if(!S.calendar)  S.calendar  = { enabled:false, lastSync:null };
   if(!S.kaizen)    S.kaizen    = { goals:[] };
+  if(!Array.isArray(S.kaizen.categories)) S.kaizen.categories = ['Personal','Trabajo','Deporte'];
+  if(!S.kaizen.viewBy) S.kaizen.viewBy = 'category';
   if(!Array.isArray(S.kaizen.goals)) S.kaizen.goals = [];
   for(var kg=0;kg<S.kaizen.goals.length;kg++){
-    if(!Array.isArray(S.kaizen.goals[kg].steps)) S.kaizen.goals[kg].steps = [];
+    var goal = S.kaizen.goals[kg];
+    if(!Array.isArray(goal.steps)) goal.steps = [];
+    if(!goal.category) goal.category = 'Personal';
+    if(goal.priority == null) goal.priority = 50;
+    goal.priority = Math.max(1, Math.min(100, parseInt(goal.priority) || 50));
+    if(goal.deadline == null) goal.deadline = '';
+    goal.completed = !!goal.completed;
   }
   if(!S.hiddenRecents) S.hiddenRecents = { foods:[], activities:[] };
   S.hiddenRecents.foods = Array.isArray(S.hiddenRecents.foods) ? S.hiddenRecents.foods.slice(-100) : [];
@@ -4047,7 +4066,9 @@ function editFood(id){
   el('f-save').checked=false;
   if(el('f-recipe-btn')) el('f-recipe-btn').style.display='none';
   _recentSel.foods={};
+  _recentOpen.foods=false;
   el('m-food').classList.add('open');
+  ensureSheetCloseButtons();
   document.body.style.overflow='hidden';
   renderQuickChips();
 }
@@ -4095,7 +4116,9 @@ function editActivity(id){
   el('a-notes').value=item.notes||'';
   el('a-save').checked=false;
   _recentSel.acts={};
+  _recentOpen.acts=false;
   el('m-activity').classList.add('open');
+  ensureSheetCloseButtons();
   document.body.style.overflow='hidden';
   renderQuickChips();
 }
@@ -6243,8 +6266,14 @@ function renderHabitChips(){
     if(a.type !== b.type) return a.type === 'pos' ? -1 : 1;
     return 0;
   });
+  var base = '<div class="quick-collapsible"><button class="quick-toggle" onclick="toggleRecentPanel(\'habs\')">'+(_recentOpen.habs?'Ocultar recientes':'Ver recientes')+' <span>'+allH.length+' hábitos</span></button>';
+  if(!_recentOpen.habs){
+    wrap.innerHTML = base + '</div>';
+    return;
+  }
+  base += '<div class="quick-panel"><span class="quick-chips-label">Recientes · toca para marcar</span>';
   if(!allH.length){
-    wrap.innerHTML = '<div style="font-size:12px;color:var(--txt2);padding:14px;text-align:center;background:var(--surf);border-radius:12px;">Sin hábitos recientes todavía. Crea uno abajo o abre la biblioteca completa.</div>';
+    wrap.innerHTML = base + '<div style="font-size:12px;color:var(--txt2);padding:14px;text-align:center;background:var(--surf);border-radius:12px;">Sin hábitos recientes todavía. Crea uno abajo o abre la biblioteca completa.</div></div></div>';
     return;
   }
   var h = '';
@@ -6268,8 +6297,9 @@ function renderHabitChips(){
        + '</div>';
   }
   wrap.style.display = 'block';
-  var inner = '<div class="quick-chips" style="gap:8px;">' + h + '</div>';
+  var inner = base + '<div class="quick-chips" style="gap:8px;">' + h + '</div>';
   if(selN > 0) inner += '<button class="btn btn-lime full" style="margin-top:10px;font-size:13px;" onclick="markSelectedHabits()">Añadir '+selN+' a hoy</button>';
+  inner += '</div></div>';
   wrap.innerHTML = inner;
 }
 function toggleHabitSel(id){
@@ -7783,7 +7813,14 @@ function quickAddActivity(name, dur, kcal){
 }
 /* ═══ SELECCIÓN MÚLTIPLE DE RECIENTES ═══ */
 var _recentSel = { foods:{}, acts:{}, habs:{} };
+var _recentOpen = { foods:false, acts:false, habs:false };
 function _fkey(n){ return String(n||'').toLowerCase(); }
+function toggleRecentPanel(kind){
+  _recentOpen[kind] = !_recentOpen[kind];
+  haptic('light');
+  if(kind === 'habs') renderHabitChips();
+  else renderQuickChips();
+}
 function toggleRecentFood(name,kcal,prot,carbs,fat,qty,cat){
   var k=_fkey(name);
   if(_recentSel.foods[k]) delete _recentSel.foods[k];
@@ -7837,8 +7874,11 @@ function renderQuickChips(){
   if(fwrap){
     var recents = getRecentFoods(8);
     var selN = Object.keys(_recentSel.foods).length;
-    var h = '<span class="quick-chips-label">Recientes · toca para seleccionar</span>';
+    var h = '<div class="quick-collapsible"><button class="quick-toggle" onclick="toggleRecentPanel(\'foods\')">'+(_recentOpen.foods?'Ocultar recientes':'Ver recientes')+' <span>'+recents.length+' alimentos</span></button>';
+    h += _recentOpen.foods ? '<div class="quick-panel"><span class="quick-chips-label">Recientes · toca para seleccionar</span>' : '';
     if(recents.length){
+      if(!_recentOpen.foods){ fwrap.innerHTML = h + '</div>'; fwrap.style.display = ''; }
+      if(!_recentOpen.foods) return;
       h += '<div class="quick-chips" style="gap:8px;">';
       for(var i=0;i<recents.length;i++){
         var r = recents[i];
@@ -7857,6 +7897,8 @@ function renderQuickChips(){
     } else {
       h += '<div style="font-size:12px;color:var(--txt2);padding:14px;text-align:center;background:var(--surf);border-radius:12px;">Aún no tienes alimentos recientes.<br><span style="font-size:11px;">Los que añadas aparecerán aquí para acceso rápido.</span></div>';
     }
+    if(_recentOpen.foods) h += '</div>';
+    h += '</div>';
     fwrap.innerHTML = h;
     fwrap.style.display = '';
   }
@@ -7865,8 +7907,11 @@ function renderQuickChips(){
   if(awrap){
     var recA = getRecentActivities(8);
     var selA = Object.keys(_recentSel.acts).length;
-    var h2 = '<span class="quick-chips-label">Recientes · toca para seleccionar</span>';
+    var h2 = '<div class="quick-collapsible"><button class="quick-toggle" onclick="toggleRecentPanel(\'acts\')">'+(_recentOpen.acts?'Ocultar recientes':'Ver recientes')+' <span>'+recA.length+' actividades</span></button>';
+    h2 += _recentOpen.acts ? '<div class="quick-panel"><span class="quick-chips-label">Recientes · toca para seleccionar</span>' : '';
     if(recA.length){
+      if(!_recentOpen.acts){ awrap.innerHTML = h2 + '</div>'; awrap.style.display = ''; }
+      if(!_recentOpen.acts) return;
       h2 += '<div class="quick-chips" style="gap:8px;">';
       for(var i=0;i<recA.length;i++){
         var a = recA[i];
@@ -7885,6 +7930,8 @@ function renderQuickChips(){
     } else {
       h2 += '<div style="font-size:12px;color:var(--txt2);padding:14px;text-align:center;background:var(--surf);border-radius:12px;">Aún no tienes actividades recientes.<br><span style="font-size:11px;">Las que añadas aparecerán aquí para acceso rápido.</span></div>';
     }
+    if(_recentOpen.acts) h2 += '</div>';
+    h2 += '</div>';
     awrap.innerHTML = h2;
     awrap.style.display = '';
   }
@@ -7973,7 +8020,11 @@ function showInfo(topic){
     'tmb':{t:'TMB Basal', d:'<strong>Tasa Metabólica Basal.</strong><br><br>Las calorías que tu cuerpo quema en reposo solo manteniendo funciones vitales (respirar, latido cardíaco, regular temperatura, etc.). Se calcula con tu sexo, edad, peso y altura mediante la fórmula Mifflin-St Jeor.<br><br>Es la base sobre la que se suma la actividad para calcular tu gasto total.'},
     'tdee':{t:'TDEE', d:'<strong>Total Daily Energy Expenditure</strong> (gasto energético total diario).<br><br>Son las calorías que quemas en un día completo, incluyendo TMB basal + actividad física diaria + ejercicio.<br><br>Si comes menos kcal que tu TDEE → déficit (pierdes peso).<br>Si comes más → superávit (ganas peso).'},
     'balance':{t:'Balance calórico', d:'<strong>Balance</strong> = (TMB Basal + Actividad) − Kcal Ingeridas<br><br><strong style="color:var(--lime-light);">Positivo</strong> = Déficit (gastas más de lo que comes → bajas peso)<br><strong style="color:var(--red);">Negativo</strong> = Superávit (comes más de lo que gastas → subes peso)<br><br>Para perder ~0.5 kg/semana, busca un déficit de ~500 kcal/día.'},
-    'protein':{t:'Proteína', d:'<strong>Objetivo de proteína</strong>: 2g por kg de peso corporal (configurable en perfil).<br><br>Esencial para mantener masa muscular, especialmente en déficit calórico. Reparte el consumo en 3-5 tomas durante el día.'}
+    'protein':{t:'Proteína', d:'<strong>Objetivo de proteína</strong>: 2g por kg de peso corporal (configurable en perfil).<br><br>Esencial para mantener masa muscular, especialmente en déficit calórico. Reparte el consumo en 3-5 tomas durante el día.'},
+    'home-fitness':{t:'Nutrition + Fitness', d:'Registra comidas, actividad, agua y peso. La sección te ayuda a entender tu balance calórico diario, tus macros y tu tendencia de peso sin depender de memoria ni notas sueltas.'},
+    'home-habits':{t:'Daily Habits', d:'Convierte rutinas pequeñas en puntos diarios. Es útil para ver constancia, detectar días flojos y reforzar hábitos positivos sin complicarte.'},
+    'home-planner':{t:'Weekly Planner', d:'Organiza rutinas, eventos y objetivos diarios. Si conectas Google Calendar, tus planes pueden vivir en ambos sitios y convertirse en acciones concretas.'},
+    'home-kaizen':{t:'Kaizen Goals', d:'Parte una meta grande en micro-pasos manejables. Ideal para proyectos personales, deporte, trabajo o aprendizaje: menos presión, más avance real.'}
   };
   var i = info[topic];
   if(!i) return;
@@ -7982,9 +8033,27 @@ function showInfo(topic){
   openModal('m-info');
 }
 
+function ensureSheetCloseButtons(){
+  var overlays = document.querySelectorAll('.overlay');
+  for(var i=0;i<overlays.length;i++){
+    var overlay = overlays[i];
+    if(overlay.id === 'm-onboard') continue;
+    var sheet = overlay.querySelector('.sheet');
+    if(!sheet || sheet.querySelector('.sheet-x')) continue;
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'sheet-x';
+    btn.setAttribute('aria-label', 'Cerrar');
+    btn.innerHTML = '&times;';
+    btn.onclick = (function(id){ return function(e){ e.stopPropagation(); closeModal(id); }; })(overlay.id);
+    sheet.insertBefore(btn, sheet.firstChild);
+  }
+}
+
 /* ═══ MODALS ═══ */
 function openModal(id){
   el(id).classList.add('open');document.body.style.overflow='hidden';
+  ensureSheetCloseButtons();
   if(id==='m-profile')openProfile();
   if(id==='m-activity'){
     if(!editingActivityId){
@@ -7994,6 +8063,7 @@ function openModal(id){
     }
     if(el('a-ai-desc')) el('a-ai-desc').value='';
     _recentSel.acts = {};
+    _recentOpen.acts = false;
     renderQuickChips();
   }
   if(id==='m-food'){
@@ -8007,6 +8077,7 @@ function openModal(id){
     if(el('f-recipe-btn')) el('f-recipe-btn').style.display = editingFoodId ? 'none' : '';
     if(el('f-ai-desc')) el('f-ai-desc').value='';
     _recentSel.foods = {};
+    _recentOpen.foods = false;
     renderQuickChips();
   }
   if(id==='m-calendar')openCal();
