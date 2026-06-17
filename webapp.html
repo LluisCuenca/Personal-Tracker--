@@ -8413,25 +8413,67 @@ function deleteKaizenStep(goalId, stepId){
   renderKaizen();
   haptic('light');
 }
-function generateKaizenPlan(goalId){
+var _kaizenPlanGoalId = null;
+function openKaizenPlanModal(goalId){
   var g = _kaizenGoal(goalId); if(!g) return;
   if(!GEMINI_ENABLED){
     toast('Activa la IA (Gemini) en Ajustes para generar planes', 'info');
     return;
   }
+  _kaizenPlanGoalId = goalId;
+  var hadSteps = g.steps && g.steps.length > 0;
+  el('kp-intro').textContent = hadSteps
+    ? 'Elige en cuántos micro-pasos dividir el objetivo. Esto reemplazará los pasos actuales por un plan nuevo.'
+    : '¿En cuántos micro-pasos quieres dividir el objetivo? La IA los generará en orden, del primer paso al objetivo final.';
+  el('kp-go').textContent = hadSteps ? '✦ Replantear plan' : '✦ Generar plan';
+  el('kp-count').value = 5;
+  renderKaizenPlanChips();
+  openModal('m-kaizenplan');
+}
+function renderKaizenPlanChips(){
+  var inp = el('kp-count'); if(!inp) return;
+  var val = parseInt(inp.value) || 5;
+  if(val < 2) val = 2; if(val > 12) val = 12;
+  inp.value = val;
+  var opts = [3,5,7,10];
+  var h = '';
+  for(var i=0;i<opts.length;i++){
+    var n = opts[i], sel = n === val;
+    h += '<button type="button" onclick="setKaizenPlanCount('+n+')" style="flex:1;padding:11px 0;border-radius:11px;border:1.5px solid '+(sel?'var(--lime-light)':'var(--surf2)')+';background:'+(sel?'var(--lime-light)':'var(--surf)')+';color:'+(sel?'#0D0D0D':'var(--txt)')+';font-weight:'+(sel?'900':'700')+';font-size:15px;cursor:pointer;transition:all .15s;">'+n+'</button>';
+  }
+  el('kp-chips').innerHTML = h;
+}
+function setKaizenPlanCount(n){
+  el('kp-count').value = n;
+  renderKaizenPlanChips();
+}
+function runKaizenPlan(){
+  var goalId = _kaizenPlanGoalId;
+  if(!goalId){ closeModal('m-kaizenplan'); return; }
+  var count = parseInt(el('kp-count').value) || 5;
+  if(count < 2) count = 2; if(count > 12) count = 12;
+  closeModal('m-kaizenplan');
+  generateKaizenPlan(goalId, count);
+}
+function generateKaizenPlan(goalId, count){
+  var g = _kaizenGoal(goalId); if(!g) return;
+  if(!GEMINI_ENABLED){
+    toast('Activa la IA (Gemini) en Ajustes para generar planes', 'info');
+    return;
+  }
+  count = count || 5;
   var hadSteps = (g.steps && g.steps.length > 0);
-  if(hadSteps && !confirm('¿Reemplazar los pasos actuales por un plan nuevo de la IA? Se perderán los que tengas.')) return;
   var prompt = 'Eres un coach que aplica el método Kaizen (mejora a base de micro-pasos pequeños y accionables).\n'
     + 'Objetivo del usuario: "' + g.title + '".'
     + (g.why ? ' Descripción: "' + g.why + '".' : '') + '\n\n'
-    + 'Genera entre 5 y 8 micro-pasos concretos, en orden lógico, que lleven del punto cero al objetivo. '
+    + 'Genera EXACTAMENTE ' + count + ' micro-pasos concretos, en orden lógico, que lleven del punto cero al objetivo. '
     + 'Cada paso debe ser una acción pequeña, clara y realizable (máx 12 palabras), empezando por un verbo.\n'
     + 'Responde SÓLO con JSON válido sin markdown: {"steps": ["paso 1", "paso 2", ...]}';
   callGeminiAPI(prompt, 'kai-ai-'+goalId, function(r){
     var steps = r && r.steps;
     if(!steps || !steps.length){ toast('La IA no devolvió pasos', 'error'); return; }
     var fresh = [];
-    for(var i=0;i<steps.length && i<12;i++){
+    for(var i=0;i<steps.length && i<count;i++){
       var t = cleanUserText(String(steps[i]), 160);
       if(t) fresh.push({ id:uid(), text:t, done:false });
     }
@@ -8439,7 +8481,7 @@ function generateKaizenPlan(goalId){
     _kaizenOpen[g.id] = true;
     save();
     renderKaizen();
-    toast(hadSteps ? '✓ Plan replanteado por IA' : '✓ '+fresh.length+' pasos generados por IA', 'success');
+    toast(hadSteps ? '✓ Plan replanteado ('+fresh.length+' pasos)' : '✓ '+fresh.length+' pasos generados por IA', 'success');
   }, function(){
     toast('IA no disponible. Revisa Firebase AI Logic o añade los pasos a mano.', 'error');
   });
