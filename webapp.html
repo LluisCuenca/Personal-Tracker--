@@ -3438,7 +3438,7 @@ function renderHome(){
 
     var todayClass = (balToday !== null && balToday < 0) ? ' neg' : '';
 
-    h+='<div class="mcard" data-home-module="fitness" onclick="goScreen(\'s-fitness\')" style="cursor:pointer;">';
+    h+='<div class="mcard home-card" data-home-module="fitness" onclick="goScreen(\'s-fitness\')" style="cursor:pointer;">';
     h+='<div class="mc-top"><div class="mc-title">Nutrition + Fitness <button class="home-info-btn" onclick="event.stopPropagation();showInfo(\'home-fitness\')" aria-label="Información sobre Nutrition + Fitness">?</button></div><div style="font-size:24px;color:var(--lime-light);font-weight:900;line-height:1;">›</div></div>';
     // Big balance today
     h+='<div style="margin-top:14px;display:flex;align-items:flex-end;gap:6px;">';
@@ -3478,7 +3478,7 @@ function renderHome(){
     }
     var avg7 = n7 > 0 ? Math.round(sum7/n7) : 0;
     var todayClass = ptsToday < 0 ? ' neg' : '';
-    h+='<div class="mcard" data-home-module="habits" onclick="goScreen(\'s-habits\')" style="cursor:pointer;">';
+    h+='<div class="mcard home-card" data-home-module="habits" onclick="goScreen(\'s-habits\')" style="cursor:pointer;">';
     h+='<div class="mc-top"><div class="mc-title">Daily Habits <button class="home-info-btn" onclick="event.stopPropagation();showInfo(\'home-habits\')" aria-label="Información sobre Daily Habits">?</button></div><div style="font-size:24px;color:var(--lime-light);font-weight:900;line-height:1;">›</div></div>';
     // Big today
     h+='<div style="margin-top:14px;display:flex;align-items:flex-end;gap:6px;">';
@@ -3526,7 +3526,7 @@ function renderHome(){
     }
     var weekPct = weekTotal > 0 ? Math.round(weekDone / weekTotal * 100) : 0;
 
-    h+='<div class="mcard" data-home-module="planner" onclick="goScreen(\'s-planner\')" style="cursor:pointer;">';
+    h+='<div class="mcard home-card" data-home-module="planner" onclick="goScreen(\'s-planner\')" style="cursor:pointer;">';
     h+='<div class="mc-top"><div class="mc-title">Weekly Planner <button class="home-info-btn" onclick="event.stopPropagation();showInfo(\'home-planner\')" aria-label="Información sobre Weekly Planner">?</button></div><div style="font-size:24px;color:var(--lime-light);font-weight:900;line-height:1;">›</div></div>';
     h+='<div style="margin-top:14px;display:flex;align-items:flex-end;gap:6px;">';
     h+='<div class="coins-big" style="font-size:54px;letter-spacing:-2.5px;">'+todayDone+'<span class="coins-unit">/'+todayActs.length+'</span></div>';
@@ -3558,7 +3558,7 @@ function renderHome(){
       if(kgComplete) kDoneGoals++; else kActive++;
     }
     var kAvgPct = kgoals.length ? Math.round(kPctSum/kgoals.length*100) : 0;
-    h+='<div class="mcard" data-home-module="kaizen" onclick="goScreen(\'s-kaizen\')" style="cursor:pointer;">';
+    h+='<div class="mcard home-card" data-home-module="kaizen" onclick="goScreen(\'s-kaizen\')" style="cursor:pointer;">';
     h+='<div class="mc-top"><div class="mc-title">Kaizen Goals <button class="home-info-btn" onclick="event.stopPropagation();showInfo(\'home-kaizen\')" aria-label="Información sobre Kaizen Goals">?</button></div><div style="font-size:24px;color:var(--lime-light);font-weight:900;line-height:1;">›</div></div>';
     h+='<div style="margin-top:14px;display:flex;align-items:flex-end;gap:6px;">';
     h+='<div class="coins-big" style="font-size:54px;letter-spacing:-2.5px;">'+kActive+'</div>';
@@ -5437,14 +5437,14 @@ function renderPlanner(){
       var isTodayD = ds_.dStr === today();
       var dayName = DOW_LABELS_FULL[ds_.jsDow];
 
-      h += '<div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px;'
+      h += '<div class="planner-day-card'+(isTodayD?' today':'')+'" style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px;'
          + (isTodayD ? 'border-color:var(--lime-light);box-shadow:0 0 0 2px rgba(186,255,57,.1);' : '')
          + '">';
       // Day header
       h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:'+(ds_.acts.length>0?'10px':'0')+';">';
       h += '<div style="display:flex;align-items:baseline;gap:7px;min-width:0;">';
-      h += '<div style="font-size:18px;font-weight:900;letter-spacing:-.45px;color:'+(isTodayD?'var(--lime-light)':'var(--txt)')+';text-transform:capitalize;">'+dayName+' '+ds_.date.getDate()+'</div>';
-      h += '<div style="font-size:10px;color:'+(isTodayD?'var(--lime-light)':'var(--txt3)')+';font-weight:800;text-transform:uppercase;letter-spacing:.07em;">'+(isTodayD?'Hoy':MS[ds_.date.getMonth()].slice(0,3))+'</div>';
+      h += '<div class="planner-day-title" style="font-size:18px;font-weight:900;letter-spacing:-.45px;color:'+(isTodayD?'var(--lime-light)':'var(--txt)')+';text-transform:capitalize;">'+dayName+' '+ds_.date.getDate()+'</div>';
+      h += '<div class="planner-day-meta" style="font-size:10px;color:'+(isTodayD?'var(--lime-light)':'var(--txt3)')+';font-weight:800;text-transform:uppercase;letter-spacing:.07em;">'+(isTodayD?'Hoy':MS[ds_.date.getMonth()].slice(0,3))+'</div>';
       h += '</div>';
       if(ds_.total > 0){
         h += '<div style="font-size:11px;font-weight:700;color:var(--lime-light);">'+ds_.done+'/'+ds_.total+'</div>';
@@ -5461,16 +5461,16 @@ function renderPlanner(){
           var catLbl = act.calendarImported ? 'Google Calendar' : (PLAN_CATS[act.category] || PLAN_CATS.other).label;
           var catColor = act.calendarImported ? '#4AB8FF' : (PLAN_CATS[act.category] || PLAN_CATS.other).color;
           var catDot = '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:'+catColor+';margin-right:5px;vertical-align:middle;"></span>';
-          h += '<div onclick="editPlanActivity(\''+act.id+'\',\''+ds_.dStr+'\')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:'+(doneA?'rgba(186,255,57,.08)':'var(--surf)')+';border:1px solid '+(doneA?'rgba(186,255,57,.25)':'var(--surf2)')+';border-radius:11px;margin-bottom:6px;cursor:pointer;transition:all .18s;">';
+          h += '<div class="planner-event-row" onclick="editPlanActivity(\''+act.id+'\',\''+ds_.dStr+'\')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:'+(doneA?'rgba(186,255,57,.08)':'var(--surf)')+';border:1px solid '+(doneA?'rgba(186,255,57,.25)':'var(--surf2)')+';border-radius:11px;margin-bottom:6px;cursor:pointer;transition:all .18s;">';
           // Checkbox
           h += '<div onclick="event.stopPropagation();togglePlanCompleted(\''+act.id+'\',\''+ds_.dStr+'\')" style="width:20px;height:20px;border-radius:50%;border:1.5px solid '+(doneA?'var(--lime-light)':'var(--surf3)')+';background:'+(doneA?'var(--lime-light)':'transparent')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .22s cubic-bezier(.34,1.56,.64,1);'+(doneA?'transform:scale(1.05);':'')+'">'
               + (doneA?'<span style="color:#0D0D0D;font-size:10px;font-weight:900;">✓</span>':'')
               + '</div>';
           h += '<div style="flex:1;">';
-          h += '<div style="font-size:14px;font-weight:800;letter-spacing:-.15px;">'+act.name+'</div>';
+          h += '<div class="planner-event-title" style="font-size:14px;font-weight:800;letter-spacing:-.15px;">'+act.name+'</div>';
           var timeLbl = act.allDay ? 'Todo el día' : (act.start+' – '+act.end);
           if(act.endDate && act.endDate !== act.oneOffDate) timeLbl += ' · varios días';
-          h += '<div style="font-size:11px;color:var(--txt2);margin-top:1px;">'+catDot+timeLbl+' · '+catLbl+'</div>';
+          h += '<div class="planner-event-meta" style="font-size:11px;color:var(--txt2);margin-top:1px;">'+catDot+timeLbl+' · '+catLbl+'</div>';
           h += '</div>';
           h += '<div style="font-size:18px;color:var(--txt3);font-weight:900;line-height:1;flex-shrink:0;">›</div>';
           h += '</div>';
