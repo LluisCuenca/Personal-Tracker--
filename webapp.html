@@ -8184,19 +8184,20 @@ function renderKaizen(){
     // Contenido desplegable
     if(open){
       if(steps.length){
-        h += '<div style="margin-top:14px;">';
+        h += '<div class="kai-steps" data-goal-id="'+g.id+'" style="margin-top:14px;">';
         for(var s2=0;s2<steps.length;s2++){
           var st = steps[s2];
           var txtColor = st.done ? 'var(--lime-light)' : 'var(--txt)';
-          h += '<div style="display:flex;align-items:center;gap:8px;padding:9px 10px;background:'+(st.done?'rgba(186,255,57,.07)':'var(--surf)')+';border:1px solid '+(st.done?'rgba(186,255,57,.25)':'var(--surf2)')+';border-radius:10px;margin-bottom:6px;">';
+          h += '<div class="kai-step-row" data-step-id="'+st.id+'" style="display:flex;align-items:center;gap:6px;padding:9px 8px 9px 10px;background:'+(st.done?'rgba(186,255,57,.07)':'var(--surf)')+';border:1px solid '+(st.done?'rgba(186,255,57,.25)':'var(--surf2)')+';border-radius:10px;margin-bottom:6px;">';
           h += '<div onclick="toggleKaizenStep(\''+g.id+'\',\''+st.id+'\')" style="width:20px;height:20px;border-radius:50%;border:1.5px solid '+(st.done?'var(--lime-light)':'var(--surf3)')+';background:'+(st.done?'var(--lime-light)':'transparent')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;">'+(st.done?'<span style="color:#0D0D0D;font-size:10px;font-weight:900;">✓</span>':'')+'</div>';
-          h += '<div onclick="toggleKaizenStep(\''+g.id+'\',\''+st.id+'\')" style="flex:1;font-size:13px;font-weight:500;color:'+txtColor+';cursor:pointer;">'+_escK(st.text)+'</div>';
+          h += '<div onclick="toggleKaizenStep(\''+g.id+'\',\''+st.id+'\')" style="flex:1;min-width:0;font-size:13px;font-weight:500;color:'+txtColor+';cursor:pointer;">'+_escK(st.text)+'</div>';
+          h += '<button onclick="event.stopPropagation();editKaizenStep(\''+g.id+'\',\''+st.id+'\')" style="width:22px;height:26px;border:none;background:transparent;color:var(--txt3);cursor:pointer;font-size:11px;flex-shrink:0;">✎</button>';
+          h += '<button onclick="event.stopPropagation();deleteKaizenStep(\''+g.id+'\',\''+st.id+'\')" style="width:22px;height:26px;border:none;background:transparent;color:var(--txt3);cursor:pointer;font-size:14px;flex-shrink:0;">×</button>';
           if(steps.length>1){
-            h += '<button onclick="event.stopPropagation();moveKaizenStep(\''+g.id+'\',\''+st.id+'\',-1)" '+(s2===0?'disabled':'')+' style="width:20px;height:24px;border:none;background:transparent;color:var(--txt3);cursor:pointer;font-size:11px;flex-shrink:0;'+(s2===0?'opacity:.3;':'')+'">↑</button>';
-            h += '<button onclick="event.stopPropagation();moveKaizenStep(\''+g.id+'\',\''+st.id+'\',1)" '+(s2===steps.length-1?'disabled':'')+' style="width:20px;height:24px;border:none;background:transparent;color:var(--txt3);cursor:pointer;font-size:11px;flex-shrink:0;'+(s2===steps.length-1?'opacity:.3;':'')+'">↓</button>';
+            h += '<span class="kai-grip" title="Mantén pulsado y arrastra para reordenar" style="touch-action:none;cursor:grab;color:var(--txt3);flex-shrink:0;display:flex;align-items:center;padding:0 2px;">'
+               + '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>'
+               + '</span>';
           }
-          h += '<button onclick="event.stopPropagation();editKaizenStep(\''+g.id+'\',\''+st.id+'\')" style="width:22px;height:24px;border:none;background:transparent;color:var(--txt3);cursor:pointer;font-size:11px;flex-shrink:0;">✎</button>';
-          h += '<button onclick="event.stopPropagation();deleteKaizenStep(\''+g.id+'\',\''+st.id+'\')" style="width:22px;height:24px;border:none;background:transparent;color:var(--txt3);cursor:pointer;font-size:14px;flex-shrink:0;">×</button>';
           h += '</div>';
         }
         h += '</div>';
@@ -8214,6 +8215,69 @@ function renderKaizen(){
   h += '</div>';
   wrap.innerHTML = h;
   if(typeof attachRipplesToLimeButtons === 'function') attachRipplesToLimeButtons();
+  _attachKaizenDnD();
+}
+/* ── Drag & drop de pasos (con tirador) ── */
+var _kaiDrag = null;
+function _attachKaizenDnD(){
+  var grips = document.querySelectorAll('#kaizen-content .kai-grip');
+  for(var i=0;i<grips.length;i++){
+    grips[i].addEventListener('pointerdown', _kaiDragStart);
+  }
+}
+function _kaiStepAfter(list, y){
+  var rows = Array.prototype.slice.call(list.querySelectorAll('.kai-step-row:not(.kai-dragging)'));
+  var closest = null, closestOffset = -Infinity;
+  for(var i=0;i<rows.length;i++){
+    var box = rows[i].getBoundingClientRect();
+    var offset = y - (box.top + box.height/2);
+    if(offset < 0 && offset > closestOffset){ closestOffset = offset; closest = rows[i]; }
+  }
+  return closest;
+}
+function _kaiDragStart(e){
+  var grip = e.currentTarget;
+  var row = grip.closest('.kai-step-row');
+  var list = row && row.closest('.kai-steps');
+  if(!row || !list) return;
+  e.preventDefault();
+  _kaiDrag = { row:row, list:list };
+  row.classList.add('kai-dragging');
+  row.style.opacity = '0.85';
+  row.style.background = 'var(--surf2)';
+  row.style.boxShadow = '0 8px 24px rgba(0,0,0,.4)';
+  try { grip.setPointerCapture(e.pointerId); } catch(err){}
+  document.addEventListener('pointermove', _kaiDragMove);
+  document.addEventListener('pointerup', _kaiDragEnd);
+  document.addEventListener('pointercancel', _kaiDragEnd);
+  haptic('light');
+}
+function _kaiDragMove(e){
+  if(!_kaiDrag) return;
+  e.preventDefault();
+  var after = _kaiStepAfter(_kaiDrag.list, e.clientY);
+  if(after) _kaiDrag.list.insertBefore(_kaiDrag.row, after);
+  else _kaiDrag.list.appendChild(_kaiDrag.row);
+}
+function _kaiDragEnd(){
+  document.removeEventListener('pointermove', _kaiDragMove);
+  document.removeEventListener('pointerup', _kaiDragEnd);
+  document.removeEventListener('pointercancel', _kaiDragEnd);
+  if(!_kaiDrag) return;
+  var list = _kaiDrag.list, row = _kaiDrag.row;
+  row.classList.remove('kai-dragging');
+  row.style.opacity = ''; row.style.background = ''; row.style.boxShadow = '';
+  var goalId = list.getAttribute('data-goal-id');
+  var ids = Array.prototype.slice.call(list.querySelectorAll('.kai-step-row')).map(function(r){ return r.getAttribute('data-step-id'); });
+  _kaiDrag = null;
+  var g = _kaizenGoal(goalId);
+  if(g){
+    var map = {}; for(var i=0;i<g.steps.length;i++) map[g.steps[i].id] = g.steps[i];
+    var ns = []; for(var j=0;j<ids.length;j++){ if(map[ids[j]]) ns.push(map[ids[j]]); }
+    if(ns.length === g.steps.length){ g.steps = ns; save(); }
+  }
+  haptic('light');
+  renderKaizen();
 }
 function toggleKaizenOpen(id){
   _kaizenOpen[id] = !_kaizenOpen[id];
