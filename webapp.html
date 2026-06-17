@@ -3382,7 +3382,7 @@ function renderHome(){
     var todayClass = (balToday !== null && balToday < 0) ? ' neg' : '';
 
     h+='<div class="mcard" data-home-module="fitness">';
-    h+='<div class="mc-top"><div class="mc-title">Nutrition + Fitness</div><button class="btn btn-lime-sm" onclick="goScreen(\'s-fitness\')">Track</button></div>';
+    h+='<div class="mc-top"><div class="mc-title">Nutrition + Fitness <button class="home-info-btn" onclick="event.stopPropagation();showInfo(\'home-fitness\')" aria-label="Información sobre Nutrition + Fitness">?</button></div><button class="btn btn-lime-sm" onclick="goScreen(\'s-fitness\')">Track</button></div>';
     // Big balance today
     h+='<div style="margin-top:14px;display:flex;align-items:flex-end;gap:6px;">';
     h+='<div class="coins-big'+todayClass+'" style="font-size:54px;letter-spacing:-2.5px;">'+_fmtBal(balToday)+'</div>';
@@ -3422,7 +3422,7 @@ function renderHome(){
     var avg7 = n7 > 0 ? Math.round(sum7/n7) : 0;
     var todayClass = ptsToday < 0 ? ' neg' : '';
     h+='<div class="mcard" data-home-module="habits">';
-    h+='<div class="mc-top"><div class="mc-title">Daily Habits</div><button class="btn btn-lime-sm" onclick="goScreen(\'s-habits\')">Track</button></div>';
+    h+='<div class="mc-top"><div class="mc-title">Daily Habits <button class="home-info-btn" onclick="event.stopPropagation();showInfo(\'home-habits\')" aria-label="Información sobre Daily Habits">?</button></div><button class="btn btn-lime-sm" onclick="goScreen(\'s-habits\')">Track</button></div>';
     // Big today
     h+='<div style="margin-top:14px;display:flex;align-items:flex-end;gap:6px;">';
     h+='<div class="coins-big'+todayClass+'" style="font-size:54px;letter-spacing:-2.5px;">'+(ptsToday>0?'+':'')+ptsToday+'</div>';
@@ -3470,7 +3470,7 @@ function renderHome(){
     var weekPct = weekTotal > 0 ? Math.round(weekDone / weekTotal * 100) : 0;
 
     h+='<div class="mcard" data-home-module="planner">';
-    h+='<div class="mc-top"><div class="mc-title">Weekly Planner</div><button class="btn btn-lime-sm" onclick="goScreen(\'s-planner\')">Plan</button></div>';
+    h+='<div class="mc-top"><div class="mc-title">Weekly Planner <button class="home-info-btn" onclick="event.stopPropagation();showInfo(\'home-planner\')" aria-label="Información sobre Weekly Planner">?</button></div><button class="btn btn-lime-sm" onclick="goScreen(\'s-planner\')">Plan</button></div>';
     h+='<div style="margin-top:14px;display:flex;align-items:flex-end;gap:6px;">';
     h+='<div class="coins-big" style="font-size:54px;letter-spacing:-2.5px;">'+todayDone+'<span class="coins-unit">/'+todayActs.length+'</span></div>';
     h+='<div style="font-size:14px;color:var(--txt2);font-weight:600;margin-bottom:11px;">hoy</div>';
@@ -3501,7 +3501,7 @@ function renderHome(){
     }
     var kAvgPct = kgoals.length ? Math.round(kPctSum/kgoals.length*100) : 0;
     h+='<div class="mcard" data-home-module="kaizen">';
-    h+='<div class="mc-top"><div class="mc-title">Kaizen Goals</div><button class="btn btn-lime-sm" onclick="goScreen(\'s-kaizen\')">Abrir</button></div>';
+    h+='<div class="mc-top"><div class="mc-title">Kaizen Goals <button class="home-info-btn" onclick="event.stopPropagation();showInfo(\'home-kaizen\')" aria-label="Información sobre Kaizen Goals">?</button></div><button class="btn btn-lime-sm" onclick="goScreen(\'s-kaizen\')">Abrir</button></div>';
     h+='<div style="margin-top:14px;display:flex;align-items:flex-end;gap:6px;">';
     h+='<div class="coins-big" style="font-size:54px;letter-spacing:-2.5px;">'+kActive+'</div>';
     h+='<div style="font-size:14px;color:var(--txt2);font-weight:600;margin-bottom:11px;">objetivos en curso</div>';
@@ -8290,19 +8290,63 @@ var _kaizenOpen = {}; // estado plegado/desplegado por objetivo (en memoria)
 var _kaizenReorder = false; // modo reordenar objetivos
 function _escK(s){ return String(s==null?'':s).replace(/[<>&]/g,function(c){return c==='<'?'&lt;':c==='>'?'&gt;':'&amp;';}); }
 function _kaizenGoal(id){ var g=S.kaizen.goals; for(var i=0;i<g.length;i++) if(g[i].id===id) return g[i]; return null; }
+function _kaizenProgress(g){
+  var steps = g.steps || [];
+  if(g.completed) return {done:steps.length, total:steps.length, pct:100, complete:true};
+  var done = 0; for(var i=0;i<steps.length;i++) if(steps[i].done) done++;
+  return {done:done, total:steps.length, pct:steps.length ? Math.round(done/steps.length*100) : 0, complete:steps.length>0 && done===steps.length};
+}
+function _kaizenDeadlineLabel(d){
+  if(!d) return 'Sin deadline';
+  var p=d.split('-'); if(p.length!==3) return d;
+  return p[2]+'/'+p[1]+'/'+p[0].slice(2);
+}
+function _kaizenSortGoals(goals){
+  var mode = (S.kaizen && S.kaizen.viewBy) || 'category';
+  var arr = goals.slice();
+  if(mode === 'priority'){
+    arr.sort(function(a,b){ return (b.priority||50) - (a.priority||50); });
+  } else if(mode === 'deadline'){
+    arr.sort(function(a,b){
+      var ad = a.deadline || '9999-12-31';
+      var bd = b.deadline || '9999-12-31';
+      return ad.localeCompare(bd);
+    });
+  } else {
+    arr.sort(function(a,b){
+      var ac = (a.category || 'Personal').toLowerCase();
+      var bc = (b.category || 'Personal').toLowerCase();
+      if(ac !== bc) return ac.localeCompare(bc);
+      return (b.priority||50) - (a.priority||50);
+    });
+  }
+  return arr;
+}
+function setKaizenView(mode){
+  if(!S.kaizen) S.kaizen = {goals:[]};
+  S.kaizen.viewBy = mode;
+  save();
+  haptic('light');
+  renderKaizen();
+}
 
 function renderKaizen(){
   var wrap = el('kaizen-content');
   if(!wrap) return;
   var goals = S.kaizen.goals || [];
   var h = '';
+  var view = S.kaizen.viewBy || 'category';
+  h += '<div class="view-toggle" style="margin-top:10px;">'
+    + '<button class="vt-btn '+(view==='category'?'on':'')+'" onclick="setKaizenView(\'category\')">Categoría</button>'
+    + '<button class="vt-btn '+(view==='priority'?'on':'')+'" onclick="setKaizenView(\'priority\')">Prioridad</button>'
+    + '<button class="vt-btn '+(view==='deadline'?'on':'')+'" onclick="setKaizenView(\'deadline\')">Deadline</button>'
+    + '</div>';
   // ── Panel resumen (gradiente verde) ──
   var gStepsDone=0, gStepsTotal=0, gActive=0, gDone=0;
   for(var gi=0;gi<goals.length;gi++){
-    var stp = goals[gi].steps || [];
-    var dd=0; for(var di=0;di<stp.length;di++) if(stp[di].done) dd++;
-    gStepsDone+=dd; gStepsTotal+=stp.length;
-    if(stp.length && dd===stp.length) gDone++; else gActive++;
+    var prg = _kaizenProgress(goals[gi]);
+    gStepsDone+=prg.done; gStepsTotal+=prg.total;
+    if(prg.complete) gDone++; else gActive++;
   }
   var gPct = gStepsTotal ? Math.round(gStepsDone/gStepsTotal*100) : 0;
   h += '<div class="coins-banner">';
@@ -8330,12 +8374,18 @@ function renderKaizen(){
     return;
   }
   h += '<div style="padding:14px 16px 28px;">';
-  for(var i=0;i<goals.length;i++){
-    var g = goals[i];
+  var orderedGoals = _kaizenSortGoals(goals);
+  var lastGroup = null;
+  for(var i=0;i<orderedGoals.length;i++){
+    var g = orderedGoals[i];
+    var groupLabel = view === 'category' ? (g.category || 'Personal') : (view === 'priority' ? ((g.priority||50)+'% prioridad') : _kaizenDeadlineLabel(g.deadline));
+    if(groupLabel !== lastGroup){
+      h += '<div class="kai-group-title">'+_escK(groupLabel)+'</div>';
+      lastGroup = groupLabel;
+    }
     var steps = g.steps || [];
-    var done = 0; for(var s=0;s<steps.length;s++) if(steps[s].done) done++;
-    var pct = steps.length ? Math.round(done/steps.length*100) : 0;
-    var complete = steps.length>0 && done===steps.length;
+    var gp = _kaizenProgress(g);
+    var done = gp.done, pct = gp.pct, complete = gp.complete;
     var open = !_kaizenReorder && !!_kaizenOpen[g.id];
     var pctColor = pct>0 ? 'var(--lime-light)' : 'var(--txt3)';
     h += '<div class="mcard" style="margin-bottom:12px;'+(complete?'border-color:var(--lime-light);':'')+'">';
@@ -8355,8 +8405,20 @@ function renderKaizen(){
     h += '</div>';
     h += '<div style="flex:1;min-width:0;">';
     h += '<div style="font-size:16px;font-weight:800;letter-spacing:-.3px;line-height:1.25;">'+_escK(g.title)+'</div>';
+    h += '<div class="kai-meta-row">'
+      + '<span class="kai-pill">'+_escK(g.category||'Personal')+'</span>'
+      + '<span class="kai-pill">'+(g.priority||50)+'% prioridad</span>'
+      + '<span class="kai-pill">'+_kaizenDeadlineLabel(g.deadline)+'</span>'
+      + '</div>';
     h += '<div style="font-size:10px;font-weight:700;color:var(--txt3);margin-top:6px;text-transform:uppercase;letter-spacing:.06em;">'+done+'/'+steps.length+' pasos'+(complete?' · logrado':'')+'</div>';
     h += '</div>';
+    if(!_kaizenReorder){
+      h += '<div class="kai-card-actions">'
+        + '<button onclick="event.stopPropagation();toggleKaizenGoalComplete(\''+g.id+'\')" class="kai-mini-btn" title="Marcar objetivo como completado">'+(complete?'✓':'○')+'</button>'
+        + '<button onclick="event.stopPropagation();openKaizenGoal(\''+g.id+'\')" class="kai-mini-btn" title="Editar objetivo">✎</button>'
+        + '<button onclick="event.stopPropagation();deleteKaizenGoalDirect(\''+g.id+'\')" class="kai-mini-btn" title="Eliminar objetivo">×</button>'
+        + '</div>';
+    }
     h += '</div>';
     // Barra de progreso
     h += '<div class="thin-bar" style="height:6px;margin-top:12px;"><div class="thin-fill" style="background:var(--lime-light);width:'+pct+'%"></div></div>';
@@ -8383,7 +8445,6 @@ function renderKaizen(){
       h += '<button class="btn btn-ghost full" style="font-size:12px;" onclick="addKaizenStep(\''+g.id+'\')">+ Añadir paso</button>';
       h += '<button class="btn btn-lime full" id="kai-ai-'+g.id+'" style="font-size:12px;" onclick="openKaizenPlanModal(\''+g.id+'\')">'+(steps.length?'✦ Repensar plan':'✦ Crear plan con IA')+'</button>';
       h += '</div>';
-      h += '<button class="btn btn-ghost full" style="font-size:12px;margin-top:8px;color:var(--txt2);" onclick="openKaizenGoal(\''+g.id+'\')">Editar objetivo</button>';
     }
     h += '</div>';
   }
@@ -8484,6 +8545,28 @@ function moveKaizenStep(goalId, stepId, dir){
   renderKaizen();
 }
 
+function renderKaizenCategorySelect(selected){
+  var sel = el('kg-category');
+  if(!sel) return;
+  var cats = (S.kaizen && S.kaizen.categories) || ['Personal','Trabajo','Deporte'];
+  if(cats.indexOf(selected) < 0 && selected) cats.push(selected);
+  var h = '';
+  for(var i=0;i<cats.length;i++){
+    h += '<option value="'+_escK(cats[i])+'"'+(cats[i]===selected?' selected':'')+'>'+_escK(cats[i])+'</option>';
+  }
+  sel.innerHTML = h;
+}
+
+function createKaizenCategory(){
+  var name = cleanUserText(prompt('Nombre de la nueva categoría'), 60);
+  if(!name) return;
+  if(!S.kaizen.categories) S.kaizen.categories = [];
+  if(S.kaizen.categories.indexOf(name) < 0) S.kaizen.categories.push(name);
+  save();
+  renderKaizenCategorySelect(name);
+  toast('Categoría creada','success');
+}
+
 function openKaizenGoal(id){
   _editingKaizenGoalId = id || null;
   var g = id ? _kaizenGoal(id) : null;
@@ -8491,6 +8574,9 @@ function openKaizenGoal(id){
   el('kg-save-btn').textContent = g ? 'Guardar' : 'Crear objetivo';
   el('kg-title').value = g ? g.title : '';
   el('kg-why').value = g ? (g.why||'') : '';
+  renderKaizenCategorySelect(g ? (g.category||'Personal') : 'Personal');
+  el('kg-priority').value = g ? (g.priority || 50) : 50;
+  el('kg-deadline').value = g ? (g.deadline || '') : '';
   el('kg-delete-btn').style.display = g ? '' : 'none';
   openModal('m-kaizengoal');
 }
@@ -8498,13 +8584,17 @@ function saveKaizenGoal(){
   var title = cleanUserText(el('kg-title').value, 120);
   if(!title){ toast('Escribe el objetivo', 'error'); return; }
   var why = cleanUserText(el('kg-why').value, 180);
+  var category = cleanUserText((el('kg-category')||{value:'Personal'}).value, 60) || 'Personal';
+  var priority = Math.max(1, Math.min(100, parseInt((el('kg-priority')||{value:50}).value) || 50));
+  var deadline = (el('kg-deadline')||{value:''}).value || '';
+  if(S.kaizen.categories.indexOf(category) < 0) S.kaizen.categories.push(category);
   if(_editingKaizenGoalId){
     var g = _kaizenGoal(_editingKaizenGoalId);
-    if(g){ g.title = title; g.why = why; }
+    if(g){ g.title = title; g.why = why; g.category = category; g.priority = priority; g.deadline = deadline; }
     toast('Objetivo actualizado','success');
   } else {
     var newId = uid();
-    S.kaizen.goals.unshift({ id:newId, title:title, why:why, createdAt:Date.now(), steps:[], archived:false });
+    S.kaizen.goals.unshift({ id:newId, title:title, why:why, category:category, priority:priority, deadline:deadline, createdAt:Date.now(), steps:[], archived:false, completed:false });
     _kaizenOpen[newId] = true; // abrir el objetivo recién creado
     toast('Objetivo creado','success');
   }
@@ -8512,6 +8602,18 @@ function saveKaizenGoal(){
   save();
   closeModal('m-kaizengoal');
   renderKaizen();
+}
+function toggleKaizenGoalComplete(id){
+  var g = _kaizenGoal(id); if(!g) return;
+  g.completed = !g.completed;
+  g.completedAt = g.completed ? Date.now() : null;
+  save();
+  haptic('success');
+  renderKaizen();
+}
+function deleteKaizenGoalDirect(id){
+  _editingKaizenGoalId = id;
+  deleteKaizenGoal();
 }
 function deleteKaizenGoal(){
   if(!_editingKaizenGoalId) return;
@@ -8559,6 +8661,8 @@ function toggleKaizenStep(goalId, stepId){
   var g = _kaizenGoal(goalId); if(!g) return;
   var nowDone = false;
   for(var i=0;i<g.steps.length;i++) if(g.steps[i].id===stepId){ g.steps[i].done = !g.steps[i].done; nowDone = g.steps[i].done; break; }
+  g.completed = false;
+  g.completedAt = null;
   haptic(nowDone ? 'success' : 'light');
   save();
   renderKaizen();
