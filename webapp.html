@@ -1744,7 +1744,16 @@ button,.tap,[role="button"],
   .btn:hover,.day-nav-btn:hover,.water-btn:hover,.sheet-x:hover,.kai-mini-btn:hover{
     transform:translateY(-1px);
   }
-  .home-card:hover .home-arrow{transform:translateX(4px);}
+.home-card:hover .home-arrow{transform:translateX(4px);}
+}
+.sw-t:before{transition:transform .34s var(--ease-pop), background-color .22s !important;}
+.sw input:checked+.sw-t{animation:glowPulse .7s ease-out;}
+.sheet-x:hover{transform:translateY(-1px) rotate(8deg);}
+.quick-toggle span{transition:transform .24s var(--ease-pop);}
+.quick-toggle:active span{transform:translateY(1px) scale(1.12);}
+.day-nav-btn:hover{box-shadow:0 6px 18px rgba(186,255,57,.10);}
+.planner-day-card.today,.mm-day.mm-today,.wday-col.today-col{
+  animation:glowPulse 2.8s ease-in-out infinite;
 }
 
 /* ─── UTIL ─── */
@@ -3841,7 +3850,7 @@ function renderHome(){
     mcards.forEach(function(c, i){
       c.style.animation = 'none';
       c.offsetHeight;
-      c.style.animation = 'screenIn .42s cubic-bezier(.22,1,.36,1) ' + (i * 0.08) + 's both';
+      c.style.animation = 'cardBounceIn .52s var(--ease-spring) ' + (i * 0.07) + 's both';
       c.addEventListener('click', function(ev){
         if(ev.target.closest('button,a')) return;
         var target = {fitness:'s-fitness', habits:'s-habits', planner:'s-planner', kaizen:'s-kaizen'}[this.getAttribute('data-home-module')];
@@ -3863,21 +3872,21 @@ function progBar(label,p){
 function animateViewSwap(containerId, renderFn, direction){
   var content = el(containerId);
   if(!content){ renderFn(); return; }
-  var dir = direction || -28;
-  content.style.transition = 'opacity .14s ease, transform .14s ease';
+  var dir = direction || -34;
+  content.style.transition = 'opacity .14s ease, transform .16s ease';
   content.style.opacity = '0';
-  content.style.transform = 'translateX(' + dir + 'px)';
+  content.style.transform = 'translateX(' + dir + 'px) scale(.985)';
   setTimeout(function(){
     renderFn();
     var next = el(containerId);
     if(!next) return;
     next.style.transition = 'none';
-    next.style.transform = 'translateX(' + (-dir) + 'px)';
+    next.style.transform = 'translateX(' + (-dir) + 'px) scale(.985)';
     next.style.opacity = '0';
     next.offsetHeight;
-    next.style.transition = 'opacity .30s cubic-bezier(.22,1,.36,1), transform .34s cubic-bezier(.22,1,.36,1)';
+    next.style.transition = 'opacity .34s var(--ease-smooth), transform .46s var(--ease-spring)';
     next.style.opacity = '1';
-    next.style.transform = 'translateX(0)';
+    next.style.transform = 'translateX(0) scale(1)';
   }, 140);
 }
 
@@ -4083,7 +4092,7 @@ function renderFitDay(){
     children.forEach(function(child, idx){
       child.style.animation = 'none';
       child.offsetHeight; // force reflow
-      child.style.animation = 'listItemIn .42s cubic-bezier(.22,1,.36,1) ' + (0.02 + idx * 0.04) + 's both';
+      child.style.animation = 'listItemIn .48s var(--ease-spring) ' + (0.02 + idx * 0.04) + 's both';
     });
   });
   attachRipplesToLimeButtons();
