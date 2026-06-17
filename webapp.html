@@ -8175,7 +8175,6 @@ function renderKaizen(){
     h += '</div>';
     h += '<div style="flex:1;min-width:0;">';
     h += '<div style="font-size:16px;font-weight:800;letter-spacing:-.3px;line-height:1.25;">'+_escK(g.title)+'</div>';
-    if(g.why) h += '<div style="font-size:12px;color:var(--txt2);margin-top:4px;line-height:1.5;">'+_escK(g.why)+'</div>';
     h += '<div style="font-size:10px;font-weight:700;color:var(--txt3);margin-top:6px;text-transform:uppercase;letter-spacing:.06em;">'+done+'/'+steps.length+' pasos'+(complete?' · logrado':'')+'</div>';
     h += '</div>';
     h += '</div>';
@@ -8183,8 +8182,9 @@ function renderKaizen(){
     h += '<div class="thin-bar" style="height:6px;margin-top:12px;"><div class="thin-fill" style="background:var(--lime-light);width:'+pct+'%"></div></div>';
     // Contenido desplegable
     if(open){
+      if(g.why) h += '<div style="font-size:13px;color:var(--txt2);line-height:1.55;margin-top:14px;padding:12px 14px;background:var(--surf);border-radius:12px;">'+_escK(g.why)+'</div>';
       if(steps.length){
-        h += '<div class="kai-steps" data-goal-id="'+g.id+'" style="margin-top:14px;">';
+        h += '<div class="kai-steps" data-goal-id="'+g.id+'" style="margin-top:'+(g.why?'10px':'14px')+';">';
         for(var s2=0;s2<steps.length;s2++){
           var st = steps[s2];
           var txtColor = st.done ? 'var(--lime-light)' : 'var(--txt)';
