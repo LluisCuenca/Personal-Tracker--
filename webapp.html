@@ -1280,6 +1280,23 @@ button:active,
   transition:all .16s;
 }
 .home-info-btn:hover{color:var(--lime-light);border-color:var(--surf3);background:var(--surf2);}
+.home-arrow{
+  align-self:flex-start;
+  display:flex;align-items:center;justify-content:center;
+  width:26px;height:26px;
+  margin-top:-2px;
+  color:var(--lime-light);
+  font-size:24px;font-weight:900;line-height:1;
+  flex-shrink:0;
+}
+.home-metric-row{
+  margin-top:14px;
+  display:flex;align-items:flex-end;gap:7px;
+}
+.home-metric-label{
+  font-size:14px;color:var(--txt2);font-weight:600;
+  margin-bottom:3px;line-height:1.15;
+}
 .kai-meta-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
 .kai-pill{
   display:inline-flex;align-items:center;gap:5px;
@@ -3573,11 +3590,11 @@ function renderHome(){
     var todayClass = (balToday !== null && balToday < 0) ? ' neg' : '';
 
     h+='<div class="mcard home-card" data-home-module="fitness" onclick="goScreen(\'s-fitness\')" style="cursor:pointer;">';
-    h+='<div class="mc-top"><div class="mc-title">Nutrition + Fitness <button class="home-info-btn" onclick="event.stopPropagation();showInfo(\'home-fitness\')" aria-label="Información sobre Nutrition + Fitness">?</button></div><div style="font-size:24px;color:var(--lime-light);font-weight:900;line-height:1;">›</div></div>';
+    h+='<div class="mc-top"><div class="mc-title">Nutrition + Fitness</div><div class="home-arrow">›</div></div>';
     // Big balance today
-    h+='<div style="margin-top:14px;display:flex;align-items:flex-end;gap:6px;">';
+    h+='<div class="home-metric-row">';
     h+='<div class="coins-big'+todayClass+'" style="font-size:54px;letter-spacing:-2.5px;">'+_fmtBal(balToday)+'</div>';
-    h+='<div style="font-size:14px;color:var(--txt2);font-weight:600;margin-bottom:11px;">kcal hoy</div>';
+    h+='<div class="home-metric-label">kcal hoy</div>';
     h+='</div>';
     // Label for what positive/negative means
     if(balToday !== null){
@@ -3613,11 +3630,11 @@ function renderHome(){
     var avg7 = n7 > 0 ? Math.round(sum7/n7) : 0;
     var todayClass = ptsToday < 0 ? ' neg' : '';
     h+='<div class="mcard home-card" data-home-module="habits" onclick="goScreen(\'s-habits\')" style="cursor:pointer;">';
-    h+='<div class="mc-top"><div class="mc-title">Daily Habits <button class="home-info-btn" onclick="event.stopPropagation();showInfo(\'home-habits\')" aria-label="Información sobre Daily Habits">?</button></div><div style="font-size:24px;color:var(--lime-light);font-weight:900;line-height:1;">›</div></div>';
+    h+='<div class="mc-top"><div class="mc-title">Daily Habits</div><div class="home-arrow">›</div></div>';
     // Big today
-    h+='<div style="margin-top:14px;display:flex;align-items:flex-end;gap:6px;">';
+    h+='<div class="home-metric-row">';
     h+='<div class="coins-big'+todayClass+'" style="font-size:54px;letter-spacing:-2.5px;">'+(ptsToday>0?'+':'')+ptsToday+'</div>';
-    h+='<div style="font-size:14px;color:var(--txt2);font-weight:600;margin-bottom:11px;">pts hoy</div>';
+    h+='<div class="home-metric-label">pts hoy</div>';
     h+='</div>';
     // Small comparison row
     h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">';
@@ -3661,10 +3678,10 @@ function renderHome(){
     var weekPct = weekTotal > 0 ? Math.round(weekDone / weekTotal * 100) : 0;
 
     h+='<div class="mcard home-card" data-home-module="planner" onclick="goScreen(\'s-planner\')" style="cursor:pointer;">';
-    h+='<div class="mc-top"><div class="mc-title">Weekly Planner <button class="home-info-btn" onclick="event.stopPropagation();showInfo(\'home-planner\')" aria-label="Información sobre Weekly Planner">?</button></div><div style="font-size:24px;color:var(--lime-light);font-weight:900;line-height:1;">›</div></div>';
-    h+='<div style="margin-top:14px;display:flex;align-items:flex-end;gap:6px;">';
+    h+='<div class="mc-top"><div class="mc-title">Weekly Planner</div><div class="home-arrow">›</div></div>';
+    h+='<div class="home-metric-row">';
     h+='<div class="coins-big" style="font-size:54px;letter-spacing:-2.5px;">'+todayDone+'<span class="coins-unit">/'+todayActs.length+'</span></div>';
-    h+='<div style="font-size:14px;color:var(--txt2);font-weight:600;margin-bottom:11px;">hoy</div>';
+    h+='<div class="home-metric-label">hoy</div>';
     h+='</div>';
     // Today progress bar
     h+='<div class="thin-bar" style="margin-top:10px;height:6px;"><div class="thin-fill" style="background:var(--lime-light);width:'+todayPct+'%"></div></div>';
@@ -3693,10 +3710,10 @@ function renderHome(){
     }
     var kAvgPct = kgoals.length ? Math.round(kPctSum/kgoals.length*100) : 0;
     h+='<div class="mcard home-card" data-home-module="kaizen" onclick="goScreen(\'s-kaizen\')" style="cursor:pointer;">';
-    h+='<div class="mc-top"><div class="mc-title">Kaizen Goals <button class="home-info-btn" onclick="event.stopPropagation();showInfo(\'home-kaizen\')" aria-label="Información sobre Kaizen Goals">?</button></div><div style="font-size:24px;color:var(--lime-light);font-weight:900;line-height:1;">›</div></div>';
-    h+='<div style="margin-top:14px;display:flex;align-items:flex-end;gap:6px;">';
+    h+='<div class="mc-top"><div class="mc-title">Kaizen Goals</div><div class="home-arrow">›</div></div>';
+    h+='<div class="home-metric-row">';
     h+='<div class="coins-big" style="font-size:54px;letter-spacing:-2.5px;">'+kActive+'</div>';
-    h+='<div style="font-size:14px;color:var(--txt2);font-weight:600;margin-bottom:11px;">objetivos en curso</div>';
+    h+='<div class="home-metric-label">objetivos en curso</div>';
     h+='</div>';
     h+='<div class="thin-bar" style="margin-top:10px;height:6px;"><div class="thin-fill" style="background:var(--lime-light);width:'+kAvgPct+'%"></div></div>';
     h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">';
@@ -3916,10 +3933,8 @@ function renderFitDay(){
       var key = mealOrder[mi];
       var items = byMeal[key] || [];
       if(!items.length) continue;
-      var sumK = 0;
-      for(var x=0;x<items.length;x++) sumK += items[x].kcal;
       if(hasMealtime){
-        h+='<div class="meal-section-head"><span>'+mealLabels[key]+'</span><span class="meal-section-kcal">'+sumK+' kcal</span></div>';
+        h+='<div class="meal-section-head"><span>'+mealLabels[key]+'</span></div>';
       }
       for(var i=0;i<items.length;i++){
         var f=items[i];
