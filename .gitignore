@@ -1,0 +1,5 @@
+# Scripts de despliegue local (no se publican en la web)
+deploy/
+
+# Sistema
+.DS_Store
