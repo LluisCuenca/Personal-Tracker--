@@ -3942,7 +3942,7 @@ function animateViewSwap(containerId, renderFn, direction){
   var content = el(containerId);
   if(!content){ renderFn(); return; }
   var dir = direction || -34;
-  content.style.transition = 'opacity .14s ease, transform .16s ease';
+  content.style.transition = 'opacity .18s ease, transform .2s ease';
   content.style.opacity = '0';
   content.style.transform = 'translateX(' + dir + 'px) scale(.985)';
   setTimeout(function(){
@@ -3953,10 +3953,10 @@ function animateViewSwap(containerId, renderFn, direction){
     next.style.transform = 'translateX(' + (-dir) + 'px) scale(.985)';
     next.style.opacity = '0';
     next.offsetHeight;
-    next.style.transition = 'opacity .34s var(--ease-smooth), transform .46s var(--ease-spring)';
+    next.style.transition = 'opacity .44s var(--ease-smooth), transform .56s var(--ease-spring)';
     next.style.opacity = '1';
     next.style.transform = 'translateX(0) scale(1)';
-  }, 140);
+  }, 175);
 }
 
 /* ═══ FITNESS VIEWS ═══ */
