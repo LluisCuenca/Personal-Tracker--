@@ -3734,7 +3734,7 @@ function renderHome(){
     // Balance helper: (TMB + actividad) - food
     function _bal(dstr){
       var dt = dayTot(dstr);
-      if(!dt.foods.length && !dt.activities.length) return null;
+      if(!dt.foods.length) return null; // sin comida, el balance no es real
       return (B + dt.actK) - dt.kcal;
     }
     var balToday = _bal(today());
