@@ -6439,7 +6439,7 @@ function renderHabWeek(){
     var dstr=ds(d);var pts=calcCoins(dstr);
     var ap=Math.abs(pts);
     if(ap>maxAbs) maxAbs=ap;
-    if(pts!==0){
+    if(habLogged(dstr)){
       totPts+=pts; daysWithData++;
       if(pts>best) best=pts;
       if(pts<worst) worst=pts;
@@ -6450,7 +6450,7 @@ function renderHabWeek(){
   for(var i=0;i<7;i++){
     var d=new Date(monday);d.setDate(d.getDate()+i);
     var dstr=ds(d);var pts=calcCoins(dstr);
-    var hasData=pts!==0;
+    var hasData=habLogged(dstr);
     var isT=dstr===td;
     var fillPct = hasData ? Math.min(100, Math.round(Math.abs(pts)/maxAbs*100)) : 0;
     var fillCol = pts >= 0 ? 'var(--lime-light)' : 'var(--surf3)';
