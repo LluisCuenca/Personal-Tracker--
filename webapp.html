@@ -4224,7 +4224,7 @@ function renderFitWeek(){
   var avgP = nFood > 0 ? Math.round(totP*10/nFood)/10 : 0;
   var avgA = nAct > 0 ? Math.round(totA/nAct) : 0;
   var avgMin = nAct > 0 ? Math.round(totMin/nAct) : 0;
-  var avgBal = daysWithData > 0 ? Math.round(totBal/daysWithData) : 0;
+  var avgBal = nFood > 0 ? Math.round(totBal/nFood) : 0;
 
   // HERO BALANCE BUBBLE — gradient lime like day view
   var balC = avgBal > 0 ? 'var(--lime-light)' : avgBal < 0 ? 'var(--txt2)' : 'var(--txt2)';
