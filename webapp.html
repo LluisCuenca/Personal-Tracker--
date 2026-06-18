@@ -9362,5 +9362,24 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   });
 }
 </script>
+<script>
+/* Sidebar de escritorio: navegación + estado activo. Aditivo, no toca la lógica móvil. */
+(function(){
+  function syncDnav(name){
+    var map = {'s-fitlib':'s-fitness','s-hablib':'s-habits'};
+    var active = map[name] || name;
+    var items = document.querySelectorAll('#dnav .dn-item');
+    for(var i=0;i<items.length;i++){
+      items[i].classList.toggle('active', items[i].getAttribute('data-s') === active);
+    }
+  }
+  window.goDesk = function(n){ if(typeof goScreen === 'function') goScreen(n); };
+  if(typeof window.goScreen === 'function'){
+    var _gs = window.goScreen;
+    window.goScreen = function(n){ _gs(n); try{ syncDnav(n); }catch(e){} };
+  }
+  try{ syncDnav(window.CS || 's-home'); }catch(e){}
+})();
+</script>
 </body>
 </html>
