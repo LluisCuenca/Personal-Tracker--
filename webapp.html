@@ -4254,10 +4254,10 @@ function renderFitWeek(){
   var pTime = Math.min(100, Math.round(avgMin/60*100));
 
   h+='<div class="macro-grid" style="margin-top:6px;">';
-  h+='<div class="macro-box"><div class="macro-lbl">Food</div><div class="macro-val">'+(daysWithData>0?avgK:'—')+'<span class="macro-sub">kcal</span></div><div class="macro-sub" style="margin:3px 0 8px;">media / '+gc+' kcal</div><div class="thin-bar"><div class="thin-fill" style="background:var(--lime-light);width:'+pFood+'%"></div></div></div>';
-  h+='<div class="macro-box"><div class="macro-lbl">Protein</div><div class="macro-val">'+(daysWithData>0?avgP:'—')+'<span class="macro-sub">g</span></div><div class="macro-sub" style="margin:3px 0 8px;">media / '+gp+'g</div><div class="thin-bar"><div class="thin-fill" style="background:var(--lime-light);width:'+pProt+'%"></div></div></div>';
-  h+='<div class="macro-box"><div class="macro-lbl">Activity</div><div class="macro-val">'+(daysWithData>0?avgA:'—')+'<span class="macro-sub">kcal</span></div><div class="macro-sub" style="margin:3px 0 8px;">quemadas / día</div><div class="thin-bar"><div class="thin-fill" style="background:var(--lime-light);width:'+pAct+'%"></div></div></div>';
-  h+='<div class="macro-box"><div class="macro-lbl">Tiempo</div><div class="macro-val">'+(daysWithData>0?avgMin:'—')+'<span class="macro-sub">min</span></div><div class="macro-sub" style="margin:3px 0 8px;">activos / día</div><div class="thin-bar"><div class="thin-fill" style="background:var(--lime-light);width:'+pTime+'%"></div></div></div>';
+  h+='<div class="macro-box"><div class="macro-lbl">Food</div><div class="macro-val">'+(nFood>0?avgK:'—')+'<span class="macro-sub">kcal</span></div><div class="macro-sub" style="margin:3px 0 8px;">media / '+gc+' kcal</div><div class="thin-bar"><div class="thin-fill" style="background:var(--lime-light);width:'+pFood+'%"></div></div></div>';
+  h+='<div class="macro-box"><div class="macro-lbl">Protein</div><div class="macro-val">'+(nFood>0?avgP:'—')+'<span class="macro-sub">g</span></div><div class="macro-sub" style="margin:3px 0 8px;">media / '+gp+'g</div><div class="thin-bar"><div class="thin-fill" style="background:var(--lime-light);width:'+pProt+'%"></div></div></div>';
+  h+='<div class="macro-box"><div class="macro-lbl">Activity</div><div class="macro-val">'+(nAct>0?avgA:'—')+'<span class="macro-sub">kcal</span></div><div class="macro-sub" style="margin:3px 0 8px;">quemadas / día</div><div class="thin-bar"><div class="thin-fill" style="background:var(--lime-light);width:'+pAct+'%"></div></div></div>';
+  h+='<div class="macro-box"><div class="macro-lbl">Tiempo</div><div class="macro-val">'+(nAct>0?avgMin:'—')+'<span class="macro-sub">min</span></div><div class="macro-sub" style="margin:3px 0 8px;">activos / día</div><div class="thin-bar"><div class="thin-fill" style="background:var(--lime-light);width:'+pTime+'%"></div></div></div>';
   h+='</div>';
 
   el('fit-view-content').innerHTML=h;
@@ -4353,10 +4353,10 @@ function renderFitMonth(){
   var pTime = Math.min(100, Math.round(avgMin/60*100));
 
   h+='<div class="macro-grid" style="margin-top:6px;">';
-  h+='<div class="macro-box"><div class="macro-lbl">Food</div><div class="macro-val">'+(daysWithData>0?avgK:'—')+'<span class="macro-sub">kcal</span></div><div class="macro-sub" style="margin:3px 0 8px;">media / '+gc+' kcal</div><div class="thin-bar"><div class="thin-fill" style="background:var(--lime-light);width:'+pFood+'%"></div></div></div>';
-  h+='<div class="macro-box"><div class="macro-lbl">Protein</div><div class="macro-val">'+(daysWithData>0?avgP:'—')+'<span class="macro-sub">g</span></div><div class="macro-sub" style="margin:3px 0 8px;">media / '+gp+'g</div><div class="thin-bar"><div class="thin-fill" style="background:var(--lime-light);width:'+pProt+'%"></div></div></div>';
-  h+='<div class="macro-box"><div class="macro-lbl">Activity</div><div class="macro-val">'+(daysWithData>0?avgA:'—')+'<span class="macro-sub">kcal</span></div><div class="macro-sub" style="margin:3px 0 8px;">quemadas / día</div><div class="thin-bar"><div class="thin-fill" style="background:var(--lime-light);width:'+pAct+'%"></div></div></div>';
-  h+='<div class="macro-box"><div class="macro-lbl">Tiempo</div><div class="macro-val">'+(daysWithData>0?avgMin:'—')+'<span class="macro-sub">min</span></div><div class="macro-sub" style="margin:3px 0 8px;">activos / día</div><div class="thin-bar"><div class="thin-fill" style="background:var(--lime-light);width:'+pTime+'%"></div></div></div>';
+  h+='<div class="macro-box"><div class="macro-lbl">Food</div><div class="macro-val">'+(nFood>0?avgK:'—')+'<span class="macro-sub">kcal</span></div><div class="macro-sub" style="margin:3px 0 8px;">media / '+gc+' kcal</div><div class="thin-bar"><div class="thin-fill" style="background:var(--lime-light);width:'+pFood+'%"></div></div></div>';
+  h+='<div class="macro-box"><div class="macro-lbl">Protein</div><div class="macro-val">'+(nFood>0?avgP:'—')+'<span class="macro-sub">g</span></div><div class="macro-sub" style="margin:3px 0 8px;">media / '+gp+'g</div><div class="thin-bar"><div class="thin-fill" style="background:var(--lime-light);width:'+pProt+'%"></div></div></div>';
+  h+='<div class="macro-box"><div class="macro-lbl">Activity</div><div class="macro-val">'+(nAct>0?avgA:'—')+'<span class="macro-sub">kcal</span></div><div class="macro-sub" style="margin:3px 0 8px;">quemadas / día</div><div class="thin-bar"><div class="thin-fill" style="background:var(--lime-light);width:'+pAct+'%"></div></div></div>';
+  h+='<div class="macro-box"><div class="macro-lbl">Tiempo</div><div class="macro-val">'+(nAct>0?avgMin:'—')+'<span class="macro-sub">min</span></div><div class="macro-sub" style="margin:3px 0 8px;">activos / día</div><div class="thin-bar"><div class="thin-fill" style="background:var(--lime-light);width:'+pTime+'%"></div></div></div>';
   h+='</div>';
 
   el('fit-view-content').innerHTML=h;
