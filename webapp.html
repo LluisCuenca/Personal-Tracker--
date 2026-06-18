@@ -3793,12 +3793,12 @@ function renderHome(){
     var yd = new Date(); yd.setDate(yd.getDate()-1);
     var ydStr = ds(yd);
     var ptsYest = calcCoins(ydStr);
-    // 7-day average (only days with activity)
+    // 7-day average (only days with habits logged)
     var sum7 = 0, n7 = 0;
     for(var i=0;i<7;i++){
       var dd = new Date(); dd.setDate(dd.getDate()-i);
-      var dpts = calcCoins(ds(dd));
-      if(dpts !== 0){ sum7 += dpts; n7++; }
+      var ddStr = ds(dd);
+      if(habLogged(ddStr)){ sum7 += calcCoins(ddStr); n7++; }
     }
     var avg7 = n7 > 0 ? Math.round(sum7/n7) : 0;
     var todayClass = ptsToday < 0 ? ' neg' : '';
