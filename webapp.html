@@ -4319,13 +4319,12 @@ function renderFitMonth(){
   for(var i=1;i<=rem;i++)h+='<div class="mm-day mm-dim">'+i+'</div>';
   h+='</div>';
 
-  // Averages
-  var n = daysWithData || 1;
-  var avgK = daysWithData > 0 ? Math.round(totK/n) : 0;
-  var avgP = daysWithData > 0 ? Math.round(totP*10/n)/10 : 0;
-  var avgA = daysWithData > 0 ? Math.round(totA/n) : 0;
-  var avgBal = daysWithData > 0 ? Math.round(totBal/n) : 0;
-  var avgMin = daysWithData > 0 ? Math.round(totMin/n) : 0;
+  // Averages — cada métrica solo cuenta los días que la registran
+  var avgK = nFood > 0 ? Math.round(totK/nFood) : 0;
+  var avgP = nFood > 0 ? Math.round(totP*10/nFood)/10 : 0;
+  var avgA = nAct > 0 ? Math.round(totA/nAct) : 0;
+  var avgMin = nAct > 0 ? Math.round(totMin/nAct) : 0;
+  var avgBal = daysWithData > 0 ? Math.round(totBal/daysWithData) : 0;
 
   // HERO BALANCE BUBBLE — gradient
   var balLbl = avgBal > 0 ? 'Déficit medio' : avgBal < 0 ? 'Superávit medio' : 'Balance medio';
