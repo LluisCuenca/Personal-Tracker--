@@ -1777,6 +1777,46 @@ button,.tap,[role="button"],
 </style>
 </head>
 <body>
+<style>
+/* ═══ SHELL DESKTOP (≥1100px) — no afecta a móvil ni a la APK ═══ */
+#dnav{display:none;}
+@media(min-width:1100px){
+  body{display:block !important;padding:0 !important;background:var(--bg) !important;}
+  #app{margin:0 0 0 264px !important;max-width:none !important;width:auto !important;min-height:100vh !important;box-shadow:none !important;border-radius:0 !important;background:var(--bg) !important;}
+  #dnav{display:flex;flex-direction:column;position:fixed;top:0;left:0;width:264px;height:100vh;padding:24px 16px;background:var(--card);border-right:1px solid var(--border);z-index:60;}
+  .dn-brand{display:flex;align-items:center;gap:11px;font-weight:var(--font-bold);font-size:16px;letter-spacing:-.02em;color:var(--txt);padding:6px 10px 20px;}
+  .dn-brand svg{width:30px;height:30px;border-radius:9px;flex-shrink:0;}
+  .dn-list{display:flex;flex-direction:column;gap:4px;flex:1;}
+  .dn-item{display:flex;align-items:center;gap:13px;width:100%;border:none;background:transparent;color:var(--txt2);font-family:var(--font-family);font-size:15px;font-weight:var(--font-medium);letter-spacing:-.01em;padding:12px;border-radius:13px;cursor:pointer;text-align:left;transition:background .15s,color .15s;}
+  .dn-item:hover{background:var(--surf);color:var(--txt);}
+  .dn-item.active{background:rgba(186,255,57,.12);color:var(--lime-light);}
+  .dn-item svg{width:20px;height:20px;stroke:currentColor;stroke-width:1.7;fill:none;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
+  .dn-web{display:flex;align-items:center;gap:10px;color:var(--txt3);font-size:13px;font-weight:var(--font-medium);padding:12px;border-radius:13px;border:1px solid var(--border);margin-top:10px;transition:color .15s,border-color .15s;}
+  .dn-web:hover{color:var(--lime-light);border-color:var(--border2);}
+  .dn-web svg{width:16px;height:16px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+  /* Centrar y limitar el ancho del contenido; home como panel multi-columna */
+  .screen.active{display:flex !important;flex-direction:column;align-items:center;}
+  .screen.active > *{width:100%;max-width:680px;}
+  #home-cards{max-width:1000px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start;}
+  #s-planner > *, #s-kaizen > *, #s-fitness > *{max-width:780px;}
+  .hdr .av-icon[title="Inicio"]{display:none;}
+}
+</style>
+<aside id="dnav" aria-label="Navegación">
+  <a class="dn-brand" href="index.html">
+    <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect width="64" height="64" rx="14" fill="#BAFF39"/><path d="M11 32 L22 32 L27 21 L33 43 L39 32 L53 32" stroke="#0D0D0D" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+    Personal Tracker
+  </a>
+  <nav class="dn-list">
+    <button class="dn-item" data-s="s-home" onclick="goDesk('s-home')"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h4v-6h6v6h4V10"/></svg> Inicio</button>
+    <button class="dn-item" data-s="s-fitness" onclick="goDesk('s-fitness')"><svg viewBox="0 0 24 24"><path d="M5 21c0-9 6-15 15-15 0 9-6 15-15 15z"/><path d="M5 21c4-6 8-9 12-11"/></svg> Nutrición</button>
+    <button class="dn-item" data-s="s-habits" onclick="goDesk('s-habits')"><svg viewBox="0 0 24 24"><path d="M12 3c.5 3 2.5 4.5 4 6.5 1 1.4 1.5 2.8 1.5 4.5a5.5 5.5 0 11-11 0c0-1.3.4-2.4 1.2-3.4.3 1.2 1 1.7 1.6 1.9-.2-3 .7-6.2 1.7-9.5z"/></svg> Hábitos</button>
+    <button class="dn-item" data-s="s-planner" onclick="goDesk('s-planner')"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2.5"/><path d="M4 9.5h16M8.5 3v4M15.5 3v4"/></svg> Planner</button>
+    <button class="dn-item" data-s="s-kaizen" onclick="goDesk('s-kaizen')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg> Kaizen</button>
+    <button class="dn-item" data-s="s-settings" onclick="goDesk('s-settings')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1l2.1-2.1M17 7l2.1-2.1"/></svg> Ajustes</button>
+  </nav>
+  <a class="dn-web" href="index.html"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 18l-6-6 6-6"/></svg> Volver a la web</a>
+</aside>
 <div id="app">
 
 <!-- ══════════════ HOME ══════════════ -->
