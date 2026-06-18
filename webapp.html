@@ -4233,8 +4233,8 @@ function renderFitWeek(){
   var balAbs = Math.abs(avgBal);
   h+='<div class="coins-banner" style="margin-top:14px;">';
   h+='<div class="coins-row"><div>';
-  h+='<div class="coins-big'+(avgBal<0?' neg':'')+'">'+(daysWithData>0?balSign+balAbs:'—')+'<span class="coins-unit"> kcal/día</span></div>';
-  h+='<div class="coins-meta" style="display:flex;align-items:center;gap:6px;">'+(daysWithData>0?balLbl:'Balance')+'<span class="info-tip" onclick="event.stopPropagation();showInfo(\'balance\')">?</span></div>';
+  h+='<div class="coins-big'+(avgBal<0?' neg':'')+'">'+(nFood>0?balSign+balAbs:'—')+'<span class="coins-unit"> kcal/día</span></div>';
+  h+='<div class="coins-meta" style="display:flex;align-items:center;gap:6px;">'+(nFood>0?balLbl:'Balance')+'<span class="info-tip" onclick="event.stopPropagation();showInfo(\'balance\')">?</span></div>';
   h+='</div>';
   h+='<div class="coins-side" style="text-align:right;">';
   h+='<div class="ce" style="color:var(--lime-light);">'+daysWithData+'/7 días registrados</div>';
@@ -4332,8 +4332,8 @@ function renderFitMonth(){
   var balAbs = Math.abs(avgBal);
   h+='<div class="coins-banner" style="margin-top:14px;">';
   h+='<div class="coins-row"><div>';
-  h+='<div class="coins-big'+(avgBal<0?' neg':'')+'">'+(daysWithData>0?balSign+balAbs:'—')+'<span class="coins-unit"> kcal/día</span></div>';
-  h+='<div class="coins-meta" style="display:flex;align-items:center;gap:6px;">'+(daysWithData>0?balLbl:'Balance')+'<span class="info-tip" onclick="event.stopPropagation();showInfo(\'balance\')">?</span></div>';
+  h+='<div class="coins-big'+(avgBal<0?' neg':'')+'">'+(nFood>0?balSign+balAbs:'—')+'<span class="coins-unit"> kcal/día</span></div>';
+  h+='<div class="coins-meta" style="display:flex;align-items:center;gap:6px;">'+(nFood>0?balLbl:'Balance')+'<span class="info-tip" onclick="event.stopPropagation();showInfo(\'balance\')">?</span></div>';
   h+='</div>';
   h+='<div class="coins-side" style="text-align:right;">';
   h+='<div class="ce" style="color:var(--lime-light);">'+daysWithData+'/'+dim+' días</div>';
