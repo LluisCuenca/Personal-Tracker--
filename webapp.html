@@ -6521,7 +6521,7 @@ function renderHabMonth(){
     dayPts[dd]=pts;
     var ap=Math.abs(pts);
     if(ap>maxAbs) maxAbs=ap;
-    if(pts!==0){
+    if(habLogged(dstr)){
       totPts+=pts; daysWithData++;
       if(pts>best) best=pts;
       if(pts<worst) worst=pts;
@@ -6545,7 +6545,7 @@ function renderHabMonth(){
   for(var dday=1;dday<=dim;dday++){
     var dstr=Y+'-'+pad(M+1)+'-'+pad(dday);
     var pts = dayPts[dday];
-    var hasData = pts !== 0;
+    var hasData = habLogged(dstr);
     var cls='mm-day'+(dstr===td?' mm-today':'')+(hasData&&dstr!==td?' mm-has':'');
     h+='<div class="'+cls+'" onclick="jumpHabDay(\''+dstr+'\')"><span>'+dday+'</span>';
     if(hasData) h+='<span class="mm-kcal">'+(pts>0?'+':'')+pts+'</span>';
