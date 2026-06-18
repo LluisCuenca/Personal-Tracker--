@@ -4203,9 +4203,9 @@ function renderFitWeek(){
     var hasFood=dayT.foods.length>0;
     var hasAct=dayT.activities.length>0;
     var hasData=hasFood||hasAct;
-    if(hasFood){ totK+=dayT.kcal; totP+=dayT.prot; nFood++; }
+    if(hasFood){ totK+=dayT.kcal; totP+=dayT.prot; totBal += B + dayT.actK - dayT.kcal; nFood++; }
     if(hasAct){ totA+=dayT.actK; for(var j=0;j<dayT.activities.length;j++) totMin += (dayT.activities[j].dur || 0); nAct++; }
-    if(hasData){ totBal += B + dayT.actK - dayT.kcal; daysWithData++; }
+    if(hasData){ daysWithData++; }
     var isT=dstr===td;
     var pK=gc>0?Math.min(100,Math.round(dayT.kcal/gc*100)):0;
     h+='<div class="wday-col'+(isT?' today-col':'')+(hasData?' has-col':'')+'" onclick="goToDayView(\''+dstr+'\')">';
