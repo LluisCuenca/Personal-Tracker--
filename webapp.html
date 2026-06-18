@@ -1794,11 +1794,23 @@ button,.tap,[role="button"],
   .dn-web{display:flex;align-items:center;gap:10px;color:var(--txt3);font-size:13px;font-weight:var(--font-medium);padding:12px;border-radius:13px;border:1px solid var(--border);margin-top:10px;transition:color .15s,border-color .15s;}
   .dn-web:hover{color:var(--lime-light);border-color:var(--border2);}
   .dn-web svg{width:16px;height:16px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;}
-  /* Centrar y limitar el ancho del contenido; home como panel multi-columna */
+  /* Centrar contenido, columnas más anchas y todo más grande en desktop */
   .screen.active{display:flex !important;flex-direction:column;align-items:center;}
-  .screen.active > *{width:100%;max-width:680px;}
-  #home-cards{max-width:1000px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start;}
-  #s-planner > *, #s-kaizen > *, #s-fitness > *{max-width:780px;}
+  .screen.active > *{width:100%;max-width:840px;}
+  #s-home > *{max-width:1200px;}
+  #s-planner > *, #s-kaizen > *{max-width:1000px;}
+  #s-fitness > *, #s-habits > *, #s-hablib > *, #s-fitlib > *{max-width:900px;}
+  /* Home como panel de 2 columnas */
+  #home-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;align-items:start;padding-top:10px !important;}
+  /* Tipografía más grande */
+  .hdr{padding-top:40px !important;}
+  .hdr .logo{font-size:48px !important;letter-spacing:-2px;}
+  .coins-big{font-size:78px !important;letter-spacing:-3.5px;}
+  .mc-title{font-size:19px !important;}
+  /* Burbujas con más aire */
+  .mcard{padding:28px 26px !important;border-radius:28px !important;}
+  .coins-banner{padding:32px 30px !important;border-radius:28px !important;}
+  .cards{gap:20px !important;}
   .hdr .av-icon[title="Inicio"]{display:none;}
 }
 </style>
