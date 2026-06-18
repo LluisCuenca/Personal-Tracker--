@@ -4280,16 +4280,15 @@ function renderFitMonth(){
   var prev=new Date(fitMonthY,fitMonthM,0).getDate();
 
   // Tally month including totMin
-  var totK=0, totP=0, totA=0, totBal=0, totMin=0, daysWithData=0;
+  var totK=0, totP=0, totA=0, totBal=0, totMin=0, daysWithData=0, nFood=0, nAct=0;
   for(var d=1;d<=dim;d++){
     var dstr=fitMonthY+'-'+pad(fitMonthM+1)+'-'+pad(d);
     var dayT=dayTot(dstr);
-    if(dayT.foods.length||dayT.activities.length){
-      totK+=dayT.kcal; totP+=dayT.prot; totA+=dayT.actK;
-      totBal += B + dayT.actK - dayT.kcal;
-      for(var j=0;j<dayT.activities.length;j++) totMin += (dayT.activities[j].dur || 0);
-      daysWithData++;
-    }
+    var hasFood=dayT.foods.length>0;
+    var hasAct=dayT.activities.length>0;
+    if(hasFood){ totK+=dayT.kcal; totP+=dayT.prot; nFood++; }
+    if(hasAct){ totA+=dayT.actK; for(var j=0;j<dayT.activities.length;j++) totMin += (dayT.activities[j].dur || 0); nAct++; }
+    if(hasFood||hasAct){ totBal += B + dayT.actK - dayT.kcal; daysWithData++; }
   }
 
   var monthLabel = MONTHS[fitMonthM] + ' ' + fitMonthY;
