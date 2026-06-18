@@ -53,7 +53,9 @@
 
   /* NAV */
   header.nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);background:rgba(13,13,13,.6);border-bottom:1px solid var(--border)}
-  .nav-in{display:flex;align-items:center;justify-content:space-between;height:70px}
+  header.nav .nav-in{max-width:none;padding:0 44px}
+  .nav-in{display:flex;align-items:center;justify-content:space-between;height:76px}
+  @media(max-width:640px){header.nav .nav-in{padding:0 20px}}
   .brand{display:flex;align-items:center;gap:11px;font-weight:700;font-size:16px;letter-spacing:-.02em}
   .brand svg{width:30px;height:30px;border-radius:9px;flex-shrink:0}
   .nav-menu{display:flex;align-items:center;gap:30px}
@@ -62,9 +64,8 @@
   .nav-right{display:flex;align-items:center;gap:14px}
 
   /* HERO */
-  .hero{position:relative;z-index:1;text-align:center;padding:90px 0 60px;overflow:hidden}
-  .glow{position:absolute;border-radius:50%;filter:blur(90px);z-index:-1;pointer-events:none}
-  .hero .glow{top:-200px;left:50%;transform:translateX(-50%);width:1000px;height:680px;max-width:140vw;background:radial-gradient(ellipse at center,rgba(186,255,57,.16),rgba(186,255,57,0) 60%)}
+  .hero{position:relative;z-index:1;text-align:center;padding:118px 0 70px;overflow:hidden}
+  .glow{display:none !important}
   .eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:12px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--lime-light)}
   .badge{display:inline-flex;align-items:center;gap:9px;font-size:12.5px;font-weight:400;color:var(--txt2);background:rgba(255,255,255,.04);border:1px solid var(--border);padding:7px 16px;border-radius:100px;margin-bottom:30px}
   .badge .dot{width:6px;height:6px;border-radius:50%;background:var(--lime-light);box-shadow:0 0 10px var(--lime-light)}
