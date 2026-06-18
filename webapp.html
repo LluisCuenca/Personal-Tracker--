@@ -5107,6 +5107,11 @@ function calcCoins(day){
   for(var i=0;i<hd.done.length;i++){var id=hd.done[i];for(var j=0;j<S.habits.length;j++){if(S.habits[j].id===id){c+=S.habits[j].coins;break;}}}
   return c;
 }
+// ¿Se marcó algún hábito ese día? (los días sin marcar no cuentan para las medias)
+function habLogged(day){
+  var hd=S.habDays[day];
+  return !!(hd && hd.done && hd.done.length);
+}
 function calcStreak(){
   var s=0,d=new Date();
   while(s<366){var str=ds(d);if(calcCoins(str)>0)s++;else break;d.setDate(d.getDate()-1);}
